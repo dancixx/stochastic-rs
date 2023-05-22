@@ -1,7 +1,7 @@
-use stochastic_rs::noises::gn;
+use stochastic_rs::{noises::gn, processes::bm::bm};
 
 fn main() {
-    let noise = gn::gn(1000, 1);
+    let noise = bm(1000, 1);
 
     println!("{:?}", noise);
     // println!("{:?}", gn.len());
