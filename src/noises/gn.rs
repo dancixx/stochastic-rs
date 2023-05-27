@@ -1,8 +1,9 @@
+use nalgebra::RowDVector;
 use rand_distr::{Distribution, Normal};
 
-pub fn gn(n: usize, t: usize) -> Vec<f64> {
+pub fn gn(n: usize, t: usize) -> RowDVector<f64> {
     let sqrt_dt = (t as f64 / n as f64).sqrt();
-    let mut gn = vec![0.0; n - 1];
+    let mut gn = RowDVector::<f64>::zeros(n);
 
     let normal = Normal::new(0.0, 1.0).unwrap();
     let mut rng = rand::thread_rng();
@@ -23,6 +24,6 @@ mod tests {
         let n = 1000;
         let t = 1;
         let gn = gn(n, t);
-        assert_eq!(gn.len(), n - 1);
+        assert_eq!(gn.len(), n);
     }
 }

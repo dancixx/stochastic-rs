@@ -1,8 +1,9 @@
-use stochastic_rs::{noises::gn, processes::bm::bm};
+use stochastic_rs::processes::{bm, fbm};
 
 fn main() {
-    let noise = bm(1000, 1);
+    let fbm = fbm::fbm_cholesky(1000, 0.7, Some(2));
+    println!("fbm: {:?}", fbm[0]);
 
-    println!("{:?}", noise);
-    // println!("{:?}", gn.len());
+    let bm = bm::bm(10000, None);
+    println!("bm: {:?}", bm[0]);
 }
