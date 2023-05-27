@@ -24,23 +24,11 @@ fn afc_matrix_sqrt(n: usize, hurst: f64) -> DMatrix<f64> {
 
     for i in 0..n {
         for j in 0..n {
-            // use cmp and match instead of if-else
-            //  match i.cmp(&j) {
-            //     Equal => m[(i, j)] = acf_v[0],
-            //     Less => m[(i, j)] = acf_v[i - j],
-            //     Greater => continue,
-            // }
             match i.cmp(&j) {
                 Equal => m[(i, j)] = acf_v[0],
                 Greater => m[(i, j)] = acf_v[i - j],
                 Less => continue,
             }
-
-            // if i == j {
-            //     m[(i, j)] = acf_v[0];
-            // } else if j < i {
-            //     m[(i, j)] = acf_v[i - j];
-            // }
         }
     }
 
