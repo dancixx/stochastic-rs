@@ -1,7 +1,7 @@
 ![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)
 ![Crates.io](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
 
-*Stochastic-rs*
+***Stochastic-rs***
 
 A Rust library for stochastic processes
 
