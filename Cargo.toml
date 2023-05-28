@@ -8,6 +8,7 @@ homepage = "https://github.com/dancixx/stochastic-rs"
 documentation = "https://github.com/dancixx/stochastic-rs"
 repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
+keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
