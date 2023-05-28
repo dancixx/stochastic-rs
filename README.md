@@ -7,17 +7,17 @@ A Rust library for stochastic processes
 - [x] Fractional Gaussian noise
 - [x] Brownian motion
 - [x] Fractional Brownian motion
-- [] Geometric Brownian motion
-- [] Ornstein-Uhlenbeck process
-- [] Fractional Ornstein-Uhlenbeck process
-- [] Cox-Ingersoll-Ross process
-- [] Vasicek model
-- [] CIR model
-- [] Heston model
-- [] Merton model
-- [] Jump-diffusion model
-- [] Variance Gamma model
-- [] Normal Inverse Gaussian model
+- [ ] Geometric Brownian motion
+- [ ] Ornstein-Uhlenbeck process
+- [ ] Fractional Ornstein-Uhlenbeck process
+- [ ] Cox-Ingersoll-Ross process
+- [ ] Vasicek model
+- [ ] CIR model
+- [ ] Heston model
+- [ ] Merton model
+- [ ] Jump-diffusion model
+- [ ] Variance Gamma model
+- [ ] Normal Inverse Gaussian model
 
 **Usage**
 
