@@ -2,6 +2,12 @@
 name = "stochastic-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A Rust library for stochastic processes"
+homepage = "https://github.com/dancixx/stochastic-rs"
+documentation = "https://github.com/dancixx/stochastic-rs"
+repository = "https://github.com/dancixx/stochastic-rs"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
