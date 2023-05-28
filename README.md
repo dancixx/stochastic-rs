@@ -2,6 +2,9 @@
 
 A Rust library for stochastic processes
 
+![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)
+![Crates.io](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
+
 **Features**
 - [x] Gaussian noise
 - [x] Fractional Gaussian noise
