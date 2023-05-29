@@ -1,12 +1,18 @@
-![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)
+[![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)](https://crates.io/crates/stochastic-rs)
 ![Crates.io](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
 
 # Stochastic-rs
 
-A Rust library for stochastic processes
+A Rust library for stochastic processes.
 
 
-**Features**
+# Implementations
+
+- [Rust](https://github.com/dancixx/stochastic-rs)
+- [Typescript](https://github.com/dancixx/stochastic-js)
+
+
+# Features
 - [x] Gaussian noise
 - [x] Fractional Gaussian noise
 - [x] Brownian motion
@@ -23,7 +29,7 @@ A Rust library for stochastic processes
 - [ ] Variance Gamma model
 - [ ] Normal Inverse Gaussian model
 
-**Usage**
+# Usage
 
 **Gaussian noise**
 
