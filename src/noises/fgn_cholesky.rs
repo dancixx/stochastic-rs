@@ -1,5 +1,6 @@
 use nalgebra::{DMatrix, DVector, Dim, Dyn, RowDVector};
-use rand_distr::{Distribution, Normal};
+use rand::{thread_rng, Rng};
+use rand_distr::StandardNormal;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
 fn afc_vector(n: usize, hurst: f64) -> RowDVector<f64> {
@@ -19,8 +20,7 @@ fn afc_vector(n: usize, hurst: f64) -> RowDVector<f64> {
 
 fn afc_matrix_sqrt(n: usize, hurst: f64) -> DMatrix<f64> {
     let acf_v = afc_vector(n, hurst);
-    let dim = Dyn::from_usize(n);
-    let mut m = DMatrix::<f64>::zeros_generic(dim, dim);
+    let mut m = DMatrix::<f64>::zeros_generic(Dyn::from_usize(n), Dyn::from_usize(n));
 
     for i in 0..n {
         for j in 0..n {
@@ -37,13 +37,11 @@ fn afc_matrix_sqrt(n: usize, hurst: f64) -> DMatrix<f64> {
 
 pub fn fgn(n: usize, hurst: f64) -> RowDVector<f64> {
     let acf_sqrt = afc_matrix_sqrt(n, hurst);
-    let normal = Normal::new(0.0, 1.0).unwrap();
-    let mut rng = rand::thread_rng();
-    let mut noise = DVector::<f64>::zeros(n);
-
-    for i in 0..n {
-        noise[i] = normal.sample(&mut rng);
-    }
+    let noise = thread_rng()
+        .sample_iter::<f64, StandardNormal>(StandardNormal)
+        .take(n)
+        .collect();
+    let noise = DVector::<f64>::from_vec(noise);
 
     (acf_sqrt * noise).transpose() * (n as f64).powf(-hurst)
 }

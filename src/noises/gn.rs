@@ -1,18 +1,16 @@
 use nalgebra::RowDVector;
-use rand_distr::{Distribution, Normal};
+use rand::{thread_rng, Rng};
+use rand_distr::StandardNormal;
 
 pub fn gn(n: usize, t: usize) -> RowDVector<f64> {
     let sqrt_dt = (t as f64 / n as f64).sqrt();
-    let mut gn = RowDVector::<f64>::zeros(n);
+    let noise = thread_rng()
+        .sample_iter::<f64, StandardNormal>(StandardNormal)
+        .take(n)
+        .collect();
+    let gn = RowDVector::<f64>::from_vec(noise);
 
-    let normal = Normal::new(0.0, 1.0).unwrap();
-    let mut rng = rand::thread_rng();
-
-    for i in 0..(n - 1) {
-        gn[i] = sqrt_dt * normal.sample(&mut rng);
-    }
-
-    gn
+    gn * sqrt_dt
 }
 
 #[cfg(test)]
