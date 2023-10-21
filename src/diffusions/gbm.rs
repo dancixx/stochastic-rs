@@ -9,7 +9,7 @@ pub fn gbm(mu: f64, sigma: f64, n: usize, t: Option<f64>, x0: Option<f64>) -> Ve
     gbm[0] = x0.unwrap_or(100.0);
 
     for (i, dw) in gn.iter().enumerate() {
-        gbm[i + 1] = gbm[i] + mu * dt + sigma * dw;
+        gbm[i + 1] = gbm[i] + mu * gbm[i] * dt + sigma * gbm[i] * dw
     }
 
     gbm.to_vec()
@@ -36,7 +36,7 @@ pub fn fgbm(
     fgbm[0] = x0.unwrap_or(100.0);
 
     for (i, dw) in gn.iter().enumerate() {
-        fgbm[i + 1] = fgbm[i] + mu * dt + sigma * dw;
+        fgbm[i + 1] = fgbm[i] + mu * fgbm[i] * dt + sigma * fgbm[i] * dw
     }
 
     fgbm.to_vec()
