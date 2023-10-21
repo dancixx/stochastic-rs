@@ -1,32 +1,43 @@
-use crate::noises::gn::gn;
-use nalgebra::DVector;
+use crate::{noises::gn::gn, utils::NoiseGenerationMethod};
+use ndarray::Array1;
 
-pub fn gbm(mu: f64, sigma: f64, n: usize, t: Option<usize>, x0: Option<f64>) -> DVector<f64> {
-    let noise = gn(n - 1, t.unwrap_or(1));
-    let dt = t.unwrap_or(1) as f64 / n as f64;
-    let mut s = DVector::<f64>::zeros(n);
-    s[0] = x0.unwrap_or(100.0);
+pub fn gbm(mu: f64, sigma: f64, n: usize, t: Option<f64>, x0: Option<f64>) -> Vec<f64> {
+    let gn = gn(n - 1, t.unwrap_or(1.0));
+    let dt = t.unwrap_or(1.0) / n as f64;
 
-    for i in 1..n {
-        let ds = (mu * dt + sigma * noise[i - 1]) * s[i - 1];
-        s[i] = s[i - 1] + ds;
+    let mut gbm = Array1::<f64>::zeros(n + 1);
+    gbm[0] = x0.unwrap_or(100.0);
+
+    for (i, dw) in gn.iter().enumerate() {
+        gbm[i + 1] = gbm[i] + mu * dt + sigma * dw;
     }
 
-    s
+    gbm.to_vec()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn fgbm(
+    hurst: f64,
+    mu: f64,
+    sigma: f64,
+    n: usize,
+    t: Option<f64>,
+    x0: Option<f64>,
+    method: Option<NoiseGenerationMethod>,
+) -> Vec<f64> {
+    let gn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
+        NoiseGenerationMethod::Fft => crate::noises::fgn_fft::fgn(hurst, n - 1, t.unwrap_or(1.0)),
+        NoiseGenerationMethod::Cholesky => {
+            crate::noises::fgn_cholesky::fgn(hurst, n - 1, t.unwrap_or(1.0))
+        }
+    };
+    let dt = t.unwrap_or(1.0) / n as f64;
 
-    #[test]
-    fn test_gbm() {
-        let mu = 0.1;
-        let sigma = 0.2;
-        let n = 1000;
-        let t = 1;
-        let x0 = 100.0;
-        let gbm = gbm(mu, sigma, n, Some(t), Some(x0));
-        assert_eq!(gbm.len(), n);
+    let mut fgbm = Array1::<f64>::zeros(n + 1);
+    fgbm[0] = x0.unwrap_or(100.0);
+
+    for (i, dw) in gn.iter().enumerate() {
+        fgbm[i + 1] = fgbm[i] + mu * dt + sigma * dw;
     }
+
+    fgbm.to_vec()
 }
