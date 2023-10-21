@@ -19,12 +19,12 @@ A Rust library for stochastic processes.
 - [x] Geometric Brownian motion
 - [x] Ornstein-Uhlenbeck process
 - [x] Cox-Ingersoll-Ross process
-- [ ] Jacobi process
+- [x] Jacobi process
 - [x] Fractional Brownian motion
 - [x] Fractional Geometric Brownian motion
 - [x] Fractional Ornstein-Uhlenbeck process
 - [x] Fractional Cox-Ingersoll-Ross process
-- [ ] Fractional Jacobi process
+- [x] Fractional Jacobi process
 - [ ] Heston model
 - [ ] Merton model
 - [ ] Jump-diffusion model
