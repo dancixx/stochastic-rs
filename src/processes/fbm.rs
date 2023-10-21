@@ -5,8 +5,8 @@ use crate::{
 use nalgebra::RowDVector;
 
 pub fn fbm(
-    n: usize,
     hurst: f64,
+    n: usize,
     t: Option<f64>,
     method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
