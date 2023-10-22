@@ -52,8 +52,15 @@ pub mod c_interface {
 
     pub mod diffusions {
         #[no_mangle]
-        pub extern "C" fn ou(n: isize, mu: f64, sigma: f64, theta: f64, t: f64) -> *mut f64 {
-            let ou = crate::diffusions::ou::ou(mu, sigma, theta, n as usize, Some(t));
+        pub extern "C" fn ou(
+            n: isize,
+            mu: f64,
+            sigma: f64,
+            theta: f64,
+            x0: f64,
+            t: f64,
+        ) -> *mut f64 {
+            let ou = crate::diffusions::ou::ou(mu, sigma, theta, n as usize, Some(x0), Some(t));
             let ou = ou.into_boxed_slice();
             let ou = Box::into_raw(ou);
             ou as *mut f64
@@ -62,10 +69,11 @@ pub mod c_interface {
         #[no_mangle]
         pub extern "C" fn fou(
             hurst: f64,
-            n: isize,
             mu: f64,
             sigma: f64,
             theta: f64,
+            n: isize,
+            x0: f64,
             t: f64,
             method: crate::utils::NoiseGenerationMethod,
         ) -> *mut f64 {
@@ -75,6 +83,7 @@ pub mod c_interface {
                 sigma,
                 theta,
                 n as usize,
+                Some(x0),
                 Some(t),
                 Some(method),
             );
@@ -89,10 +98,12 @@ pub mod c_interface {
             mu: f64,
             sigma: f64,
             n: usize,
+            x0: f64,
             t: f64,
             use_sym: bool,
         ) -> *mut f64 {
-            let cir = crate::diffusions::cir::cir(theta, mu, sigma, n, Some(t), Some(use_sym));
+            let cir =
+                crate::diffusions::cir::cir(theta, mu, sigma, n, Some(x0), Some(t), Some(use_sym));
             let cir = cir.into_boxed_slice();
             let cir = Box::into_raw(cir);
             cir as *mut f64
@@ -105,6 +116,7 @@ pub mod c_interface {
             mu: f64,
             sigma: f64,
             n: usize,
+            x0: f64,
             t: f64,
             method: crate::utils::NoiseGenerationMethod,
             use_sym: bool,
@@ -115,6 +127,7 @@ pub mod c_interface {
                 mu,
                 sigma,
                 n,
+                Some(x0),
                 Some(t),
                 Some(method),
                 Some(use_sym),
@@ -125,8 +138,8 @@ pub mod c_interface {
         }
 
         #[no_mangle]
-        pub extern "C" fn gbm(mu: f64, sigma: f64, n: usize, t: f64, x0: f64) -> *mut f64 {
-            let gbm = crate::diffusions::gbm::gbm(mu, sigma, n, Some(t), Some(x0));
+        pub extern "C" fn gbm(mu: f64, sigma: f64, n: usize, x0: f64, t: f64) -> *mut f64 {
+            let gbm = crate::diffusions::gbm::gbm(mu, sigma, n, Some(x0), Some(t));
             let gbm = gbm.into_boxed_slice();
             let gbm = Box::into_raw(gbm);
             gbm as *mut f64
@@ -137,13 +150,13 @@ pub mod c_interface {
             hurst: f64,
             mu: f64,
             sigma: f64,
+            x0: f64,
             n: usize,
             t: f64,
-            x0: f64,
             method: crate::utils::NoiseGenerationMethod,
         ) -> *mut f64 {
             let fgbm =
-                crate::diffusions::gbm::fgbm(hurst, mu, sigma, n, Some(t), Some(x0), Some(method));
+                crate::diffusions::gbm::fgbm(hurst, mu, sigma, n, Some(x0), Some(t), Some(method));
             let fgbm = fgbm.into_boxed_slice();
             let fgbm = Box::into_raw(fgbm);
             fgbm as *mut f64

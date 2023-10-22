@@ -1,16 +1,15 @@
-use ndarray::Array1;
-use num_complex::ComplexFloat;
-
 use crate::{
     noises::{fgn_cholesky, fgn_fft, gn},
     utils::NoiseGenerationMethod,
 };
+use ndarray::Array1;
 
 pub fn cir(
     theta: f64,
     mu: f64,
     sigma: f64,
     n: usize,
+    x0: Option<f64>,
     t: Option<f64>,
     use_sym: Option<bool>,
 ) -> Vec<f64> {
@@ -18,6 +17,8 @@ pub fn cir(
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut cir = Array1::<f64>::zeros(n + 1);
+    cir[0] = x0.unwrap_or(0.0);
+
     for (i, dw) in gn.iter().enumerate() {
         let random = match use_sym.unwrap_or(false) {
             true => sigma * (cir[i]).abs().sqrt() * dw,
@@ -35,6 +36,7 @@ pub fn fcir(
     mu: f64,
     sigma: f64,
     n: usize,
+    x0: Option<f64>,
     t: Option<f64>,
     method: Option<NoiseGenerationMethod>,
     use_sym: Option<bool>,
@@ -46,6 +48,8 @@ pub fn fcir(
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut fcir = Array1::<f64>::zeros(n + 1);
+    fcir[0] = x0.unwrap_or(0.0);
+
     for (i, dw) in fgn.iter().enumerate() {
         let random = match use_sym.unwrap_or(false) {
             true => sigma * (fcir[i]).abs().sqrt() * dw,
