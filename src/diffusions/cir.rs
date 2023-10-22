@@ -28,12 +28,13 @@ pub fn cir(
             true => sigma * (cir[i]).abs().sqrt() * dw,
             false => sigma * (cir[i]).max(0.0).sqrt() * dw,
         };
-        cir[i + 1] = theta * (mu - cir[i]) * dt + random
+        cir[i + 1] = cir[i] + theta * (mu - cir[i]) * dt + random
     }
 
     cir.to_vec()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn fcir(
     hurst: f64,
     theta: f64,
@@ -67,7 +68,7 @@ pub fn fcir(
             true => sigma * (fcir[i]).abs().sqrt() * dw,
             false => sigma * (fcir[i]).max(0.0) * dw,
         };
-        fcir[i + 1] = theta * (mu - fcir[i]) * dt + random
+        fcir[i + 1] = fcir[i] + theta * (mu - fcir[i]) * dt + random
     }
 
     fcir.to_vec()

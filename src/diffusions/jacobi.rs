@@ -42,6 +42,7 @@ pub fn jacobi(
     jacobi.to_vec()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn fjacobi(
     hurst: f64,
     alpha: f64,

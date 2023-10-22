@@ -18,6 +18,7 @@ pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<
     ou.to_vec()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn fou(
     hurst: f64,
     mu: f64,
