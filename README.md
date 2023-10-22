@@ -5,7 +5,7 @@
 
 A Rust library for stochastic processes and models.
 
-Minimal documentation is available at [docs.rs](https://docs.rs/stochastic-rs/).
+Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 
 
 # Implementations
