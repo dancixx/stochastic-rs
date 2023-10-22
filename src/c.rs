@@ -2,7 +2,7 @@ pub mod c_interface {
     pub mod noises {
         #[no_mangle]
         pub extern "C" fn gn(n: usize, t: f64) -> *mut f64 {
-            let gn = crate::noises::gn::gn(n, t);
+            let gn = crate::noises::gn::gn(n, Some(t));
             let gn = gn.into_boxed_slice();
             let gn = Box::into_raw(gn);
             gn as *mut f64
@@ -53,7 +53,7 @@ pub mod c_interface {
     pub mod diffusions {
         #[no_mangle]
         pub extern "C" fn ou(n: isize, mu: f64, sigma: f64, theta: f64, t: f64) -> *mut f64 {
-            let ou = crate::diffusions::ou::ou(n as usize, mu, sigma, theta, Some(t));
+            let ou = crate::diffusions::ou::ou(mu, sigma, theta, n as usize, Some(t));
             let ou = ou.into_boxed_slice();
             let ou = Box::into_raw(ou);
             ou as *mut f64
@@ -71,10 +71,10 @@ pub mod c_interface {
         ) -> *mut f64 {
             let fou = crate::diffusions::ou::fou(
                 hurst,
-                n as usize,
                 mu,
                 sigma,
                 theta,
+                n as usize,
                 Some(t),
                 Some(method),
             );

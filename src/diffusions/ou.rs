@@ -4,13 +4,13 @@ use crate::{
 };
 use ndarray::Array1;
 
-pub fn ou(n: usize, mu: f64, sigma: f64, theta: f64, t: Option<f64>) -> Vec<f64> {
-    let gn = gn::gn(n - 1, t.unwrap_or(1.0));
+pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, t: Option<f64>) -> Vec<f64> {
+    let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut ou = Array1::<f64>::zeros(n + 1);
     for (i, dw) in gn.iter().enumerate() {
-        ou[i + 1] = ou[i] + theta * (mu - ou[i]) * dt + mu + sigma * dw
+        ou[i + 1] = ou[i] + theta * (mu - ou[i]) * dt + sigma * dw
     }
 
     ou.to_vec()
@@ -18,10 +18,10 @@ pub fn ou(n: usize, mu: f64, sigma: f64, theta: f64, t: Option<f64>) -> Vec<f64>
 
 pub fn fou(
     hurst: f64,
-    n: usize,
     mu: f64,
     sigma: f64,
     theta: f64,
+    n: usize,
     t: Option<f64>,
     method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
@@ -33,7 +33,7 @@ pub fn fou(
 
     let mut fou = Array1::<f64>::zeros(n + 1);
     for (i, dw) in fgn.iter().enumerate() {
-        fou[i + 1] = fou[i] + theta * (mu - fou[i]) * dt + mu + sigma * dw
+        fou[i + 1] = fou[i] + theta * (mu - fou[i]) * dt + sigma * dw
     }
 
     fou.to_vec()

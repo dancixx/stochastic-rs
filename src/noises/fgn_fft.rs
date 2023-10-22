@@ -20,6 +20,7 @@ pub fn fgn(hurst: f64, n: usize, t: f64) -> Vec<f64> {
 
     let r = concatenate(
         Axis(0),
+        #[allow(clippy::reversed_empty_ranges)]
         &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
     )
     .unwrap();

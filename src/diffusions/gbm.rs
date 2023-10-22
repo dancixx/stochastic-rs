@@ -2,7 +2,7 @@ use crate::{noises::gn::gn, utils::NoiseGenerationMethod};
 use ndarray::Array1;
 
 pub fn gbm(mu: f64, sigma: f64, n: usize, t: Option<f64>, x0: Option<f64>) -> Vec<f64> {
-    let gn = gn(n - 1, t.unwrap_or(1.0));
+    let gn = gn(n - 1, Some(t.unwrap_or(1.0)));
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut gbm = Array1::<f64>::zeros(n + 1);
