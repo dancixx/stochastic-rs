@@ -5,11 +5,20 @@ use crate::{
     utils::NoiseGenerationMethod,
 };
 
-pub fn jacobi(alpha: f64, beta: f64, sigma: f64, n: usize, t: Option<f64>) -> Vec<f64> {
+pub fn jacobi(
+    alpha: f64,
+    beta: f64,
+    sigma: f64,
+    n: usize,
+    x0: Option<f64>,
+    t: Option<f64>,
+) -> Vec<f64> {
     let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut jacobi = Array1::<f64>::zeros(n + 1);
+    jacobi[0] = x0.unwrap_or(0.0);
+
     for (i, dw) in gn.iter().enumerate() {
         jacobi[i + 1] = jacobi[i]
             + (alpha - beta * jacobi[i]) * dt
@@ -25,6 +34,7 @@ pub fn fjacobi(
     beta: f64,
     sigma: f64,
     n: usize,
+    x0: Option<f64>,
     t: Option<f64>,
     method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
@@ -35,6 +45,8 @@ pub fn fjacobi(
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut fjacobi = Array1::<f64>::zeros(n + 1);
+    fjacobi[0] = x0.unwrap_or(0.0);
+
     for (i, dw) in fgn.iter().enumerate() {
         fjacobi[i + 1] =
             fjacobi[i] + theta * (beta - fjacobi[i]) * dt + sigma * fjacobi[i].sqrt() * dw

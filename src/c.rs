@@ -163,8 +163,16 @@ pub mod c_interface {
         }
 
         #[no_mangle]
-        pub extern "C" fn jacobi(alpha: f64, beta: f64, sigma: f64, n: usize, t: f64) -> *mut f64 {
-            let jacobi = crate::diffusions::jacobi::jacobi(alpha, beta, sigma, n, Some(t));
+        pub extern "C" fn jacobi(
+            alpha: f64,
+            beta: f64,
+            sigma: f64,
+            n: usize,
+            x0: f64,
+            t: f64,
+        ) -> *mut f64 {
+            let jacobi =
+                crate::diffusions::jacobi::jacobi(alpha, beta, sigma, n, Some(x0), Some(t));
             let jacobi = jacobi.into_boxed_slice();
             let jacobi = Box::into_raw(jacobi);
             jacobi as *mut f64
@@ -177,6 +185,7 @@ pub mod c_interface {
             beta: f64,
             sigma: f64,
             n: usize,
+            x0: f64,
             t: f64,
             method: crate::utils::NoiseGenerationMethod,
         ) -> *mut f64 {
@@ -186,6 +195,7 @@ pub mod c_interface {
                 beta,
                 sigma,
                 n,
+                Some(x0),
                 Some(t),
                 Some(method),
             );
