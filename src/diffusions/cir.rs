@@ -11,7 +11,7 @@ pub fn cir(theta: f64, beta: f64, sigma: f64, n: usize, t: Option<f64>) -> Vec<f
 
     let mut cir = Array1::<f64>::zeros(n + 1);
     for (i, dw) in gn.iter().enumerate() {
-        cir[i + 1] = theta * (beta - cir[i]) * dt + sigma * cir[i].sqrt() * dw
+        cir[i + 1] = theta * (beta - cir[i]) * dt + sigma * cir[i].sqrt().max(0.0) * dw
     }
 
     cir.to_vec()
@@ -34,7 +34,7 @@ pub fn fcir(
 
     let mut fcir = Array1::<f64>::zeros(n + 1);
     for (i, dw) in fgn.iter().enumerate() {
-        fcir[i + 1] = theta * (beta - fcir[i]) * dt + sigma * fcir[i].sqrt() * dw
+        fcir[i + 1] = theta * (beta - fcir[i]) * dt + sigma * fcir[i].sqrt().max(0.0) * dw
     }
 
     fcir.to_vec()
