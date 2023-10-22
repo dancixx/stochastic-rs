@@ -3,7 +3,7 @@
 
 # Stochastic-rs
 
-A Rust library for stochastic processes.
+A Rust library for stochastic processes and models.
 
 
 # Implementations
@@ -25,53 +25,28 @@ A Rust library for stochastic processes.
 - [x] Fractional Ornstein-Uhlenbeck process
 - [x] Fractional Cox-Ingersoll-Ross process
 - [x] Fractional Jacobi process
-- [ ] Heston model
+- [ ] Heston model & Rough Heston model
+- [ ] Bergomi model & Rough Bergomi model
 - [ ] Merton model
+- [ ] Bates model
+- [ ] SABR model
+- [ ] Hull-White model
+- [ ] Barndorff-Nielsen & Shephard model
+- [ ] Alpha-stable models
+- [ ] Levy models
+- [ ] CGMY model
+- [ ] CIR model
+- [ ] Multi-factor CIR model
+- [ ] BGM model
+- [ ] Wu-Zhang model
+- [ ] Affine model
+- [ ] Heath-Jarrow-Morton model & Multi-factor Heath-Jarrow-Morton model
+- [ ] Vasicek model
+- [ ] Duffie-Kan model
 - [ ] Jump-diffusion model
 - [ ] Variance Gamma model
 - [ ] Normal Inverse Gaussian model
 
 # Usage
 
-**Gaussian noise**
-
-```rust
-use stochastic_rs::noises::gn;
-
-let n = 1000;
-let noise = gaussian(n);
-println!("{:?}", noise);
-```
-
-
-**Fractional Gaussian noise**
-```rust
-use stochastic_rs::noises::fgn;
-
-let n = 1000;
-let hurst = 0.7;
-let noise = fgn(n, hurst);
-println!("{:?}", noise);
-```
-
-**Brownian motion**
-```rust
-use stochastic_rs::processes::bm;
-
-let n = 1000;
-let t = 1;
-let bm = bm(n, t);
-println!("{:?}", bm);
-```
-
-**Fractional Brownian motion**
-```rust
-// using cholesky decomposition
-use stochastic_rs::processes::fbm_cholesky;
-
-let n = 1000;
-let hurst = 0.7;
-let t = 1;
-let fbm = fbm_cholesky(n, hurst, t);
-println!("{:?}", fbm);
-```
+Minimal ocumentation is available at [docs.rs](https://docs.rs/stochastic-rs/).
