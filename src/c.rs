@@ -84,8 +84,15 @@ pub mod c_interface {
         }
 
         #[no_mangle]
-        pub extern "C" fn cir(theta: f64, mu: f64, sigma: f64, n: usize, t: f64) -> *mut f64 {
-            let cir = crate::diffusions::cir::cir(theta, mu, sigma, n, Some(t));
+        pub extern "C" fn cir(
+            theta: f64,
+            mu: f64,
+            sigma: f64,
+            n: usize,
+            t: f64,
+            use_sym: bool,
+        ) -> *mut f64 {
+            let cir = crate::diffusions::cir::cir(theta, mu, sigma, n, Some(t), Some(use_sym));
             let cir = cir.into_boxed_slice();
             let cir = Box::into_raw(cir);
             cir as *mut f64
@@ -100,9 +107,18 @@ pub mod c_interface {
             n: usize,
             t: f64,
             method: crate::utils::NoiseGenerationMethod,
+            use_sym: bool,
         ) -> *mut f64 {
-            let fcir =
-                crate::diffusions::cir::fcir(hurst, theta, mu, sigma, n, Some(t), Some(method));
+            let fcir = crate::diffusions::cir::fcir(
+                hurst,
+                theta,
+                mu,
+                sigma,
+                n,
+                Some(t),
+                Some(method),
+                Some(use_sym),
+            );
             let fcir = fcir.into_boxed_slice();
             let fcir = Box::into_raw(fcir);
             fcir as *mut f64
