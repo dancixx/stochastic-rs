@@ -5,13 +5,13 @@ use crate::{
     utils::NoiseGenerationMethod,
 };
 
-pub fn cir(theta: f64, beta: f64, sigma: f64, n: usize, t: Option<f64>) -> Vec<f64> {
+pub fn cir(theta: f64, mu: f64, sigma: f64, n: usize, t: Option<f64>) -> Vec<f64> {
     let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
     let dt = t.unwrap_or(1.0) / n as f64;
 
     let mut cir = Array1::<f64>::zeros(n + 1);
     for (i, dw) in gn.iter().enumerate() {
-        cir[i + 1] = theta * (beta - cir[i]) * dt + sigma * cir[i].sqrt().max(0.0) * dw
+        cir[i + 1] = theta * (mu - cir[i]) * dt + sigma * cir[i].max(0.0).sqrt() * dw
     }
 
     cir.to_vec()
@@ -20,7 +20,7 @@ pub fn cir(theta: f64, beta: f64, sigma: f64, n: usize, t: Option<f64>) -> Vec<f
 pub fn fcir(
     hurst: f64,
     theta: f64,
-    beta: f64,
+    mu: f64,
     sigma: f64,
     n: usize,
     t: Option<f64>,
@@ -34,7 +34,7 @@ pub fn fcir(
 
     let mut fcir = Array1::<f64>::zeros(n + 1);
     for (i, dw) in fgn.iter().enumerate() {
-        fcir[i + 1] = theta * (beta - fcir[i]) * dt + sigma * fcir[i].sqrt().max(0.0) * dw
+        fcir[i + 1] = theta * (mu - fcir[i]) * dt + sigma * fcir[i].max(0.0).sqrt() * dw
     }
 
     fcir.to_vec()
