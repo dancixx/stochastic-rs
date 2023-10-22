@@ -4,6 +4,10 @@ use rand_distr::StandardNormal;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
 pub fn fgn(hurst: f64, n: usize, t: f64) -> Vec<f64> {
+    if !(0.0..1.0).contains(&hurst) {
+        panic!("Hurst parameter must be in (0, 1)")
+    }
+
     let acf_sqrt = afc_matrix_sqrt(n, hurst);
     let noise = thread_rng()
         .sample_iter::<f64, StandardNormal>(StandardNormal)

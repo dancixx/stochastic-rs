@@ -2,7 +2,8 @@ use plotly::{Plot, Scatter};
 use stochastic_rs::diffusions::{
     cir,
     gbm::{self, gbm},
-    jacobi, ou,
+    jacobi::{self, jacobi},
+    ou,
 };
 
 fn main() {
@@ -49,25 +50,25 @@ fn main() {
     // plot.show();
 
     // GBM
-    let mut plot = Plot::new();
-    let path = || gbm::gbm(1.0, 1.8, 5000, Some(1.0), None);
+    // let mut plot = Plot::new();
+    // let path = || gbm::gbm(0.1, 0.3, 200, None, None);
 
-    plot.add_trace(Scatter::new((0..5000).collect::<Vec<usize>>(), path()));
-    plot.show();
+    // plot.add_trace(Scatter::new((0..200).collect::<Vec<usize>>(), path()));
+    // plot.show();
 
     // FGBM
     // let mut plot = Plot::new();
-    // let path = || ou::fou(0.7, 1.0, 1.2, 0.2, 1000, None, None, None);
+    // let path = || gbm::fgbm(0.2, 0.1, 0.3, 1000, None, None, None);
 
     // plot.add_trace(Scatter::new((0..1000).collect::<Vec<usize>>(), path()));
     // plot.show();
 
     // Jacobi
-    // let mut plot = Plot::new();
-    // let path = || ou::fou(0.7, 1.0, 1.2, 0.2, 1000, None, None, None);
+    let mut plot = Plot::new();
+    let path = || jacobi::jacobi(1.0, 1.2, 0.2, 1000, None, None);
 
-    // plot.add_trace(Scatter::new((0..1000).collect::<Vec<usize>>(), path()));
-    // plot.show();
+    plot.add_trace(Scatter::new((0..1000).collect::<Vec<usize>>(), path()));
+    plot.show();
 
     // FJacobi
     // let mut plot = Plot::new();

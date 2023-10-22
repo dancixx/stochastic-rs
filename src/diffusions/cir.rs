@@ -13,6 +13,10 @@ pub fn cir(
     t: Option<f64>,
     use_sym: Option<bool>,
 ) -> Vec<f64> {
+    if 2.0 * theta * mu < sigma.powi(2) {
+        panic!("2 * theta * mu < sigma^2")
+    }
+
     let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
     let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -41,6 +45,14 @@ pub fn fcir(
     method: Option<NoiseGenerationMethod>,
     use_sym: Option<bool>,
 ) -> Vec<f64> {
+    if !(0.0..1.0).contains(&hurst) {
+        panic!("Hurst parameter must be in (0, 1)")
+    }
+
+    if 2.0 * theta * mu < sigma.powi(2) {
+        panic!("2 * theta * mu < sigma^2")
+    }
+
     let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
         NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t.unwrap_or(1.0)),
         NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t.unwrap_or(1.0)),

@@ -28,6 +28,10 @@ pub fn fou(
     t: Option<f64>,
     method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
+    if !(0.0..1.0).contains(&hurst) {
+        panic!("Hurst parameter must be in (0, 1)")
+    }
+
     let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
         NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t.unwrap_or(1.0)),
         NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t.unwrap_or(1.0)),
