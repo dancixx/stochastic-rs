@@ -5,6 +5,8 @@
 
 A Rust library for stochastic processes and models.
 
+Minimal documentation is available at [docs.rs](https://docs.rs/stochastic-rs/).
+
 
 # Implementations
 
@@ -47,6 +49,7 @@ A Rust library for stochastic processes and models.
 - [ ] Variance Gamma model
 - [ ] Normal Inverse Gaussian model
 
-# Usage
-
-Minimal ocumentation is available at [docs.rs](https://docs.rs/stochastic-rs/).
+## Future work
+- [ ] Add more tests
+- [ ] Add more examples
+- [ ] Full documentation
