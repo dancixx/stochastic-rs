@@ -4,6 +4,7 @@ use crate::{
 };
 use ndarray::Array2;
 
+// TODO: under development
 pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
     if !(-1.0..=1.0).contains(&rho) {
         panic!("Correlation coefficient must be in [-1, 1]");
@@ -45,8 +46,8 @@ pub fn correlated_fbms(
         NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn,
     };
 
-    let fgn1 = gen(hurst1, n - 1, t.unwrap_or(1.0));
-    let fgn2 = gen(hurst2, n - 1, t.unwrap_or(1.0));
+    let fgn1 = gen(hurst1, n - 1, t);
+    let fgn2 = gen(hurst2, n - 1, t);
 
     for i in 1..n {
         fbms[[i, 0]] = fbms[[i - 1, 0]] + fgn1[i - 1];

@@ -10,7 +10,7 @@ pub mod c_interface {
 
         #[no_mangle]
         pub extern "C" fn fgn_fft(hurst: f64, n: usize, t: f64) -> *mut f64 {
-            let fgn = crate::noises::fgn_fft::fgn(hurst, n, t);
+            let fgn = crate::noises::fgn_fft::fgn(hurst, n, Some(t));
             let fgn = fgn.into_boxed_slice();
             let fgn = Box::into_raw(fgn);
             fgn as *mut f64
@@ -18,7 +18,7 @@ pub mod c_interface {
 
         #[no_mangle]
         pub extern "C" fn fgn_cholesky(hurst: f64, n: usize, t: f64) -> *mut f64 {
-            let fgn = crate::noises::fgn_cholesky::fgn(hurst, n, t);
+            let fgn = crate::noises::fgn_cholesky::fgn(hurst, n, Some(t));
             let fgn = fgn.into_boxed_slice();
             let fgn = Box::into_raw(fgn);
             fgn as *mut f64

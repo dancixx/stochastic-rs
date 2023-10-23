@@ -29,10 +29,8 @@ pub fn fgbm(
     }
 
     let gn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-        NoiseGenerationMethod::Fft => crate::noises::fgn_fft::fgn(hurst, n - 1, t.unwrap_or(1.0)),
-        NoiseGenerationMethod::Cholesky => {
-            crate::noises::fgn_cholesky::fgn(hurst, n - 1, t.unwrap_or(1.0))
-        }
+        NoiseGenerationMethod::Fft => crate::noises::fgn_fft::fgn(hurst, n - 1, t),
+        NoiseGenerationMethod::Cholesky => crate::noises::fgn_cholesky::fgn(hurst, n - 1, t),
     };
     let dt = t.unwrap_or(1.0) / n as f64;
 

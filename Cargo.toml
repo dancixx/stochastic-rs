@@ -18,6 +18,7 @@ ndrustfft = "0.4.1"
 num-complex = "0.4.4"
 rand = "0.8.5"
 rand_distr = "0.4.3"
+rayon = "1.8.0"
 rustfft = "6.1.0"
 
 [dev-dependencies]

@@ -15,8 +15,8 @@ pub fn fbm(
     }
 
     let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-        NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t.unwrap_or(1.0)),
-        NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t.unwrap_or(1.0)),
+        NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t),
+        NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t),
     };
     let mut fbm = Array1::<f64>::zeros(n);
 

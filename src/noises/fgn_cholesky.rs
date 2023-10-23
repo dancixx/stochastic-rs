@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use rand_distr::StandardNormal;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-pub fn fgn(hurst: f64, n: usize, t: f64) -> Vec<f64> {
+pub fn fgn(hurst: f64, n: usize, t: Option<f64>) -> Vec<f64> {
     if !(0.0..1.0).contains(&hurst) {
         panic!("Hurst parameter must be in (0, 1)")
     }
@@ -15,7 +15,7 @@ pub fn fgn(hurst: f64, n: usize, t: f64) -> Vec<f64> {
         .collect();
     let noise = DVector::<f64>::from_vec(noise);
 
-    ((acf_sqrt * noise).transpose() * (n as f64).powf(-hurst) * t.powf(hurst))
+    ((acf_sqrt * noise).transpose() * (n as f64).powf(-hurst) * t.unwrap_or(1.0).powf(hurst))
         .data
         .as_vec()
         .clone()
