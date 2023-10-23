@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2, Shape};
+use ndarray::Array1;
 
 use crate::processes::correlated;
 
