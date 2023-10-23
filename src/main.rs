@@ -1,10 +1,12 @@
-// use plotly::{Plot, Scatter};
-// use stochastic_rs::diffusions::{
-//     cir,
-//     gbm::{self, gbm},
-//     jacobi::{self, jacobi},
-//     ou,
-// };
+use stochastic_rs::{
+    diffusions::{
+        cir,
+        gbm::{self, gbm},
+        jacobi::{self, jacobi},
+        ou,
+    },
+    jumps::vg,
+};
 
 fn main() {
     // CIR
@@ -75,4 +77,6 @@ fn main() {
 
     // plot.add_trace(Scatter::new((0..1000).collect::<Vec<usize>>(), path()));
     // plot.show();
+
+    // Variance Gamma
 }

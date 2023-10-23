@@ -1,5 +1,7 @@
 pub mod c;
 pub mod diffusions;
+// add to c bindings
+pub mod jumps;
 pub mod models;
 pub mod noises;
 pub mod processes;
