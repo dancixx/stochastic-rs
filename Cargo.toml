@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs"
-version = "0.2.5"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
@@ -24,7 +24,6 @@ indicatif = "0.17.7"
 plotly = "0.8.4"
 
 [dev-dependencies]
-
 
 
 [lib]
