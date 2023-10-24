@@ -1,14 +1,13 @@
 use crate::{
-  noises::{
-    fgn_cholesky::{self, FgnCholesky},
-    fgn_fft::{self, FgnFft},
-  },
+  noises::fgn::{FgnCholesky, FgnFft},
   utils::{Generator, NoiseGenerationMethod},
 };
 use ndarray::Array1;
 use rayon::prelude::*;
 
 pub struct Fbm {
+  #[allow(dead_code)]
+  hurst: f64,
   n: usize,
   m: Option<usize>,
   method: NoiseGenerationMethod,
@@ -30,6 +29,7 @@ impl Fbm {
 
     match method.unwrap_or(NoiseGenerationMethod::Fft) {
       NoiseGenerationMethod::Fft => Self {
+        hurst,
         n,
         m,
         method: NoiseGenerationMethod::Fft,
@@ -37,6 +37,7 @@ impl Fbm {
         fgn_cholesky: None,
       },
       NoiseGenerationMethod::Cholesky => Self {
+        hurst,
         n,
         m,
         method: NoiseGenerationMethod::Cholesky,
@@ -73,27 +74,4 @@ impl Generator for Fbm {
       .map(|_| self.sample())
       .collect()
   }
-}
-
-pub fn fbm(
-  hurst: f64,
-  n: usize,
-  t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
-) -> Vec<f64> {
-  if !(0.0..1.0).contains(&hurst) {
-    panic!("Hurst parameter must be in (0, 1)")
-  }
-
-  let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-    NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t),
-    NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t),
-  };
-  let mut fbm = Array1::<f64>::zeros(n);
-
-  for i in 1..n {
-    fbm[i] = fbm[i - 1] + fgn[i - 1];
-  }
-
-  fbm.to_vec()
 }

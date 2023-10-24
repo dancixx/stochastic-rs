@@ -1,8 +1,8 @@
 use ndarray::Array1;
 
 use crate::{
-  noises::{fgn_cholesky, fgn_fft, gn},
-  utils::NoiseGenerationMethod,
+  noises::{fgn::FgnFft, gn},
+  utils::Generator,
 };
 
 pub fn jacobi(
@@ -51,7 +51,6 @@ pub fn fjacobi(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
@@ -65,10 +64,7 @@ pub fn fjacobi(
     panic!("alpha must be less than beta")
   }
 
-  let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-    NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t),
-    NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t),
-  };
+  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut fjacobi = Array1::<f64>::zeros(n + 1);

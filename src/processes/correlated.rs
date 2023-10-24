@@ -1,6 +1,6 @@
 use crate::{
-  noises::{fgn_cholesky, fgn_fft, gn},
-  utils::NoiseGenerationMethod,
+  noises::{fgn::FgnFft, gn},
+  utils::Generator,
 };
 use ndarray::Array2;
 
@@ -30,7 +30,6 @@ pub fn correlated_fbms(
   rho: f64,
   n: usize,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<Vec<f64>> {
   if !(-1.0..=1.0).contains(&rho) || !(0.0..1.0).contains(&hurst1) || !(0.0..1.0).contains(&hurst2)
   {
@@ -39,13 +38,8 @@ pub fn correlated_fbms(
 
   let mut fbms = Array2::<f64>::zeros((n, 2));
 
-  let gen = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-    NoiseGenerationMethod::Fft => fgn_fft::fgn,
-    NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn,
-  };
-
-  let fgn1 = gen(hurst1, n - 1, t);
-  let fgn2 = gen(hurst2, n - 1, t);
+  let fgn1 = FgnFft::new(hurst1, n - 1, t, None).sample();
+  let fgn2 = FgnFft::new(hurst2, n - 1, t, None).sample();
 
   for i in 1..n {
     fbms[[i, 0]] = fbms[[i - 1, 0]] + fgn1[i - 1];

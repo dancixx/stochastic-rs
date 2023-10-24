@@ -1,6 +1,6 @@
 use crate::{
-  noises::{fgn_cholesky, fgn_fft, gn},
-  utils::NoiseGenerationMethod,
+  noises::{fgn::FgnFft, gn},
+  utils::Generator,
 };
 use ndarray::Array1;
 
@@ -43,7 +43,6 @@ pub fn fcir(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
   use_sym: Option<bool>,
 ) -> Vec<f64> {
   if !(0.0..1.0).contains(&hurst) {
@@ -54,10 +53,7 @@ pub fn fcir(
     panic!("2 * theta * mu < sigma^2")
   }
 
-  let fgn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-    NoiseGenerationMethod::Fft => fgn_fft::fgn(hurst, n, t),
-    NoiseGenerationMethod::Cholesky => fgn_cholesky::fgn(hurst, n - 1, t),
-  };
+  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut fcir = Array1::<f64>::zeros(n + 1);

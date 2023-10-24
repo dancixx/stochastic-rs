@@ -1,4 +1,7 @@
-use crate::{noises::gn::gn, utils::NoiseGenerationMethod};
+use crate::{
+  noises::{fgn::FgnFft, gn::gn},
+  utils::Generator,
+};
 use ndarray::Array1;
 
 pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
@@ -22,22 +25,18 @@ pub fn fgbm(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
 
-  let gn = match method.unwrap_or(NoiseGenerationMethod::Fft) {
-    NoiseGenerationMethod::Fft => crate::noises::fgn_fft::fgn(hurst, n - 1, t),
-    NoiseGenerationMethod::Cholesky => crate::noises::fgn_cholesky::fgn(hurst, n - 1, t),
-  };
+  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut fgbm = Array1::<f64>::zeros(n + 1);
   fgbm[0] = x0.unwrap_or(100.0);
 
-  for (i, dw) in gn.iter().enumerate() {
+  for (i, dw) in fgn.iter().enumerate() {
     fgbm[i + 1] = fgbm[i] + mu * fgbm[i] * dt + sigma * fgbm[i] * dw
   }
 

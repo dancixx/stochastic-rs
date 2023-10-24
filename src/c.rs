@@ -1,5 +1,7 @@
 pub mod c_interface {
   pub mod noises {
+    use crate::utils::Generator;
+
     #[no_mangle]
     pub extern "C" fn gn(n: usize, t: f64) -> *mut f64 {
       let gn = crate::noises::gn::gn(n, Some(t));
@@ -10,7 +12,7 @@ pub mod c_interface {
 
     #[no_mangle]
     pub extern "C" fn fgn_fft(hurst: f64, n: usize, t: f64) -> *mut f64 {
-      let fgn = crate::noises::fgn_fft::fgn(hurst, n, Some(t));
+      let fgn = crate::noises::fgn::FgnFft::new(hurst, n, Some(t), None).sample();
       let fgn = fgn.into_boxed_slice();
       let fgn = Box::into_raw(fgn);
       fgn as *mut f64
@@ -18,7 +20,7 @@ pub mod c_interface {
 
     #[no_mangle]
     pub extern "C" fn fgn_cholesky(hurst: f64, n: usize, t: f64) -> *mut f64 {
-      let fgn = crate::noises::fgn_cholesky::fgn(hurst, n, Some(t));
+      let fgn = crate::noises::fgn::FgnCholesky::new(hurst, n, Some(t), None).sample();
       let fgn = fgn.into_boxed_slice();
       let fgn = Box::into_raw(fgn);
       fgn as *mut f64
@@ -26,7 +28,7 @@ pub mod c_interface {
   }
 
   pub mod processes {
-    use crate::utils::NoiseGenerationMethod;
+    use crate::utils::Generator;
 
     #[no_mangle]
     pub extern "C" fn bm(n: isize, t: f64) -> *mut f64 {
@@ -37,8 +39,8 @@ pub mod c_interface {
     }
 
     #[no_mangle]
-    pub extern "C" fn fbm(hurst: f64, n: usize, t: f64, method: NoiseGenerationMethod) -> *mut f64 {
-      let fbm = crate::processes::fbm::fbm(hurst, n, Some(t), Some(method));
+    pub extern "C" fn fbm(hurst: f64, n: isize, t: f64) -> *mut f64 {
+      let fbm = crate::processes::fbm::Fbm::new(hurst, n as usize, Some(t), None, None).sample();
       let fbm = fbm.into_boxed_slice();
       let fbm = Box::into_raw(fbm);
       fbm as *mut f64
@@ -63,18 +65,8 @@ pub mod c_interface {
       n: isize,
       x0: f64,
       t: f64,
-      method: crate::utils::NoiseGenerationMethod,
     ) -> *mut f64 {
-      let fou = crate::diffusions::ou::fou(
-        hurst,
-        mu,
-        sigma,
-        theta,
-        n as usize,
-        Some(x0),
-        Some(t),
-        Some(method),
-      );
+      let fou = crate::diffusions::ou::fou(hurst, mu, sigma, theta, n as usize, Some(x0), Some(t));
       let fou = fou.into_boxed_slice();
       let fou = Box::into_raw(fou);
       fou as *mut f64
@@ -105,20 +97,10 @@ pub mod c_interface {
       n: usize,
       x0: f64,
       t: f64,
-      method: crate::utils::NoiseGenerationMethod,
       use_sym: bool,
     ) -> *mut f64 {
-      let fcir = crate::diffusions::cir::fcir(
-        hurst,
-        theta,
-        mu,
-        sigma,
-        n,
-        Some(x0),
-        Some(t),
-        Some(method),
-        Some(use_sym),
-      );
+      let fcir =
+        crate::diffusions::cir::fcir(hurst, theta, mu, sigma, n, Some(x0), Some(t), Some(use_sym));
       let fcir = fcir.into_boxed_slice();
       let fcir = Box::into_raw(fcir);
       fcir as *mut f64
@@ -133,16 +115,8 @@ pub mod c_interface {
     }
 
     #[no_mangle]
-    pub extern "C" fn fgbm(
-      hurst: f64,
-      mu: f64,
-      sigma: f64,
-      x0: f64,
-      n: usize,
-      t: f64,
-      method: crate::utils::NoiseGenerationMethod,
-    ) -> *mut f64 {
-      let fgbm = crate::diffusions::gbm::fgbm(hurst, mu, sigma, n, Some(x0), Some(t), Some(method));
+    pub extern "C" fn fgbm(hurst: f64, mu: f64, sigma: f64, x0: f64, n: usize, t: f64) -> *mut f64 {
+      let fgbm = crate::diffusions::gbm::fgbm(hurst, mu, sigma, n, Some(x0), Some(t));
       let fgbm = fgbm.into_boxed_slice();
       let fgbm = Box::into_raw(fgbm);
       fgbm as *mut f64
@@ -172,18 +146,9 @@ pub mod c_interface {
       n: usize,
       x0: f64,
       t: f64,
-      method: crate::utils::NoiseGenerationMethod,
     ) -> *mut f64 {
-      let fjacobi = crate::diffusions::jacobi::fjacobi(
-        hurst,
-        alpha,
-        beta,
-        sigma,
-        n,
-        Some(x0),
-        Some(t),
-        Some(method),
-      );
+      let fjacobi =
+        crate::diffusions::jacobi::fjacobi(hurst, alpha, beta, sigma, n, Some(x0), Some(t));
       let fjacobi = fjacobi.into_boxed_slice();
       let fjacobi = Box::into_raw(fjacobi);
       fjacobi as *mut f64

@@ -8,37 +8,10 @@ pub fn par_gn(m: usize, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
     .collect::<Vec<Vec<f64>>>()
 }
 
-pub fn par_fgn_fft(m: usize, hurst: f64, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
-  (0..m)
-    .into_par_iter()
-    .map(|_| fgn_fft::fgn(hurst, n, t))
-    .collect::<Vec<Vec<f64>>>()
-}
-
-pub fn par_fgn_cholesky(m: usize, hurst: f64, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
-  (0..m)
-    .into_par_iter()
-    .map(|_| fgn_cholesky::fgn(hurst, n, t))
-    .collect::<Vec<Vec<f64>>>()
-}
-
 pub fn par_bm(m: usize, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
   (0..m)
     .into_par_iter()
     .map(|_| bm::bm(n, t))
-    .collect::<Vec<Vec<f64>>>()
-}
-
-pub fn par_fbm(
-  m: usize,
-  hurst: f64,
-  n: usize,
-  t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
-) -> Vec<Vec<f64>> {
-  (0..m)
-    .into_par_iter()
-    .map(|_| fbm::fbm(hurst, n, t, method))
     .collect::<Vec<Vec<f64>>>()
 }
 
@@ -67,12 +40,11 @@ pub fn par_fcir(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
   use_sym: Option<bool>,
 ) -> Vec<Vec<f64>> {
   (0..m)
     .into_par_iter()
-    .map(|_| cir::fcir(hurst, theta, mu, sigma, n, x0, t, method, use_sym))
+    .map(|_| cir::fcir(hurst, theta, mu, sigma, n, x0, t, use_sym))
     .collect::<Vec<Vec<f64>>>()
 }
 
@@ -100,11 +72,10 @@ pub fn par_fou(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<Vec<f64>> {
   (0..m)
     .into_par_iter()
-    .map(|_| ou::fou(hurst, mu, sigma, theta, n, x0, t, method))
+    .map(|_| ou::fou(hurst, mu, sigma, theta, n, x0, t))
     .collect::<Vec<Vec<f64>>>()
 }
 
@@ -130,11 +101,10 @@ pub fn par_fgbm(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<Vec<f64>> {
   (0..m)
     .into_par_iter()
-    .map(|_| gbm::fgbm(hurst, mu, sigma, n, x0, t, method))
+    .map(|_| gbm::fgbm(hurst, mu, sigma, n, x0, t))
     .collect::<Vec<Vec<f64>>>()
 }
 
@@ -162,10 +132,9 @@ pub fn par_fjacobi(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-  method: Option<NoiseGenerationMethod>,
 ) -> Vec<Vec<f64>> {
   (0..m)
     .into_par_iter()
-    .map(|_| jacobi::fjacobi(hurst, alpha, beta, sigma, n, x0, t, method))
+    .map(|_| jacobi::fjacobi(hurst, alpha, beta, sigma, n, x0, t))
     .collect::<Vec<Vec<f64>>>()
 }
