@@ -1,14 +1,22 @@
-// use stochastic_rs::{
-//     diffusions::{
-//         cir,
-//         gbm::{self, gbm},
-//         jacobi::{self, jacobi},
-//         ou,
-//     },
-//     jumps::vg,
-// };
+use std::time::Instant;
+
+use indicatif::ProgressBar;
+use stochastic_rs::prelude::*;
 
 fn main() {
+    // let start = Instant::now();
+    // let pb = ProgressBar::new(10000);
+    // for _ in 0..10000 {
+    //     let _ = par_fbm(rayon::max_num_threads(), 0.7, 10000, None, None);
+    //     pb.inc(1);
+    // }
+    // pb.finish();
+    // println!("Time elapsed: {:?}", start.elapsed());
+
+    let start = Instant::now();
+    let _ = par_fbm(100000, 0.7, 2500, None, None);
+    println!("Time elapsed: {:?}", start.elapsed());
+
     // CIR
     // let mut plot = Plot::new();
     // let path = || cir::cir(1.0, 0.6, 0.5, 1000, None, None, None);

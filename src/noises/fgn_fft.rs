@@ -4,6 +4,7 @@ use num_complex::Complex;
 use rand::Rng;
 use rand_distr::StandardNormal;
 
+// TODO: improve performance
 pub fn fgn(hurst: f64, n: usize, t: Option<f64>) -> Vec<f64> {
     if !(0.0..=1.0).contains(&hurst) {
         panic!("Hurst parameter must be between 0 and 1");

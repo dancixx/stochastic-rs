@@ -20,9 +20,11 @@ rand = "0.8.5"
 rand_distr = "0.4.3"
 rayon = "1.8.0"
 rustfft = "6.1.0"
+indicatif = "0.17.7"
 
 [dev-dependencies]
 plotly = "0.8.4"
+
 
 [lib]
 name = "stochastic_rs"
