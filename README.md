@@ -3,7 +3,7 @@
 
 # Stochastic-rs
 
-A Rust library for stochastic processes and models. The main goal to provide a simple and easy to use high performance library for stochastic processes and models. This library is still in development and breaking changes may occur.
+A Rust library for stochastic processes and models. The main goal to provide a simple and easy to use high performance library for stochastic processes and models. This library is still in development and breaking changes may occur. 🚧
 
 Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 
