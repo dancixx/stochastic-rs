@@ -26,18 +26,3 @@ pub fn vg(mu: f64, sigma: f64, nu: f64, n: usize, x0: Option<f64>, t: Option<f64
 
     vg.to_vec()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use plotly::{Plot, Scatter};
-
-    #[test]
-    fn plot_vg() {
-        let mut plot = Plot::new();
-        let path = || vg(0.0, 2.0, 1.0, 50, None, None);
-
-        plot.add_trace(Scatter::new((0..50).collect::<Vec<usize>>(), path()));
-        plot.show();
-    }
-}

@@ -1,20 +1,27 @@
 use std::time::Instant;
 
 use indicatif::ProgressBar;
-use stochastic_rs::prelude::*;
+use stochastic_rs::{
+    prelude::*,
+    processes::fbm::{fbm, Fbm},
+};
 
 fn main() {
     // let start = Instant::now();
     // let pb = ProgressBar::new(10000);
     // for _ in 0..10000 {
-    //     let _ = par_fbm(rayon::max_num_threads(), 0.7, 10000, None, None);
+    //     let _ = fbm(0.7, 2500, None, None);
     //     pb.inc(1);
     // }
     // pb.finish();
     // println!("Time elapsed: {:?}", start.elapsed());
 
+    // let start = Instant::now();
+    // let _ = par_fbm(10000, 0.7, 2500, None, None);
+    // println!("Time elapsed: {:?}", start.elapsed());
+
     let start = Instant::now();
-    let _ = par_fbm(100000, 0.7, 2500, None, None);
+    let _ = Fbm::new(0.7, 5000, None, Some(100000), None).sample_par();
     println!("Time elapsed: {:?}", start.elapsed());
 
     // CIR

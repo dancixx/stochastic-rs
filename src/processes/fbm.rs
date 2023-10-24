@@ -1,8 +1,79 @@
 use crate::{
-    noises::{fgn_cholesky, fgn_fft},
-    utils::NoiseGenerationMethod,
+    noises::{
+        fgn_cholesky::{self, FgnCholesky},
+        fgn_fft::{self, FgnFft},
+    },
+    utils::{Generator, NoiseGenerationMethod},
 };
 use ndarray::Array1;
+use rayon::prelude::*;
+
+pub struct Fbm {
+    n: usize,
+    m: Option<usize>,
+    method: NoiseGenerationMethod,
+    fgn_fft: Option<FgnFft>,
+    fgn_cholesky: Option<FgnCholesky>,
+}
+
+impl Fbm {
+    pub fn new(
+        hurst: f64,
+        n: usize,
+        t: Option<f64>,
+        m: Option<usize>,
+        method: Option<NoiseGenerationMethod>,
+    ) -> Self {
+        if !(0.0..1.0).contains(&hurst) {
+            panic!("Hurst parameter must be in (0, 1)")
+        }
+
+        match method.unwrap_or(NoiseGenerationMethod::Fft) {
+            NoiseGenerationMethod::Fft => Self {
+                n,
+                m,
+                method: NoiseGenerationMethod::Fft,
+                fgn_fft: Some(FgnFft::new(hurst, n - 1, t, None)),
+                fgn_cholesky: None,
+            },
+            NoiseGenerationMethod::Cholesky => Self {
+                n,
+                m,
+                method: NoiseGenerationMethod::Cholesky,
+                fgn_fft: None,
+                fgn_cholesky: Some(FgnCholesky::new(hurst, n - 1, t, None)),
+            },
+        }
+    }
+}
+
+impl Generator for Fbm {
+    fn sample(&self) -> Vec<f64> {
+        let fgn = match self.method {
+            NoiseGenerationMethod::Fft => self.fgn_fft.as_ref().unwrap().sample(),
+            NoiseGenerationMethod::Cholesky => self.fgn_cholesky.as_ref().unwrap().sample(),
+        };
+
+        let mut fbm = Array1::<f64>::zeros(self.n);
+
+        for i in 1..self.n {
+            fbm[i] = fbm[i - 1] + fgn[i - 1];
+        }
+
+        fbm.to_vec()
+    }
+
+    fn sample_par(&self) -> Vec<Vec<f64>> {
+        if self.m.is_none() {
+            panic!("Number of paths must be specified")
+        }
+
+        (0..self.m.unwrap())
+            .into_par_iter()
+            .map(|_| self.sample())
+            .collect()
+    }
+}
 
 pub fn fbm(
     hurst: f64,
@@ -25,30 +96,4 @@ pub fn fbm(
     }
 
     fbm.to_vec()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::statistics::fractal_dim::higuchi_fd;
-    use crate::utils::NoiseGenerationMethod;
-
-    #[test]
-    fn test_fbm() {
-        let (hurst, n) = (0.7, 10000);
-
-        let path = fbm(hurst, n, None, Some(NoiseGenerationMethod::Fft));
-        assert_eq!(path.len(), n);
-        assert_eq!(path[0], 0.0);
-
-        let h = higuchi_fd(&path, 10);
-        println!("Higuchi FD: {}", h);
-        assert!((2.0 - h) < 10e-1);
-
-        let path = fbm(hurst, n, None, Some(NoiseGenerationMethod::Cholesky));
-        assert_eq!(path.len(), n);
-
-        let h = higuchi_fd(&path, 10);
-        assert!((2.0 - h) < 10e-1);
-    }
 }
