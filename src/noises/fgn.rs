@@ -7,7 +7,6 @@ use rand::{thread_rng, Rng};
 use rand_distr::{Distribution, Normal, StandardNormal};
 use rayon::prelude::*;
 use std::cmp::Ordering::{Equal, Greater, Less};
-use std::ops::Mul;
 
 pub struct FgnFft {
   hurst: f64,
