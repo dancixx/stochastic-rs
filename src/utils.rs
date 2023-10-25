@@ -2,7 +2,14 @@
 #[derive(Clone, Copy)]
 pub enum NoiseGenerationMethod {
   Cholesky,
-  Fft,
+  Fft(FractionalNoiseGenerationMethod),
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub enum FractionalNoiseGenerationMethod {
+  Kroese,
+  DaviesHarte,
 }
 
 pub trait Generator: Sync + Send {

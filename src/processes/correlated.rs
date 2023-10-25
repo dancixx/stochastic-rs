@@ -38,8 +38,8 @@ pub fn correlated_fbms(
 
   let mut fbms = Array2::<f64>::zeros((n, 2));
 
-  let fgn1 = FgnFft::new(hurst1, n - 1, t, None).sample();
-  let fgn2 = FgnFft::new(hurst2, n - 1, t, None).sample();
+  let fgn1 = FgnFft::new(hurst1, n - 1, t, None, None).sample();
+  let fgn2 = FgnFft::new(hurst2, n - 1, t, None, None).sample();
 
   for i in 1..n {
     fbms[[i, 0]] = fbms[[i - 1, 0]] + fgn1[i - 1];

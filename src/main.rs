@@ -18,9 +18,18 @@ fn main() {
   // let _ = par_fbm(10000, 0.7, 2500, None, None);
   // println!("Time elapsed: {:?}", start.elapsed());
 
-  // let start = Instant::now();
-  // let _ = Fbm::new(0.7, 5000, None, Some(100000), None).sample_par();
-  // println!("Time elapsed: {:?}", start.elapsed());
+  let start = Instant::now();
+  let _ = Fbm::new(
+    0.7,
+    5000,
+    None,
+    Some(10000),
+    Some(NoiseGenerationMethod::Fft(
+      FractionalNoiseGenerationMethod::DaviesHarte,
+    )),
+  )
+  .sample_par();
+  println!("Time elapsed: {:?}", start.elapsed());
 
   // CIR
   // let mut plot = Plot::new();

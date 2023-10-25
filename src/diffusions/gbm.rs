@@ -30,7 +30,7 @@ pub fn fgbm(
     panic!("Hurst parameter must be in (0, 1)")
   }
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
+  let fgn = FgnFft::new(hurst, n - 1, t, None, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut fgbm = Array1::<f64>::zeros(n + 1);

@@ -1,85 +1,156 @@
-use crate::utils::Generator;
-use nalgebra::{DMatrix, DVector, Dim, Dyn, RowDVector};
+use crate::utils::{FractionalNoiseGenerationMethod, Generator};
+use nalgebra::{ComplexField, DMatrix, DVector, Dim, Dyn, RowDVector};
 use ndarray::{concatenate, prelude::*};
-use ndrustfft::{ndfft, FftHandler};
+use ndrustfft::{ndfft, ndifft, FftHandler};
 use num_complex::Complex;
 use rand::{thread_rng, Rng};
-use rand_distr::StandardNormal;
+use rand_distr::{Distribution, Normal, StandardNormal};
 use rayon::prelude::*;
 use std::cmp::Ordering::{Equal, Greater, Less};
+use std::ops::Mul;
 
 pub struct FgnFft {
   hurst: f64,
   n: usize,
   t: f64,
-  lambda: Array1<f64>,
+  sqrt_eigenvalues: Array1<f64>,
   m: Option<usize>,
+  method: FractionalNoiseGenerationMethod,
 }
 
 impl FgnFft {
-  pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
+  pub fn new(
+    hurst: f64,
+    n: usize,
+    t: Option<f64>,
+    m: Option<usize>,
+    method: Option<FractionalNoiseGenerationMethod>,
+  ) -> Self {
     if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
 
-    let r = Array::from_shape_fn((n + 1,), |i| {
-      if i == 0 {
-        1.0
-      } else {
-        0.5
-          * ((i as f64 + 1.0).powf(2.0 * hurst) - 2.0 * (i as f64).powf(2.0 * hurst)
-            + (i as f64 - 1.0).powf(2.0 * hurst))
+    match method.unwrap_or(FractionalNoiseGenerationMethod::Kroese) {
+      FractionalNoiseGenerationMethod::Kroese => {
+        let r = Array::from_shape_fn((n + 1,), |i| {
+          if i == 0 {
+            1.0
+          } else {
+            0.5
+              * ((i as f64 + 1.0).powf(2.0 * hurst) - 2.0 * (i as f64).powf(2.0 * hurst)
+                + (i as f64 - 1.0).powf(2.0 * hurst))
+          }
+        });
+
+        let r = concatenate(
+          Axis(0),
+          #[allow(clippy::reversed_empty_ranges)]
+          &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
+        )
+        .unwrap();
+
+        let mut data = Array1::<Complex<f64>>::zeros(r.len());
+        for (i, v) in r.iter().enumerate() {
+          data[i] = Complex::new(*v, 0.0);
+        }
+        let mut r_fft = FftHandler::new(r.len());
+        let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
+        ndfft(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
+        let sqrt_eigenvalues = sqrt_eigenvalues
+          .mapv(|x| x.re / (2.0 * n as f64))
+          .mapv(f64::sqrt);
+
+        Self {
+          hurst,
+          n,
+          t: t.unwrap_or(1.0),
+          sqrt_eigenvalues,
+          m,
+          method: method.unwrap_or(FractionalNoiseGenerationMethod::Kroese),
+        }
       }
-    });
+      FractionalNoiseGenerationMethod::DaviesHarte => {
+        // let r = Array1::range(0.0, (n + 1) as f64, 1.0) * (2.0 * hurst);
+        // let mut result = Array1::<f64>::zeros(n + 1);
+        // result[0] = 1.0;
+        // for i in 1..n {
+        //   result[i] = 0.5 * (r[i - 1] - 2.0 * r[i] + r[i + 1]);
+        // }
 
-    let r = concatenate(
-      Axis(0),
-      #[allow(clippy::reversed_empty_ranges)]
-      &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
-    )
-    .unwrap();
+        // let mut data = Array1::<Complex<f64>>::zeros(result.len());
+        // for (i, v) in result.iter().enumerate() {
+        //   data[i] = Complex::new(*v, 0.0);
+        // }
+        // let mut r_fft = FftHandler::new(result.len());
+        // let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(result.len());
+        // ndifft(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
+        // sqrt_eigenvalues.mapv_inplace(|x| x.powf(0.5));
 
-    let mut data = Array1::<Complex<f64>>::zeros(r.len());
-    for (i, v) in r.iter().enumerate() {
-      data[i] = Complex::new(*v, 0.0);
-    }
-    let mut r_fft = FftHandler::new(r.len());
-    let mut lambda = Array1::<Complex<f64>>::zeros(r.len());
-    ndfft(&data, &mut lambda, &mut r_fft, 0);
-    let lambda = lambda.mapv(|x| x.re / (2.0 * n as f64)).mapv(f64::sqrt);
+        // Self {
+        //   hurst,
+        //   n,
+        //   t: t.unwrap_or(1.0),
+        //   sqrt_eigenvalues: sqrt_eigenvalues.mapv(|x| x.re),
+        //   m,
+        //   method: method.unwrap_or(FractionalNoiseGenerationMethod::Kroese),
+        // }
 
-    Self {
-      hurst,
-      n,
-      t: t.unwrap_or(1.0),
-      lambda,
-      m,
+        todo!("Davies-Harte method is not implemented yet")
+      }
     }
   }
 }
 
 impl Generator for FgnFft {
   fn sample(&self) -> Vec<f64> {
-    let mut rng = rand::thread_rng();
-    let mut rnd = Array1::<Complex<f64>>::zeros(2 * self.n);
-    for (_, v) in rnd.iter_mut().enumerate() {
-      let real: f64 = rng.sample(StandardNormal);
-      let imag: f64 = rng.sample(StandardNormal);
-      *v = Complex::new(real, imag);
-    }
+    match self.method {
+      FractionalNoiseGenerationMethod::Kroese => {
+        let mut rng = rand::thread_rng();
+        let mut rnd = Array1::<Complex<f64>>::zeros(2 * self.n);
+        for (_, v) in rnd.iter_mut().enumerate() {
+          let real: f64 = rng.sample(StandardNormal);
+          let imag: f64 = rng.sample(StandardNormal);
+          *v = Complex::new(real, imag);
+        }
 
-    let mut fgn = Array1::<Complex<f64>>::zeros(2 * self.n);
-    for (i, v) in rnd.iter().enumerate() {
-      fgn[i] = self.lambda[i] * v;
-    }
-    let mut fgn_fft_handler = FftHandler::new(2 * self.n);
-    let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
-    ndfft(&fgn, &mut fgn_fft, &mut fgn_fft_handler, 0);
+        let mut fgn = Array1::<Complex<f64>>::zeros(2 * self.n);
+        for (i, v) in rnd.iter().enumerate() {
+          fgn[i] = self.sqrt_eigenvalues[i] * v;
+        }
+        let mut fgn_fft_handler = FftHandler::new(2 * self.n);
+        let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
+        ndfft(&fgn, &mut fgn_fft, &mut fgn_fft_handler, 0);
 
-    let fgn = fgn_fft.slice(s![1..self.n + 1]).mapv(|x| x.re);
-    fgn
-      .mapv(|x| (x * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst))
-      .to_vec()
+        let fgn = fgn_fft.slice(s![1..self.n + 1]).mapv(|x| x.re);
+        fgn
+          .mapv(|x| (x * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst))
+          .to_vec()
+      }
+      FractionalNoiseGenerationMethod::DaviesHarte => {
+        // let m = 2usize.pow((self.n - 2).next_power_of_two() as u32) + 1;
+        // let scale = (self.t / self.n as f64).powf(self.hurst) * 2.0.powf(0.5) * (m - 1) as f64;
+        // let mut rng = rand::thread_rng();
+        // let normal = Normal::new(0.0, scale).unwrap();
+        // let mut rnd = Array1::<Complex<f64>>::zeros(m);
+        // for (_, v) in rnd.iter_mut().enumerate() {
+        //   let real = normal.sample(&mut rng) * 2.0.powf(0.5);
+        //   let imag = normal.sample(&mut rng) * 2.0.powf(0.5);
+        //   *v = Complex::new(real, imag);
+        // }
+
+        // let mut _fgn = Array1::<Complex<f64>>::zeros(m);
+        // for (i, v) in rnd.iter().enumerate() {
+        //   _fgn[i] = self.sqrt_eigenvalues[i] * v;
+        // }
+        // let mut fgn_fft = FftHandler::new(m);
+        // let mut fgn = Array1::<Complex<f64>>::zeros(m);
+        // ndifft(&_fgn, &mut fgn, &mut fgn_fft, 0);
+
+        // fgn.slice(s![0..self.n]).mapv(|x| x.re).to_vec()
+
+        todo!("Davies-Harte method is not implemented yet")
+      }
+    }
   }
 
   fn sample_par(&self) -> Vec<Vec<f64>> {
