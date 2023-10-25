@@ -1,3 +1,5 @@
+// https://docs.rs/ndarray/latest/ndarray/doc/ndarray_for_numpy_users/index.html
+
 pub mod c;
 pub mod diffusions;
 // add to c bindings

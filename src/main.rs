@@ -5,31 +5,44 @@ use plotly::{Plot, Scatter};
 use stochastic_rs::{prelude::*, processes::fbm::Fbm};
 
 fn main() {
-  // let start = Instant::now();
-  // let pb = ProgressBar::new(10000);
-  // for _ in 0..10000 {
-  //     let _ = fbm(0.7, 2500, None, None);
-  //     pb.inc(1);
-  // }
-  // pb.finish();
-  // println!("Time elapsed: {:?}", start.elapsed());
+  let start = Instant::now();
+  let fbm = Fbm::new(
+    0.7,
+    10000,
+    None,
+    Some(10000),
+    Some(NoiseGenerationMethod::Fft(
+      FractionalNoiseGenerationMethod::Kroese,
+    )),
+  );
+
+  let pb = ProgressBar::new(1);
+  // let mut plot = Plot::new();
+  for _ in 0..1 {
+    let path = fbm.sample();
+    // plot.add_trace(Scatter::new((0..5000).collect::<Vec<usize>>(), path));
+    // plot.show();
+    pb.inc(1);
+  }
+  pb.finish();
+  println!("Time elapsed: {:?}", start.elapsed().as_secs_f64());
 
   // let start = Instant::now();
   // let _ = par_fbm(10000, 0.7, 2500, None, None);
   // println!("Time elapsed: {:?}", start.elapsed());
 
-  let start = Instant::now();
-  let _ = Fbm::new(
-    0.7,
-    5000,
-    None,
-    Some(10000),
-    Some(NoiseGenerationMethod::Fft(
-      FractionalNoiseGenerationMethod::DaviesHarte,
-    )),
-  )
-  .sample_par();
-  println!("Time elapsed: {:?}", start.elapsed());
+  // let start = Instant::now();
+  // let _ = Fbm::new(
+  //   0.7,
+  //   5000,
+  //   None,
+  //   Some(10000),
+  //   Some(NoiseGenerationMethod::Fft(
+  //     FractionalNoiseGenerationMethod::DaviesHarte,
+  //   )),
+  // )
+  // .sample_par();
+  // println!("Time elapsed: {:?}", start.elapsed());
 
   // CIR
   // let mut plot = Plot::new();

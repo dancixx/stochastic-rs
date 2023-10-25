@@ -1,12 +1,15 @@
 use crate::utils::{FractionalNoiseGenerationMethod, Generator};
 use nalgebra::{ComplexField, DMatrix, DVector, Dim, Dyn, RowDVector};
 use ndarray::{concatenate, prelude::*};
-use ndrustfft::{ndfft, ndifft, FftHandler};
+use ndrustfft::{ndfft, ndfft_par, ndifft, FftHandler};
 use num_complex::Complex;
 use rand::{thread_rng, Rng};
 use rand_distr::{Distribution, Normal, StandardNormal};
 use rayon::prelude::*;
-use std::cmp::Ordering::{Equal, Greater, Less};
+use std::{
+  cmp::Ordering::{Equal, Greater, Less},
+  sync::{Arc, Mutex},
+};
 
 pub struct FgnFft {
   hurst: f64,
@@ -31,39 +34,36 @@ impl FgnFft {
 
     match method.unwrap_or(FractionalNoiseGenerationMethod::Kroese) {
       FractionalNoiseGenerationMethod::Kroese => {
-        let r = Array::from_shape_fn((n + 1,), |i| {
-          if i == 0 {
+        let mut r = Array1::linspace(0.0, n as f64, n + 1);
+        r.par_mapv_inplace(|x| {
+          if x == 0.0 {
             1.0
           } else {
             0.5
-              * ((i as f64 + 1.0).powf(2.0 * hurst) - 2.0 * (i as f64).powf(2.0 * hurst)
-                + (i as f64 - 1.0).powf(2.0 * hurst))
+              * ((x as f64 + 1.0).powf(2.0 * hurst) - 2.0 * (x as f64).powf(2.0 * hurst)
+                + (x as f64 - 1.0).powf(2.0 * hurst))
           }
         });
-
         let r = concatenate(
           Axis(0),
           #[allow(clippy::reversed_empty_ranges)]
           &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
         )
         .unwrap();
-
         let mut data = Array1::<Complex<f64>>::zeros(r.len());
         for (i, v) in r.iter().enumerate() {
           data[i] = Complex::new(*v, 0.0);
         }
         let mut r_fft = FftHandler::new(r.len());
         let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
-        ndfft(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
-        let sqrt_eigenvalues = sqrt_eigenvalues
-          .mapv(|x| x.re / (2.0 * n as f64))
-          .mapv(f64::sqrt);
+        ndfft_par(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
+        sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
         Self {
           hurst,
           n,
           t: t.unwrap_or(1.0),
-          sqrt_eigenvalues,
+          sqrt_eigenvalues: sqrt_eigenvalues.mapv(|x| x.re),
           m,
           method: method.unwrap_or(FractionalNoiseGenerationMethod::Kroese),
         }
@@ -104,26 +104,25 @@ impl Generator for FgnFft {
   fn sample(&self) -> Vec<f64> {
     match self.method {
       FractionalNoiseGenerationMethod::Kroese => {
-        let mut rng = rand::thread_rng();
         let mut rnd = Array1::<Complex<f64>>::zeros(2 * self.n);
-        for (_, v) in rnd.iter_mut().enumerate() {
-          let real: f64 = rng.sample(StandardNormal);
-          let imag: f64 = rng.sample(StandardNormal);
-          *v = Complex::new(real, imag);
-        }
-
+        rnd.par_mapv_inplace(|_| {
+          Complex::new(
+            rand::thread_rng().sample(StandardNormal),
+            rand::thread_rng().sample(StandardNormal),
+          )
+        });
         let mut fgn = Array1::<Complex<f64>>::zeros(2 * self.n);
         for (i, v) in rnd.iter().enumerate() {
           fgn[i] = self.sqrt_eigenvalues[i] * v;
         }
         let mut fgn_fft_handler = FftHandler::new(2 * self.n);
         let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
-        ndfft(&fgn, &mut fgn_fft, &mut fgn_fft_handler, 0);
+        ndfft_par(&fgn, &mut fgn_fft, &mut fgn_fft_handler, 0);
 
-        let fgn = fgn_fft.slice(s![1..self.n + 1]).mapv(|x| x.re);
-        fgn
-          .mapv(|x| (x * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst))
-          .to_vec()
+        let mut fgn: ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
+          fgn_fft.slice(s![1..self.n + 1]).mapv(|x| x.re);
+        fgn.par_mapv_inplace(|x| (x * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
+        fgn.to_vec()
       }
       FractionalNoiseGenerationMethod::DaviesHarte => {
         // let m = 2usize.pow((self.n - 2).next_power_of_two() as u32) + 1;
