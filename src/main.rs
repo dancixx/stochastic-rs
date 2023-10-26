@@ -7,7 +7,7 @@ use stochastic_rs::{prelude::*, processes::fbm::Fbm, statistics::fractal_dim::hi
 fn main() {
   let start = Instant::now();
   let fbm = Fbm::new(0.7, 10000, None, Some(10000), None);
-  let m = 10000;
+  let m = 10;
   let pb = ProgressBar::new(m);
   // let mut plot = Plot::new();
   for _ in 0..m {

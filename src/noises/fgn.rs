@@ -21,7 +21,6 @@ impl FgnFft {
     if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
-
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
     r.par_mapv_inplace(|x| {
       if x == 0.0 {
