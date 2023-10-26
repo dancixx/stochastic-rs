@@ -12,7 +12,7 @@ pub mod c_interface {
 
     #[no_mangle]
     pub extern "C" fn fgn_fft(hurst: f64, n: usize, t: f64) -> *mut f64 {
-      let fgn = crate::noises::fgn::FgnFft::new(hurst, n, Some(t), None, None).sample();
+      let fgn = crate::noises::fgn::FgnFft::new(hurst, n, Some(t), None).sample();
       let fgn = fgn.into_boxed_slice();
       let fgn = Box::into_raw(fgn);
       fgn as *mut f64

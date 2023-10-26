@@ -1,6 +1,6 @@
 use crate::{
   noises::fgn::{FgnCholesky, FgnFft},
-  utils::{FractionalNoiseGenerationMethod, Generator, NoiseGenerationMethod},
+  utils::{Generator, NoiseGenerationMethod},
 };
 use ndarray::Array1;
 use rayon::prelude::*;
@@ -27,35 +27,13 @@ impl Fbm {
       panic!("Hurst parameter must be in (0, 1)")
     }
 
-    match method.unwrap_or(NoiseGenerationMethod::Fft(
-      crate::utils::FractionalNoiseGenerationMethod::Kroese,
-    )) {
-      NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::Kroese) => Self {
+    match method.unwrap_or(NoiseGenerationMethod::Fft) {
+      NoiseGenerationMethod::Fft => Self {
         hurst,
         n,
         m,
-        method: NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::Kroese),
-        fgn_fft: Some(FgnFft::new(
-          hurst,
-          n - 1,
-          t,
-          None,
-          Some(FractionalNoiseGenerationMethod::Kroese),
-        )),
-        fgn_cholesky: None,
-      },
-      NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::DaviesHarte) => Self {
-        hurst,
-        n,
-        m,
-        method: NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::DaviesHarte),
-        fgn_fft: Some(FgnFft::new(
-          hurst,
-          n - 1,
-          t,
-          None,
-          Some(FractionalNoiseGenerationMethod::DaviesHarte),
-        )),
+        method: NoiseGenerationMethod::Fft,
+        fgn_fft: Some(FgnFft::new(hurst, n - 1, t, None)),
         fgn_cholesky: None,
       },
       NoiseGenerationMethod::Cholesky => Self {
@@ -73,12 +51,7 @@ impl Fbm {
 impl Generator for Fbm {
   fn sample(&self) -> Vec<f64> {
     let fgn = match self.method {
-      NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::Kroese) => {
-        self.fgn_fft.as_ref().unwrap().sample()
-      }
-      NoiseGenerationMethod::Fft(FractionalNoiseGenerationMethod::DaviesHarte) => {
-        self.fgn_fft.as_ref().unwrap().sample()
-      }
+      NoiseGenerationMethod::Fft => self.fgn_fft.as_ref().unwrap().sample(),
       NoiseGenerationMethod::Cholesky => self.fgn_cholesky.as_ref().unwrap().sample(),
     };
 

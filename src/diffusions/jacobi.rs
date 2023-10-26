@@ -64,7 +64,7 @@ pub fn fjacobi(
     panic!("alpha must be less than beta")
   }
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None, None).sample();
+  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut fjacobi = Array1::<f64>::zeros(n + 1);
