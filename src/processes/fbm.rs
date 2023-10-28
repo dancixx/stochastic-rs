@@ -2,12 +2,13 @@ use crate::{
   noises::fgn::{FgnCholesky, FgnFft},
   utils::{Generator, NoiseGenerationMethod},
 };
-use ndarray::Array1;
+use ndarray::{Array1, Axis};
 use rayon::prelude::*;
 
 pub struct Fbm {
   #[allow(dead_code)]
   hurst: f64,
+  #[allow(dead_code)]
   n: usize,
   m: Option<usize>,
   method: NoiseGenerationMethod,
@@ -54,14 +55,9 @@ impl Generator for Fbm {
       NoiseGenerationMethod::Fft => self.fgn_fft.as_ref().unwrap().sample(),
       NoiseGenerationMethod::Cholesky => self.fgn_cholesky.as_ref().unwrap().sample(),
     };
-
-    let mut fbm = Array1::<f64>::zeros(self.n);
-
-    for i in 1..self.n {
-      fbm[i] = fbm[i - 1] + fgn[i - 1];
-    }
-
-    fbm.to_vec()
+    let mut fbm = Array1::<f64>::from_vec(fgn);
+    fbm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
+    vec![0.0].into_iter().chain(fbm.into_iter()).collect()
   }
 
   fn sample_par(&self) -> Vec<Vec<f64>> {

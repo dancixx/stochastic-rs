@@ -2,23 +2,28 @@ use std::time::Instant;
 
 use indicatif::ProgressBar;
 use plotly::{Plot, Scatter};
-use stochastic_rs::{prelude::*, processes::fbm::Fbm, statistics::fractal_dim::higuchi_fd};
+use stochastic_rs::{
+  prelude::{fgn::FgnFft, *},
+  processes::fbm::Fbm,
+  //processes::fbm::Fbm,
+  statistics::fractal_dim::higuchi_fd,
+};
 
 fn main() {
   let start = Instant::now();
   let fbm = Fbm::new(0.7, 10000, None, Some(10000), None);
-  let m = 10;
-  let pb = ProgressBar::new(m);
+  let m = 1;
+  // let pb = ProgressBar::new(m);
   // let mut plot = Plot::new();
   for _ in 0..m {
     let path = fbm.sample();
-    // let h = higuchi_fd(&path, 10);
-    // println!("Higuchi FD: {}", 2.0 - h);
-    // plot.add_trace(Scatter::new((0..5000).collect::<Vec<usize>>(), path));
-    // plot.show();
-    pb.inc(1);
+    // // let h = higuchi_fd(&path, 10);
+    // // println!("Higuchi FD: {}", 2.0 - h);
+    // // plot.add_trace(Scatter::new((0..10000).collect::<Vec<usize>>(), path));
+    // // plot.show();
+    //   pb.inc(1);
   }
-  pb.finish();
+  // pb.finish();
   println!("Time elapsed: {:?}", start.elapsed().as_secs_f64());
 
   // let start = Instant::now();

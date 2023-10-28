@@ -15,13 +15,14 @@ linreg = "0.2.0"
 nalgebra = { version = "0.32.2", features = ["rayon"] }
 ndarray = "0.15.6"
 ndrustfft = "0.4.1"
-num-complex = "0.4.4"
+num-complex = { version = "0.4.4", features = ["rand"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"
 rayon = "1.8.0"
 rustfft = "6.1.0"
 indicatif = "0.17.7"
 plotly = "0.8.4"
+ndarray-rand = "0.14.0"
 
 [dev-dependencies]
 
