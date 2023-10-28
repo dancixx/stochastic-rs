@@ -1,12 +1,12 @@
 use crate::utils::Generator;
 use nalgebra::{DMatrix, DVector, Dim, Dyn, RowDVector};
+use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
 use ndarray_rand::RandomExt;
 use ndrustfft::{ndfft_par, FftHandler};
 use num_complex::{Complex, ComplexDistribution};
 use rand::{thread_rng, Rng};
 use rand_distr::StandardNormal;
-use rayon::prelude::*;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
 pub struct FgnFft {
@@ -15,6 +15,8 @@ pub struct FgnFft {
   t: f64,
   sqrt_eigenvalues: Array1<Complex<f64>>,
   m: Option<usize>,
+  fft_handler: FftHandler<f64>,
+  fft_fgn: Array1<Complex<f64>>,
 }
 
 impl FgnFft {
@@ -53,6 +55,8 @@ impl FgnFft {
       t: t.unwrap_or(1.0),
       sqrt_eigenvalues,
       m,
+      fft_handler: FftHandler::new(2 * n),
+      fft_fgn: Array1::<Complex<f64>>::zeros(2 * n),
     }
   }
 }
@@ -63,17 +67,13 @@ impl Generator for FgnFft {
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
-    let mut fgn_fft_handler = FftHandler::new(2 * self.n);
-    let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
-    ndfft_par(
-      &(&self.sqrt_eigenvalues * &rnd),
-      &mut fgn_fft,
-      &mut fgn_fft_handler,
-      0,
-    );
+    let fgn = &self.sqrt_eigenvalues * &rnd;
+    let mut fft_handler = self.fft_handler.clone();
+    let mut fgn_fft = self.fft_fgn.clone();
+    ndfft_par(&fgn, &mut fgn_fft, &mut fft_handler, 0);
     let fgn = fgn_fft
       .slice(s![1..self.n + 1])
-      .mapv(|x| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
+      .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
     fgn.to_vec()
   }
 
