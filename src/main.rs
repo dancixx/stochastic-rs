@@ -13,7 +13,7 @@ fn main() {
   let start = Instant::now();
   let fbm = Fbm::new(0.7, 10000, None, Some(10000), None);
   let m = 10000;
-  // let pb = ProgressBar::new(m);
+  let pb = ProgressBar::new(m);
   // let mut plot = Plot::new();
   for _ in 0..m {
     let path = fbm.sample();
@@ -21,9 +21,9 @@ fn main() {
     // // println!("Higuchi FD: {}", 2.0 - h);
     // // plot.add_trace(Scatter::new((0..10000).collect::<Vec<usize>>(), path));
     // // plot.show();
-    //   pb.inc(1);
+    pb.inc(1);
   }
-  // pb.finish();
+  pb.finish();
   println!("Time elapsed: {:?}", start.elapsed().as_secs_f64());
 
   // let start = Instant::now();

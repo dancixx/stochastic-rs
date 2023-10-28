@@ -13,8 +13,8 @@ keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 [dependencies]
 linreg = "0.2.0"
 nalgebra = { version = "0.32.2", features = ["rayon"] }
-ndarray = "0.15.6"
-ndrustfft = "0.4.1"
+ndarray = { version = "0.15.6", features = ["rayon", "matrixmultiply-threading"] }
+ndrustfft = { version = "0.4.2", features = ["default"] }
 num-complex = { version = "0.4.4", features = ["rand"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"
