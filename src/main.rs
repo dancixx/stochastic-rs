@@ -12,15 +12,15 @@ use stochastic_rs::{
 fn main() {
   let start = Instant::now();
   let fbm = Fbm::new(0.7, 10000, None, Some(10000), None);
-  let m = 100;
+  let m = 10000;
   let pb = ProgressBar::new(m);
-  let mut plot = Plot::new();
+  // let mut plot = Plot::new();
   for _ in 0..m {
-    let path = fbm.sample();
-    plot.add_trace(Scatter::new((0..10000).collect::<Vec<usize>>(), path));
+    fbm.sample();
+    // plot.add_trace(Scatter::new((0..10000).collect::<Vec<usize>>(), path));
     pb.inc(1);
   }
-  plot.show();
+  // plot.show();
   pb.finish();
   println!("Time elapsed: {:?}", start.elapsed().as_secs_f64());
 

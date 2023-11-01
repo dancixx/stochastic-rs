@@ -5,7 +5,7 @@ use crate::{
 use ndarray::Array2;
 
 // TODO: under development
-pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
+pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
   if !(-1.0..=1.0).contains(&rho) {
     panic!("Correlation coefficient must be in [-1, 1]");
   }
@@ -20,7 +20,7 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> Vec<Vec<f64>> {
     bms[[i, 1]] = rho * gn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * gn2[i - 1];
   }
 
-  bms.outer_iter().map(|x| x.to_vec()).collect()
+  [bms.column(0).to_vec(), bms.column(1).to_vec()]
 }
 
 // TODO: under development
@@ -30,7 +30,7 @@ pub fn correlated_fbms(
   rho: f64,
   n: usize,
   t: Option<f64>,
-) -> Vec<Vec<f64>> {
+) -> [Vec<f64>; 2] {
   if !(-1.0..=1.0).contains(&rho) || !(0.0..1.0).contains(&hurst1) || !(0.0..1.0).contains(&hurst2)
   {
     panic!("Correlation coefficient must be in [-1, 1] and Hurst parameters must be in (0, 1)");
@@ -46,5 +46,5 @@ pub fn correlated_fbms(
     fbms[[i, 1]] = rho * fgn2[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }
 
-  fbms.outer_iter().map(|x| x.to_vec()).collect()
+  [fbms.column(0).to_vec(), fbms.column(1).to_vec()]
 }

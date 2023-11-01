@@ -14,7 +14,7 @@ pub fn heston(
   v0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
-) -> (Vec<f64>, Vec<f64>) {
+) -> [Vec<f64>; 2] {
   let correlated_bms = correlated::correlated_bms(rho, n, t);
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -34,7 +34,7 @@ pub fn heston(
     v[i + 1] = v[i] + kappa * (theta - v[i]) * dt + random;
   }
 
-  (s.to_vec(), v.to_vec())
+  [s.to_vec(), v.to_vec()]
 }
 
 pub fn fheston() {
