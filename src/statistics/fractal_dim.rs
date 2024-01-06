@@ -1,6 +1,6 @@
 use linreg::linear_regression;
 
-pub fn higuchi_fd(x: &Vec<f64>, kmax: usize) -> f64 {
+pub fn higuchi_fd(x: &[f64], kmax: usize) -> f64 {
   let n_times = x.len();
 
   let mut lk = vec![0.0; kmax];

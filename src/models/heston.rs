@@ -2,7 +2,7 @@ use ndarray::Array1;
 
 use crate::processes::correlated;
 
-// TODO: under development
+#[allow(clippy::too_many_arguments)]
 pub fn heston(
   mu: f64,
   kappa: f64,
@@ -35,8 +35,4 @@ pub fn heston(
   }
 
   [s.to_vec(), v.to_vec()]
-}
-
-pub fn fheston() {
-  todo!()
 }

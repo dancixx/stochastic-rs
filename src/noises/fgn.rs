@@ -30,8 +30,7 @@ impl FgnFft {
         1.0
       } else {
         0.5
-          * ((x as f64 + 1.0).powf(2.0 * hurst) - 2.0 * (x as f64).powf(2.0 * hurst)
-            + (x as f64 - 1.0).powf(2.0 * hurst))
+          * ((x + 1.0).powf(2.0 * hurst) - 2.0 * x.powf(2.0 * hurst) + (x - 1.0).powf(2.0 * hurst))
       }
     });
     let r = concatenate(

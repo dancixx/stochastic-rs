@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
@@ -25,6 +25,7 @@ ndrustfft = "0.4.2"
 csv = "1.3.0"
 
 [dev-dependencies]
+
 
 
 [lib]

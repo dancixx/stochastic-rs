@@ -1,17 +1,19 @@
 // https://docs.rs/ndarray/latest/ndarray/doc/ndarray_for_numpy_users/index.html
 
-pub mod c;
+// // Increase the amount of detail Clippy searches for.
+// #![warn(clippy::pedantic)]
+// Strictly enforce documentation.
+// #![forbid(missing_docs)]
+// // When writing mathematical equations in documentation, Clippy suggests to
+// // put backticks inside the LaTeX block. This suppresses that behavior.
+// #![allow(clippy::doc_markdown)]
+
+pub mod prelude;
+
 pub mod diffusions;
-// add to c bindings
 pub mod jumps;
-// add to c bindings
 pub mod models;
 pub mod noises;
-// add to c bindings
-pub mod parrallel;
 pub mod processes;
 pub mod statistics;
 pub mod utils;
-
-// prelude
-pub mod prelude;

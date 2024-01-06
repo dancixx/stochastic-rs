@@ -13,22 +13,31 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [Rust](https://github.com/dancixx/stochastic-rs)
 - [Typescript](https://github.com/dancixx/stochastic-js)
 
-
-# Features
+# Stochastic processes
 - [x] Gaussian noise
-- [x] Fractional Gaussian noise
 - [x] Brownian motion
+- [x] Correlated Brownian motion
 - [x] Geometric Brownian motion
-- [x] Ornstein-Uhlenbeck process
 - [x] Cox-Ingersoll-Ross process
+- [x] Ornstein-Uhlenbeck process
 - [x] Jacobi process
+
+# Stochastic models
+- [x] Heston model
+
+# Fractional Stochastic processes
+- [x] Fractional Gaussian noise
 - [x] Fractional Brownian motion
+- [x] Correlated Fractional Brownian motion
 - [x] Fractional Geometric Brownian motion
 - [x] Fractional Ornstein-Uhlenbeck process
 - [x] Fractional Cox-Ingersoll-Ross process
 - [x] Fractional Jacobi process
-- [ ] Heston model & Rough Heston model
-- [ ] Bergomi model & Rough Bergomi model
+
+# Features
+- [ ] Rough Heston model
+- [ ] Bergomi model 
+- [ ] Rough Bergomi model
 - [ ] Merton model
 - [ ] Bates model
 - [ ] SABR model

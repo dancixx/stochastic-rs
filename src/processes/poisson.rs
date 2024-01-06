@@ -2,7 +2,7 @@ use ndarray::Array1;
 use rand::{thread_rng, Rng};
 
 pub fn poisson(n: usize, lambda: usize) -> [Vec<f64>; 3] {
-  if lambda <= 0 || n <= 0 {
+  if lambda == 0 || n == 0 {
     panic!("Lambda and n must be positive integers");
   }
 
@@ -20,7 +20,7 @@ pub fn poisson(n: usize, lambda: usize) -> [Vec<f64>; 3] {
 }
 
 pub fn compound_poisson(n: usize, lambda: usize, jumps: Option<Vec<f64>>) -> [Vec<f64>; 3] {
-  if lambda <= 0 || n <= 0 {
+  if lambda == 0 || n == 0 {
     panic!("Lambda and n must be positive integers");
   }
 

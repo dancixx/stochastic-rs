@@ -57,7 +57,7 @@ impl Generator for Fbm {
     };
     let mut fbm = Array1::<f64>::from_vec(fgn);
     fbm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
-    vec![0.0].into_iter().chain(fbm.into_iter()).collect()
+    vec![0.0].into_iter().chain(fbm).collect()
   }
 
   fn sample_par(&self) -> Vec<Vec<f64>> {
