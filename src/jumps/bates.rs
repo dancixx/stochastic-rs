@@ -22,7 +22,7 @@ pub fn bates_1996(
   s[0] = x0.unwrap_or(0.0);
   v[0] = x0.unwrap_or(0.0);
 
-  let [_, _, z] = compound_poisson(n, lambda, None);
+  let z = compound_poisson(n, lambda, None);
   let correlated_bms = correlated_bms(rho, n, t);
 
   for i in 1..n {
