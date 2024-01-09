@@ -2,6 +2,8 @@ use ndarray::Array1;
 
 use crate::prelude::{correlated::correlated_bms, poisson::compound_poisson};
 
+/// Bates (1996) model
+// TODO: under development
 #[allow(clippy::too_many_arguments)]
 pub fn bates_1996(
   r: f64,
