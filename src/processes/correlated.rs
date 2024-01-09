@@ -11,8 +11,8 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
 
   let mut bms = Array2::<f64>::zeros((n, 2));
 
-  let gn1 = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
-  let gn2 = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
+  let gn1 = gn::gn(n, Some(t.unwrap_or(1.0)));
+  let gn2 = gn::gn(n, Some(t.unwrap_or(1.0)));
 
   for i in 1..n {
     bms[[i, 0]] = bms[[i - 1, 0]] + gn1[i - 1];

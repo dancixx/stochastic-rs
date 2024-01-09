@@ -8,11 +8,11 @@ pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Ve
   let gn = gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut gbm = Array1::<f64>::zeros(n + 1);
+  let mut gbm = Array1::<f64>::zeros(n);
   gbm[0] = x0.unwrap_or(100.0);
 
-  for (i, dw) in gn.iter().enumerate() {
-    gbm[i + 1] = gbm[i] + mu * gbm[i] * dt + sigma * gbm[i] * dw
+  for i in 1..n {
+    gbm[i] = gbm[i - 1] + mu * gbm[i - 1] * dt + sigma * gbm[i - 1] * gn[i - 1]
   }
 
   gbm.to_vec()
@@ -33,11 +33,11 @@ pub fn fgbm(
   let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fgbm = Array1::<f64>::zeros(n + 1);
+  let mut fgbm = Array1::<f64>::zeros(n);
   fgbm[0] = x0.unwrap_or(100.0);
 
-  for (i, dw) in fgn.iter().enumerate() {
-    fgbm[i + 1] = fgbm[i] + mu * fgbm[i] * dt + sigma * fgbm[i] * dw
+  for i in 1..n {
+    fgbm[i] = fgbm[i - 1] + mu * fgbm[i - 1] * dt + sigma * fgbm[i - 1] * fgn[i - 1]
   }
 
   fgbm.to_vec()

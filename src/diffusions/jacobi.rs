@@ -24,17 +24,17 @@ pub fn jacobi(
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut jacobi = Array1::<f64>::zeros(n + 1);
+  let mut jacobi = Array1::<f64>::zeros(n);
   jacobi[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in gn.iter().enumerate() {
-    jacobi[i + 1] = match jacobi[i] {
-      _ if jacobi[i] <= 0.0 && i > 0 => 0.0,
-      _ if jacobi[i] >= 1.0 && i > 0 => 1.0,
+  for i in 1..n {
+    jacobi[i] = match jacobi[i] {
+      _ if jacobi[i - 1] <= 0.0 && i > 0 => 0.0,
+      _ if jacobi[i - 1] >= 1.0 && i > 0 => 1.0,
       _ => {
-        jacobi[i]
-          + (alpha - beta * jacobi[i]) * dt
-          + sigma * (jacobi[i] * (1.0 - jacobi[i])).sqrt() * dw
+        jacobi[i - 1]
+          + (alpha - beta * jacobi[i - 1]) * dt
+          + sigma * (jacobi[i - 1] * (1.0 - jacobi[i - 1])).sqrt() * gn[i - 1]
       }
     }
   }
@@ -67,17 +67,17 @@ pub fn fjacobi(
   let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fjacobi = Array1::<f64>::zeros(n + 1);
+  let mut fjacobi = Array1::<f64>::zeros(n);
   fjacobi[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in fgn.iter().enumerate() {
-    fjacobi[i + 1] = match fjacobi[i] {
-      _ if fjacobi[i] <= 0.0 && i > 0 => 0.0,
-      _ if fjacobi[i] >= 1.0 && i > 0 => 1.0,
+  for i in 1..n {
+    fjacobi[i] = match fjacobi[i - 1] {
+      _ if fjacobi[i - 1] <= 0.0 && i > 0 => 0.0,
+      _ if fjacobi[i - 1] >= 1.0 && i > 0 => 1.0,
       _ => {
-        fjacobi[i]
-          + (alpha - beta * fjacobi[i]) * dt
-          + sigma * (fjacobi[i] * (1.0 - fjacobi[i])).sqrt() * dw
+        fjacobi[i - 1]
+          + (alpha - beta * fjacobi[i - 1]) * dt
+          + sigma * (fjacobi[i - 1] * (1.0 - fjacobi[i - 1])).sqrt() * fgn[i - 1]
       }
     }
   }

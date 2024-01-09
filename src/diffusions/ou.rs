@@ -8,11 +8,11 @@ pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut ou = Array1::<f64>::zeros(n + 1);
+  let mut ou = Array1::<f64>::zeros(n);
   ou[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in gn.iter().enumerate() {
-    ou[i + 1] = ou[i] + theta * (mu - ou[i]) * dt + sigma * dw
+  for i in 1..n {
+    ou[i] = ou[i - 1] + theta * (mu - ou[i - 1]) * dt + sigma * gn[i - 1]
   }
 
   ou.to_vec()
@@ -35,11 +35,11 @@ pub fn fou(
   let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fou = Array1::<f64>::zeros(n + 1);
+  let mut fou = Array1::<f64>::zeros(n);
   fou[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in fgn.iter().enumerate() {
-    fou[i + 1] = fou[i] + theta * (mu - fou[i]) * dt + sigma * dw
+  for i in 1..n {
+    fou[i] = fou[i - 1] + theta * (mu - fou[i - 1]) * dt + sigma * fgn[i - 1]
   }
 
   fou.to_vec()

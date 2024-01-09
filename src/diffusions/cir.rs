@@ -20,15 +20,15 @@ pub fn cir(
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut cir = Array1::<f64>::zeros(n + 1);
+  let mut cir = Array1::<f64>::zeros(n);
   cir[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in gn.iter().enumerate() {
+  for i in 1..n {
     let random = match use_sym.unwrap_or(false) {
-      true => sigma * (cir[i]).abs().sqrt() * dw,
-      false => sigma * (cir[i]).max(0.0).sqrt() * dw,
+      true => sigma * (cir[i - 1]).abs().sqrt() * gn[i - 1],
+      false => sigma * (cir[i - 1]).max(0.0).sqrt() * gn[i - 1],
     };
-    cir[i + 1] = cir[i] + theta * (mu - cir[i]) * dt + random
+    cir[i] = cir[i - 1] + theta * (mu - cir[i - 1]) * dt + random
   }
 
   cir.to_vec()
@@ -56,15 +56,15 @@ pub fn fcir(
   let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fcir = Array1::<f64>::zeros(n + 1);
+  let mut fcir = Array1::<f64>::zeros(n);
   fcir[0] = x0.unwrap_or(0.0);
 
-  for (i, dw) in fgn.iter().enumerate() {
+  for i in 1..n {
     let random = match use_sym.unwrap_or(false) {
-      true => sigma * (fcir[i]).abs().sqrt() * dw,
-      false => sigma * (fcir[i]).max(0.0) * dw,
+      true => sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1],
+      false => sigma * (fcir[i - 1]).max(0.0) * fgn[i - 1],
     };
-    fcir[i + 1] = fcir[i] + theta * (mu - fcir[i]) * dt + random
+    fcir[i] = fcir[i - 1] + theta * (mu - fcir[i - 1]) * dt + random
   }
 
   fcir.to_vec()

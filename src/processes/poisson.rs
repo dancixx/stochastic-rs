@@ -6,17 +6,17 @@ use rand::{thread_rng, Rng};
 
 // TODO: under development
 pub fn poisson(n: usize, lambda: usize, t: Option<f64>) -> Vec<f64> {
-  if t.unwrap() > 0.0 || n == 0 || lambda == 0 {
+  if n == 0 || lambda == 0 {
     panic!("lambda, t and n must be positive integers");
   }
 
   if t.is_none() {
     let exponentials =
-      Array1::<f64>::random(n, rand_distr::Exp::new(1.0.div(lambda as f64)).unwrap());
-    let mut p = Array1::<f64>::zeros(n + 1);
+      Array1::<f64>::random(n - 1, rand_distr::Exp::new(1.0.div(lambda as f64)).unwrap());
+    let mut p = Array1::<f64>::zeros(n);
     p[0] = 0.0;
 
-    for i in 1..n + 1 {
+    for i in 1..n {
       p[i] = p[i - 1] + exponentials[i - 1];
     }
 
@@ -36,13 +36,18 @@ pub fn poisson(n: usize, lambda: usize, t: Option<f64>) -> Vec<f64> {
 }
 
 // TODO: under development
-pub fn compound_poisson(n: usize, lambda: usize, jumps: Option<Vec<f64>>) -> Vec<f64> {
+pub fn compound_poisson(
+  n: usize,
+  lambda: usize,
+  jumps: Option<Vec<f64>>,
+  t: Option<f64>,
+) -> [Vec<f64>; 2] {
   if n == 0 {
     panic!("n must be a positive integer");
   }
 
-  let times = poisson(n, lambda, None);
-  let mut y = Array1::<f64>::zeros(times.len() + 1);
+  let times = poisson(n, lambda, t);
+  let mut cp = Array1::<f64>::zeros(times.len());
   let jumps = match jumps {
     Some(jumps) => jumps,
     None => thread_rng()
@@ -51,9 +56,9 @@ pub fn compound_poisson(n: usize, lambda: usize, jumps: Option<Vec<f64>>) -> Vec
       .collect(),
   };
 
-  for i in 1..n {
-    y[i] = y[i - 1] + jumps[i - 1];
+  for i in 1..times.len() {
+    cp[i] = cp[i - 1] + jumps[i - 1];
   }
 
-  y.to_vec()
+  [times, cp.to_vec()]
 }
