@@ -24,7 +24,7 @@ pub fn bates_1996(
   let mut s = Array1::<f64>::zeros(n);
   let mut v = Array1::<f64>::zeros(n);
 
-  let [jump_times, jumps] = compound_poisson(n, lambda, None, Some(t.unwrap_or(1.0)));
+  let [jump_times, jumps] = compound_poisson(n, lambda, None, Some(t.unwrap_or(1.0)), None, None);
 
   s[0] = s0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
