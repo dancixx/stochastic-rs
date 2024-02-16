@@ -4,7 +4,6 @@ use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand::{thread_rng, Rng};
 
-// TODO: under development
 pub fn poisson(n: usize, lambda: usize, t: Option<f64>) -> Vec<f64> {
   if n == 0 || lambda == 0 {
     panic!("lambda, t and n must be positive integers");
@@ -35,7 +34,6 @@ pub fn poisson(n: usize, lambda: usize, t: Option<f64>) -> Vec<f64> {
   }
 }
 
-// TODO: under development
 pub fn compound_poisson(
   n: usize,
   lambda: usize,
