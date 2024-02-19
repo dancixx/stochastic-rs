@@ -21,6 +21,8 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [x] Cox-Ingersoll-Ross process
 - [x] Ornstein-Uhlenbeck process
 - [x] Jacobi process
+- [x] Variance Gamma model
+
 
 # Stochastic models
 - [x] Heston model
@@ -55,7 +57,6 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Vasicek model
 - [ ] Duffie-Kan model
 - [ ] Jump-diffusion model
-- [ ] Variance Gamma model
 - [ ] Normal Inverse Gaussian model
 
 ## Future work

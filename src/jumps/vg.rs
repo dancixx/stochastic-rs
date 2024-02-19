@@ -3,7 +3,6 @@ use ndarray::Array1;
 use rand::Rng;
 use rand_distr::Gamma;
 
-// TODO: under development
 pub fn vg(mu: f64, sigma: f64, nu: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let rng = rand::thread_rng();
