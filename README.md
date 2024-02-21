@@ -21,11 +21,21 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [x] Cox-Ingersoll-Ross process
 - [x] Ornstein-Uhlenbeck process
 - [x] Jacobi process
-- [x] Variance Gamma model
+
+# Jumps and Levy processes
+- [x] Poisson process
+- [x] Compound Poisson process
+- [x] Levy jump diffusion
+- [x] Inverse Gaussian
+- [x] Normal Inverse Gaussian
+- [x] Variance Gamma
 
 
 # Stochastic models
 - [x] Heston model
+- [x] Merton model
+- [x] Bates model
+
 
 # Fractional Stochastic processes
 - [x] Fractional Gaussian noise
@@ -40,8 +50,6 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Rough Heston model
 - [ ] Bergomi model 
 - [ ] Rough Bergomi model
-- [ ] Merton model
-- [ ] Bates model
 - [ ] SABR model
 - [ ] Hull-White model
 - [ ] Barndorff-Nielsen & Shephard model
@@ -57,7 +65,6 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Vasicek model
 - [ ] Duffie-Kan model
 - [ ] Jump-diffusion model
-- [ ] Normal Inverse Gaussian model
 
 ## Future work
 - [ ] Add more tests

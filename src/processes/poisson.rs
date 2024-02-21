@@ -1,6 +1,8 @@
 use ndarray::Array1;
-use rand::{thread_rng, Rng};
-use rand_distr::{Distribution, Exp, Normal};
+use ndarray_rand::rand_distr::{Normal, Poisson};
+use ndarray_rand::RandomExt;
+use rand::thread_rng;
+use rand_distr::{Distribution, Exp};
 
 pub fn poisson(n: usize, lambda: usize, t_max: Option<f64>) -> Vec<f64> {
   if n == 0 || lambda == 0 {
@@ -25,34 +27,36 @@ pub fn poisson(n: usize, lambda: usize, t_max: Option<f64>) -> Vec<f64> {
 
 pub fn compound_poisson(
   n: usize,
-  lambda: usize,
+  lambda: f64,
   jumps: Option<Vec<f64>>,
   t_max: Option<f64>,
   jump_mean: Option<f64>,
   jump_std: Option<f64>,
-) -> [Vec<f64>; 2] {
+) -> Vec<f64> {
   if n == 0 {
     panic!("n must be a positive integer");
   }
 
   let _t_max = t_max.unwrap_or(1.0);
-  let times = poisson(n, lambda, Some(_t_max));
-  let mut cp = Array1::<f64>::zeros(times.len());
-  let jumps = match jumps {
+  let p = Array1::random(n, Poisson::new(lambda).unwrap());
+  let mut cp = Array1::<f64>::zeros(n);
+
+  match jumps {
     Some(jumps) => jumps,
     None => {
-      let _jump_mean = jump_mean.unwrap_or(1.0);
-      let _jump_std = jump_std.unwrap_or(0.0);
-      let norm = Normal::new(_jump_mean, _jump_std).unwrap();
-      thread_rng().sample_iter(norm).take(n).collect()
+      let _jump_mean = jump_mean.unwrap_or(0.0);
+      let _jump_std = jump_std.unwrap_or(1.0);
+
+      for i in 0..n {
+        for j in &p {
+          let norm = Array1::random(*j as usize, Normal::new(_jump_mean, _jump_std).unwrap());
+          cp[i] = norm.sum();
+        }
+      }
+
+      cp.to_vec()
     }
-  };
-
-  for i in 1..times.len() {
-    cp[i] = cp[i - 1] + jumps[i - 1];
   }
-
-  [times, cp.to_vec()]
 }
 
 #[cfg(test)]
@@ -71,10 +75,9 @@ mod tests {
   #[test]
   fn test_compound_poisson() {
     let n = 1000;
-    let lambda = 10;
+    let lambda = 2.0;
     let t = 10.0;
-    let cp = compound_poisson(n, lambda, None, Some(t), Some(1.0), Some(0.0));
-    println!("{:?}", cp[0].len());
-    println!("{:?}", cp[1].len());
+    let cp = compound_poisson(n, lambda, None, Some(t), None, None);
+    assert_eq!(cp.len(), n);
   }
 }
