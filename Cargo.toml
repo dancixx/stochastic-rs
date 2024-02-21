@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
@@ -12,7 +12,6 @@ keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 
 [dependencies]
 linreg = "0.2.0"
-nalgebra = { version = "0.32.2", features = ["rayon"] }
 ndarray = { version = "0.15.6", features = ["rayon", "matrixmultiply-threading"] }
 num-complex = { version = "0.4.4", features = ["rand"] }
 rand = "0.8.5"

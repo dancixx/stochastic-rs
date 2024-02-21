@@ -1,8 +1,8 @@
 use ndarray::Array1;
+use ndarray_rand::rand_distr::{Distribution, Exp};
 use ndarray_rand::rand_distr::{Normal, Poisson};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
-use rand_distr::{Distribution, Exp};
 
 pub fn poisson(n: usize, lambda: usize, t_max: Option<f64>) -> Vec<f64> {
   if n == 0 || lambda == 0 {

@@ -1,13 +1,10 @@
 use crate::utils::Generator;
-use nalgebra::{DMatrix, DVector, Dim, Dyn, RowDVector};
 use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
+use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
 use ndrustfft::{ndfft_par, FftHandler};
 use num_complex::{Complex, ComplexDistribution};
-use rand::{thread_rng, Rng};
-use rand_distr::StandardNormal;
-use std::cmp::Ordering::{Equal, Greater, Less};
 
 pub struct FgnFft {
   hurst: f64,
@@ -81,84 +78,6 @@ impl Generator for FgnFft {
       panic!("m must be specified for parallel sampling");
     }
 
-    (0..self.m.unwrap())
-      .into_par_iter()
-      .map(|_| self.sample())
-      .collect()
-  }
-}
-
-pub struct FgnCholesky {
-  hurst: f64,
-  n: usize,
-  t: Option<f64>,
-  afc_sqrt: DMatrix<f64>,
-  m: Option<usize>,
-}
-
-impl FgnCholesky {
-  pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
-    if !(0.0..1.0).contains(&hurst) {
-      panic!("Hurst parameter must be between 0 and 1");
-    }
-
-    let afc_matrix_sqrt = |n: usize, hurst: f64| -> DMatrix<f64> {
-      let mut acf_v = RowDVector::<f64>::zeros(n);
-      acf_v[0] = 1.0;
-
-      for i in 1..n {
-        let idx = i as f64;
-
-        acf_v[i] = 0.5
-          * ((idx + 1.0).powf(2.0 * hurst) - 2.0 * idx.powf(2.0 * hurst)
-            + (idx - 1.0).powf(2.0 * hurst))
-      }
-      let mut m: nalgebra::Matrix<f64, Dyn, Dyn, nalgebra::VecStorage<f64, Dyn, Dyn>> =
-        DMatrix::<f64>::zeros_generic(Dyn::from_usize(n), Dyn::from_usize(n));
-
-      for i in 0..n {
-        for j in 0..n {
-          match i.cmp(&j) {
-            Equal => m[(i, j)] = acf_v[0],
-            Greater => m[(i, j)] = acf_v[i - j],
-            Less => continue,
-          }
-        }
-      }
-
-      m.cholesky().unwrap().l()
-    };
-
-    Self {
-      hurst,
-      n,
-      t,
-      afc_sqrt: afc_matrix_sqrt(n, hurst),
-      m,
-    }
-  }
-}
-
-impl Generator for FgnCholesky {
-  fn sample(&self) -> Vec<f64> {
-    let noise = thread_rng()
-      .sample_iter::<f64, StandardNormal>(StandardNormal)
-      .take(self.n)
-      .collect();
-    let noise = DVector::<f64>::from_vec(noise);
-
-    ((self.afc_sqrt.clone() * noise).transpose()
-      * (self.n as f64).powf(-self.hurst)
-      * self.t.unwrap_or(1.0).powf(self.hurst))
-    .data
-    .as_vec()
-    .clone()
-  }
-
-  fn sample_par(&self) -> Vec<Vec<f64>> {
-    if self.m.is_none() {
-      panic!("m must be specified for parallel sampling")
-    }
     (0..self.m.unwrap())
       .into_par_iter()
       .map(|_| self.sample())
