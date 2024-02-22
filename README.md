@@ -35,6 +35,7 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [x] Heston model
 - [x] Merton model
 - [x] Bates model
+- [x] Vasicek model
 
 
 # Fractional Stochastic processes
@@ -54,7 +55,6 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Hull-White model
 - [ ] Barndorff-Nielsen & Shephard model
 - [ ] Alpha-stable models
-- [ ] Levy models
 - [ ] CGMY model
 - [ ] CIR model
 - [ ] Multi-factor CIR model
@@ -62,9 +62,7 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Wu-Zhang model
 - [ ] Affine model
 - [ ] Heath-Jarrow-Morton model & Multi-factor Heath-Jarrow-Morton model
-- [ ] Vasicek model
 - [ ] Duffie-Kan model
-- [ ] Jump-diffusion model
 
 ## Future work
 - [ ] Add more tests
