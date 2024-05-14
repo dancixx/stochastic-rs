@@ -3,8 +3,8 @@ use crate::noises::gn::gn;
 use ndarray::Array1;
 use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 
-pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
-  let dt = t.unwrap_or(1.0) / n as f64;
+pub fn ig(gamma: f32, n: usize, x0: Option<f32>, t: Option<f32>) -> Vec<f32> {
+  let dt = t.unwrap_or(1.0) / n as f32;
   let gn = gn(n - 1, t);
   let mut ig = Array1::zeros(n);
   ig[0] = x0.unwrap_or(0.0);
@@ -17,14 +17,14 @@ pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
 }
 
 pub fn nig(
-  theta: f64,
-  sigma: f64,
-  kappa: f64,
+  theta: f32,
+  sigma: f32,
+  kappa: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
-  let dt = t.unwrap_or(1.0) / n as f64;
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
+  let dt = t.unwrap_or(1.0) / n as f32;
   let scale = dt.powf(2.0) / kappa;
   let mean = dt / scale;
   let ig = Array1::random(n - 1, InverseGaussian::new(mean, scale).unwrap());

@@ -4,12 +4,12 @@ use crate::{
 };
 use ndarray::Array2;
 
-pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
+pub fn correlated_bms(rho: f32, n: usize, t: Option<f32>) -> [Vec<f32>; 2] {
   if !(-1.0..=1.0).contains(&rho) {
     panic!("Correlation coefficient must be in [-1, 1]");
   }
 
-  let mut bms = Array2::<f64>::zeros((n, 2));
+  let mut bms = Array2::<f32>::zeros((n, 2));
 
   let gn1 = gn::gn(n, Some(t.unwrap_or(1.0)));
   let gn2 = gn::gn(n, Some(t.unwrap_or(1.0)));
@@ -23,18 +23,18 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
 }
 
 pub fn correlated_fbms(
-  hurst1: f64,
-  hurst2: f64,
-  rho: f64,
+  hurst1: f32,
+  hurst2: f32,
+  rho: f32,
   n: usize,
-  t: Option<f64>,
-) -> [Vec<f64>; 2] {
+  t: Option<f32>,
+) -> [Vec<f32>; 2] {
   if !(-1.0..=1.0).contains(&rho) || !(0.0..1.0).contains(&hurst1) || !(0.0..1.0).contains(&hurst2)
   {
     panic!("Correlation coefficient must be in [-1, 1] and Hurst parameters must be in (0, 1)");
   }
 
-  let mut fbms = Array2::<f64>::zeros((n, 2));
+  let mut fbms = Array2::<f32>::zeros((n, 2));
 
   let fgn1 = FgnFft::new(hurst1, n - 1, t, None).sample();
   let fgn2 = FgnFft::new(hurst2, n - 1, t, None).sample();

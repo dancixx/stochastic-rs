@@ -1,13 +1,13 @@
 use crate::diffusions::ou::{fou, ou};
 
 pub fn vasicek(
-  mu: f64,
-  sigma: f64,
-  theta: f64,
+  mu: f32,
+  sigma: f32,
+  theta: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
   if mu == 0.0 {
     panic!("mu must be non-zero");
   }
@@ -17,14 +17,14 @@ pub fn vasicek(
 
 #[allow(clippy::too_many_arguments)]
 pub fn fvasicek(
-  hurst: f64,
-  mu: f64,
-  sigma: f64,
-  theta: f64,
+  hurst: f32,
+  mu: f32,
+  sigma: f32,
+  theta: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
   if mu == 0.0 {
     panic!("mu must be non-zero");
   }

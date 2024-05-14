@@ -2,8 +2,8 @@ use ndarray::Array1;
 use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::RandomExt;
 
-pub fn gn(n: usize, t: Option<f64>) -> Vec<f64> {
-  let sqrt_dt = (t.unwrap_or(1.0) / n as f64).sqrt();
+pub fn gn(n: usize, t: Option<f32>) -> Vec<f32> {
+  let sqrt_dt = (t.unwrap_or(1.0) / n as f32).sqrt();
   let gn = Array1::random(n, Normal::new(0.0, sqrt_dt).unwrap());
 
   gn.to_vec()

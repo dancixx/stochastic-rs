@@ -4,10 +4,10 @@ use ndarray_rand::rand_distr::{Normal, Poisson};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
-pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
+pub fn poisson(lambda: f32, n: Option<usize>, t_max: Option<f32>) -> Vec<f32> {
   if let Some(n) = n {
     let exponentials = Array1::random(n - 1, Exp::new(lambda).unwrap());
-    let mut poisson = Array1::<f64>::zeros(n);
+    let mut poisson = Array1::<f32>::zeros(n);
 
     for i in 1..n {
       poisson[i] = poisson[i - 1] + exponentials[i - 1];
@@ -33,19 +33,19 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
 
 pub fn compound_poisson(
   n: usize,
-  lambda: f64,
-  jumps: Option<Vec<f64>>,
-  t_max: Option<f64>,
-  jump_mean: Option<f64>,
-  jump_std: Option<f64>,
-) -> Vec<f64> {
+  lambda: f32,
+  jumps: Option<Vec<f32>>,
+  t_max: Option<f32>,
+  jump_mean: Option<f32>,
+  jump_std: Option<f32>,
+) -> Vec<f32> {
   if n == 0 {
     panic!("n must be a positive integer");
   }
 
   let _t_max = t_max.unwrap_or(1.0);
   let p = Array1::random(n, Poisson::new(lambda).unwrap());
-  let mut cp = Array1::<f64>::zeros(n);
+  let mut cp = Array1::<f32>::zeros(n);
 
   match jumps {
     Some(jumps) => jumps,
@@ -73,10 +73,10 @@ mod tests {
   fn test_poisson() {
     let n = 1000;
     let lambda = 1;
-    let p = poisson(lambda as f64, Some(n), None);
+    let p = poisson(lambda as f32, Some(n), None);
     println!("{:?}", p.len());
     let t = 100.0;
-    let p = poisson(lambda as f64, None, Some(t));
+    let p = poisson(lambda as f32, None, Some(t));
     println!("{:?}", p.len());
   }
 

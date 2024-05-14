@@ -2,15 +2,15 @@ use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 use ndarray::Array1;
 
 pub fn levy_diffusion(
-  gamma: f64,
-  sigma: f64,
-  lambda: f64,
+  gamma: f32,
+  sigma: f32,
+  lambda: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
-  let dt = t.unwrap_or(1.0) / n as f64;
-  let mut levy = Array1::<f64>::zeros(n);
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
+  let dt = t.unwrap_or(1.0) / n as f32;
+  let mut levy = Array1::<f32>::zeros(n);
   levy[0] = x0.unwrap_or(0.0);
   let gn = gn(n - 1, t);
   let z = compound_poisson(n, lambda, None, t, None, None);

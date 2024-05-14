@@ -6,13 +6,13 @@ use crate::{
 };
 
 pub fn jacobi(
-  alpha: f64,
-  beta: f64,
-  sigma: f64,
+  alpha: f32,
+  beta: f32,
+  sigma: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
   if alpha < 0.0 || beta < 0.0 || sigma < 0.0 {
     panic!("alpha, beta, and sigma must be positive")
   }
@@ -22,9 +22,9 @@ pub fn jacobi(
   }
 
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
-  let dt = t.unwrap_or(1.0) / n as f64;
+  let dt = t.unwrap_or(1.0) / n as f32;
 
-  let mut jacobi = Array1::<f64>::zeros(n);
+  let mut jacobi = Array1::<f32>::zeros(n);
   jacobi[0] = x0.unwrap_or(0.0);
 
   for i in 1..n {
@@ -44,14 +44,14 @@ pub fn jacobi(
 
 #[allow(clippy::too_many_arguments)]
 pub fn fjacobi(
-  hurst: f64,
-  alpha: f64,
-  beta: f64,
-  sigma: f64,
+  hurst: f32,
+  alpha: f32,
+  beta: f32,
+  sigma: f32,
   n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> Vec<f64> {
+  x0: Option<f32>,
+  t: Option<f32>,
+) -> Vec<f32> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
@@ -65,9 +65,9 @@ pub fn fjacobi(
   }
 
   let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
-  let dt = t.unwrap_or(1.0) / n as f64;
+  let dt = t.unwrap_or(1.0) / n as f32;
 
-  let mut fjacobi = Array1::<f64>::zeros(n);
+  let mut fjacobi = Array1::<f32>::zeros(n);
   fjacobi[0] = x0.unwrap_or(0.0);
 
   for i in 1..n {

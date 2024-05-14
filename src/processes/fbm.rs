@@ -4,7 +4,7 @@ use rayon::prelude::*;
 
 pub struct Fbm {
   #[allow(dead_code)]
-  hurst: f64,
+  hurst: f32,
   #[allow(dead_code)]
   n: usize,
   m: Option<usize>,
@@ -12,7 +12,7 @@ pub struct Fbm {
 }
 
 impl Fbm {
-  pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
+  pub fn new(hurst: f32, n: usize, t: Option<f32>, m: Option<usize>) -> Self {
     if !(0.0..1.0).contains(&hurst) {
       panic!("Hurst parameter must be in (0, 1)")
     }
@@ -27,14 +27,14 @@ impl Fbm {
 }
 
 impl Generator for Fbm {
-  fn sample(&self) -> Vec<f64> {
+  fn sample(&self) -> Vec<f32> {
     let fgn = self.fgn.as_ref().unwrap().sample();
-    let mut fbm = Array1::<f64>::from_vec(fgn);
+    let mut fbm = Array1::<f32>::from_vec(fgn);
     fbm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
     vec![0.0].into_iter().chain(fbm).collect()
   }
 
-  fn sample_par(&self) -> Vec<Vec<f64>> {
+  fn sample_par(&self) -> Vec<Vec<f32>> {
     if self.m.is_none() {
       panic!("Number of paths must be specified")
     }

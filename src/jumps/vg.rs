@@ -3,13 +3,13 @@ use ndarray::Array1;
 use ndarray_rand::rand_distr::Gamma;
 use ndarray_rand::RandomExt;
 
-pub fn vg(mu: f64, sigma: f64, nu: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
-  let dt = t.unwrap_or(1.0) / n as f64;
+pub fn vg(mu: f32, sigma: f32, nu: f32, n: usize, x0: Option<f32>, t: Option<f32>) -> Vec<f32> {
+  let dt = t.unwrap_or(1.0) / n as f32;
 
   let shape = dt / nu;
   let scale = nu;
 
-  let mut vg = Array1::<f64>::zeros(n);
+  let mut vg = Array1::<f32>::zeros(n);
   vg[0] = x0.unwrap_or(0.0);
 
   let gn = gn::gn(n - 1, t);
