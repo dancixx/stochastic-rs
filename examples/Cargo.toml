@@ -1,0 +1,7 @@
+[package]
+name = "stochastic-rs-examples"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+stochastic_rs = { path = "../../stochastic-rs" }
