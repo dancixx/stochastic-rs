@@ -18,7 +18,7 @@ pub fn poisson(lambda: f32, n: Option<usize>, t_max: Option<f32>) -> Vec<f32> {
     let mut poisson = Array1::from(vec![0.0]);
     let mut t = 0.0;
 
-    while &t < &t_max {
+    while t < t_max {
       t += Exp::new(lambda).unwrap().sample(&mut thread_rng());
       poisson
         .push(Axis(0), Array0::from_elem(Dim(()), t).view())

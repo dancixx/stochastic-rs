@@ -58,6 +58,7 @@ impl FgnFft {
 }
 
 impl Generator for FgnFft {
+  #[inline]
   fn sample(&self) -> Vec<f32> {
     let rnd = Array1::<Complex<f32>>::random(
       2 * self.n,
@@ -67,9 +68,10 @@ impl Generator for FgnFft {
     let mut fft_handler = self.fft_handler.clone();
     let mut fgn_fft = self.fft_fgn.clone();
     ndfft_par(&fgn, &mut fgn_fft, &mut fft_handler, 0);
+    let scale = (self.n as f32).powf(-self.hurst) * self.t.powf(self.hurst);
     let fgn = fgn_fft
       .slice(s![1..self.n + 1])
-      .mapv(|x: Complex<f32>| (x.re * (self.n as f32).powf(-self.hurst)) * self.t.powf(self.hurst));
+      .mapv(|x: Complex<f32>| x.re * scale);
     fgn.to_vec()
   }
 
