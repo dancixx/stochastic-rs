@@ -1,12 +1,8 @@
-// https://docs.rs/ndarray/latest/ndarray/doc/ndarray_for_numpy_users/index.html
-
-// // Increase the amount of detail Clippy searches for.
-// #![warn(clippy::pedantic)]
-// Strictly enforce documentation.
-// #![forbid(missing_docs)]
-// // When writing mathematical equations in documentation, Clippy suggests to
-// // put backticks inside the LaTeX block. This suppresses that behavior.
-// #![allow(clippy::doc_markdown)]
+//! # Stochastic Processes
+//!
+//! Copyright (c) 2023-2024 <https://github.com/dancixx/stochastic-rs>
+//!
+//! This library provides a set of tools to simulate and analyze stochastic processes.
 
 pub mod prelude;
 
