@@ -4,6 +4,29 @@ use crate::{
 };
 use ndarray::Array2;
 
+/// Generates two correlated Brownian motion (BM) paths.
+///
+/// # Parameters
+///
+/// - `rho`: Correlation coefficient between the two BMs, must be in [-1, 1].
+/// - `n`: Number of time steps.
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `[Vec<f64>; 2]` where each vector represents a generated BM path.
+///
+/// # Panics
+///
+/// Panics if `rho` is not in the range [-1, 1].
+///
+/// # Example
+///
+/// ```
+/// let correlated_paths = correlated_bms(0.5, 1000, Some(1.0));
+/// let bm1 = correlated_paths[0];
+/// let bm2 = correlated_paths[1];
+/// ```
 pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
   if !(-1.0..=1.0).contains(&rho) {
     panic!("Correlation coefficient must be in [-1, 1]");
@@ -22,6 +45,32 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
   [bms.column(0).to_vec(), bms.column(1).to_vec()]
 }
 
+/// Generates two correlated fractional Brownian motion (fBM) paths.
+///
+/// # Parameters
+///
+/// - `hurst1`: Hurst parameter for the first fBM, must be in (0, 1).
+/// - `hurst2`: Hurst parameter for the second fBM, must be in (0, 1).
+/// - `rho`: Correlation coefficient between the two fBMs, must be in [-1, 1].
+/// - `n`: Number of time steps.
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `[Vec<f64>; 2]` where each vector represents a generated fBM path.
+///
+/// # Panics
+///
+/// Panics if `rho` is not in the range [-1, 1].
+/// Panics if either `hurst1` or `hurst2` is not in the range (0, 1).
+///
+/// # Example
+///
+/// ```
+/// let correlated_fbms = correlated_fbms(0.75, 0.75, 0.5, 1000, Some(1.0));
+/// let fbm1 = correlated_fbms[0];
+/// let fbm2 = correlated_fbms[1];
+/// ```
 pub fn correlated_fbms(
   hurst1: f64,
   hurst2: f64,

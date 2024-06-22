@@ -5,6 +5,33 @@ use crate::{
   utils::Generator,
 };
 
+/// Generates a path of the Jacobi process.
+///
+/// The Jacobi process is a mean-reverting process used in various fields such as finance and biology.
+///
+/// # Parameters
+///
+/// - `alpha`: Speed of mean reversion.
+/// - `beta`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated Jacobi process path.
+///
+/// # Panics
+///
+/// Panics if `alpha`, `beta`, or `sigma` are not positive.
+/// Panics if `alpha` is greater than `beta`.
+///
+/// # Example
+///
+/// ```
+/// let jacobi_path = jacobi(0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
+/// ```
 pub fn jacobi(
   alpha: f64,
   beta: f64,
@@ -42,6 +69,35 @@ pub fn jacobi(
   jacobi.to_vec()
 }
 
+/// Generates a path of the fractional Jacobi (fJacobi) process.
+///
+/// The fJacobi process incorporates fractional Brownian motion, which introduces long-range dependence.
+///
+/// # Parameters
+///
+/// - `hurst`: Hurst parameter for fractional Brownian motion, must be in (0, 1).
+/// - `alpha`: Speed of mean reversion.
+/// - `beta`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated fJacobi process path.
+///
+/// # Panics
+///
+/// Panics if `hurst` is not in (0, 1).
+/// Panics if `alpha`, `beta`, or `sigma` are not positive.
+/// Panics if `alpha` is greater than `beta`.
+///
+/// # Example
+///
+/// ```
+/// let fjacobi_path = fjacobi(0.75, 0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
+/// ```
 #[allow(clippy::too_many_arguments)]
 pub fn fjacobi(
   hurst: f64,

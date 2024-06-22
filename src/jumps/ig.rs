@@ -3,6 +3,26 @@ use crate::noises::gn::gn;
 use ndarray::Array1;
 use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 
+/// Generates a path of the Inverse Gaussian (IG) process.
+///
+/// The IG process is used in various fields such as finance and engineering.
+///
+/// # Parameters
+///
+/// - `gamma`: Drift parameter.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated IG process path.
+///
+/// # Example
+///
+/// ```
+/// let ig_path = ig(0.1, 1000, Some(0.0), Some(1.0));
+/// ```
 pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let gn = gn(n - 1, t);
@@ -16,6 +36,28 @@ pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
   ig.to_vec()
 }
 
+/// Generates a path of the Normal Inverse Gaussian (NIG) process.
+///
+/// The NIG process is used in financial mathematics to model stock returns.
+///
+/// # Parameters
+///
+/// - `theta`: Drift parameter.
+/// - `sigma`: Volatility parameter.
+/// - `kappa`: Shape parameter of the Inverse Gaussian distribution.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated NIG process path.
+///
+/// # Example
+///
+/// ```
+/// let nig_path = nig(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
+/// ```
 pub fn nig(
   theta: f64,
   sigma: f64,

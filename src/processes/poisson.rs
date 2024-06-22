@@ -4,6 +4,30 @@ use ndarray_rand::rand_distr::{Normal, Poisson};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
+/// Generates a Poisson process.
+///
+/// The Poisson process models the occurrence of events over time. It is commonly used in fields such as queuing theory, telecommunications, and finance.
+///
+/// # Parameters
+///
+/// - `lambda`: Rate parameter (average number of events per unit time).
+/// - `n`: Number of events (optional).
+/// - `t_max`: Maximum time (optional).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated Poisson process path.
+///
+/// # Panics
+///
+/// Panics if neither `n` nor `t_max` is provided.
+///
+/// # Example
+///
+/// ```
+/// let poisson_path = poisson(1.0, Some(1000), None);
+/// let poisson_path = poisson(1.0, None, Some(100.0));
+/// ```
 pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
   if let Some(n) = n {
     let exponentials = Array1::random(n - 1, Exp::new(lambda).unwrap());
@@ -18,7 +42,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
     let mut poisson = Array1::from(vec![0.0]);
     let mut t = 0.0;
 
-    while &t < &t_max {
+    while t < t_max {
       t += Exp::new(lambda).unwrap().sample(&mut thread_rng());
       poisson
         .push(Axis(0), Array0::from_elem(Dim(()), t).view())
@@ -31,6 +55,32 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
   }
 }
 
+/// Generates a compound Poisson process.
+///
+/// The compound Poisson process models the occurrence of events over time, where each event has a random magnitude (jump). It is commonly used in insurance and finance.
+///
+/// # Parameters
+///
+/// - `n`: Number of time steps.
+/// - `lambda`: Rate parameter (average number of events per unit time).
+/// - `jumps`: Vector of jump sizes (optional).
+/// - `t_max`: Maximum time (optional, defaults to 1.0).
+/// - `jump_mean`: Mean of the jump sizes (optional, defaults to 0.0).
+/// - `jump_std`: Standard deviation of the jump sizes (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated compound Poisson process path.
+///
+/// # Panics
+///
+/// Panics if `n` is zero.
+///
+/// # Example
+///
+/// ```
+/// let cp_path = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
+/// ```
 pub fn compound_poisson(
   n: usize,
   lambda: f64,
