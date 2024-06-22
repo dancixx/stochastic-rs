@@ -2,7 +2,39 @@ use ndarray::Array1;
 
 use crate::prelude::{correlated::correlated_bms, poisson::compound_poisson};
 
-/// Bates (1996) model
+/// Generates paths for the Bates (1996) model.
+///
+/// The Bates model combines a stochastic volatility model with jump diffusion, commonly used in financial mathematics to model asset prices.
+///
+/// # Parameters
+///
+/// - `mu`: Drift parameter of the asset price.
+/// - `kappa`: Rate of mean reversion of the volatility.
+/// - `theta`: Long-term mean level of the volatility.
+/// - `eta`: Volatility of the volatility (vol of vol).
+/// - `rho`: Correlation between the asset price and its volatility.
+/// - `lambda`: Jump intensity.
+/// - `n`: Number of time steps.
+/// - `s0`: Initial value of the asset price (optional, defaults to 0.0).
+/// - `v0`: Initial value of the volatility (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+/// - `use_sym`: Whether to use symmetric noise for the volatility (optional, defaults to false).
+///
+/// # Returns
+///
+/// A `[Vec<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
+///
+/// # Example
+///
+/// ```
+/// let paths = bates_1996(0.05, 1.5, 0.04, 0.3, -0.7, 0.1, 1000, Some(100.0), Some(0.04), Some(1.0), Some(false));
+/// let asset_prices = paths[0];
+/// let volatilities = paths[1];
+/// ```
+///
+/// # Panics
+///
+/// This function will panic if the `correlated_bms` or `compound_poisson` functions return invalid lengths or if there are issues with array indexing.
 #[allow(clippy::too_many_arguments)]
 pub fn bates_1996(
   mu: f64,

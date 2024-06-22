@@ -4,6 +4,28 @@ use crate::{
 };
 use ndarray::Array1;
 
+/// Generates a path of the Ornstein-Uhlenbeck (OU) process.
+///
+/// The OU process is a mean-reverting stochastic process used in various fields such as finance and physics.
+///
+/// # Parameters
+///
+/// - `mu`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `theta`: Speed of mean reversion.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated OU process path.
+///
+/// # Example
+///
+/// ```
+/// let ou_path = ou(0.0, 0.1, 0.5, 1000, Some(0.0), Some(1.0));
+/// ```
 pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
@@ -18,6 +40,33 @@ pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<
   ou.to_vec()
 }
 
+/// Generates a path of the fractional Ornstein-Uhlenbeck (fOU) process.
+///
+/// The fOU process incorporates fractional Brownian motion, which introduces long-range dependence.
+///
+/// # Parameters
+///
+/// - `hurst`: Hurst parameter for fractional Brownian motion, must be in (0, 1).
+/// - `mu`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `theta`: Speed of mean reversion.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated fOU process path.
+///
+/// # Panics
+///
+/// Panics if `hurst` is not in (0, 1).
+///
+/// # Example
+///
+/// ```
+/// let fou_path = fou(0.75, 0.0, 0.1, 0.5, 1000, Some(0.0), Some(1.0));
+/// ```
 #[allow(clippy::too_many_arguments)]
 pub fn fou(
   hurst: f64,

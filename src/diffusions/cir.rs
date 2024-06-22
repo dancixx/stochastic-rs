@@ -4,6 +4,33 @@ use crate::{
 };
 use ndarray::Array1;
 
+/// Generates a path of the Cox-Ingersoll-Ross (CIR) process.
+///
+/// The CIR process is commonly used in financial mathematics to model interest rates.
+///
+/// # Parameters
+///
+/// - `theta`: Speed of mean reversion.
+/// - `mu`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+/// - `use_sym`: Whether to use symmetric noise (optional, defaults to false).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated CIR process path.
+///
+/// # Panics
+///
+/// Panics if `2 * theta * mu < sigma^2`.
+///
+/// # Example
+///
+/// ```
+/// let cir_path = cir(0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
+/// ```
 pub fn cir(
   theta: f64,
   mu: f64,
@@ -34,6 +61,35 @@ pub fn cir(
   cir.to_vec()
 }
 
+/// Generates a path of the fractional Cox-Ingersoll-Ross (fCIR) process.
+///
+/// The fCIR process incorporates fractional Brownian motion, which introduces long-range dependence.
+///
+/// # Parameters
+///
+/// - `hurst`: Hurst parameter for fractional Brownian motion, must be in (0, 1).
+/// - `theta`: Speed of mean reversion.
+/// - `mu`: Long-term mean level.
+/// - `sigma`: Volatility parameter.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+/// - `use_sym`: Whether to use symmetric noise (optional, defaults to false).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated fCIR process path.
+///
+/// # Panics
+///
+/// Panics if `hurst` is not in (0, 1).
+/// Panics if `2 * theta * mu < sigma^2`.
+///
+/// # Example
+///
+/// ```
+/// let fcir_path = fcir(0.75, 0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
+/// ```
 #[allow(clippy::too_many_arguments)]
 pub fn fcir(
   hurst: f64,

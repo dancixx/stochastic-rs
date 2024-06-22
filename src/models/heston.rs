@@ -2,6 +2,34 @@ use ndarray::Array1;
 
 use crate::prelude::correlated::correlated_bms;
 
+/// Generates paths for the Heston model.
+///
+/// The Heston model is a stochastic volatility model used to describe the evolution of the volatility of an underlying asset.
+///
+/// # Parameters
+///
+/// - `mu`: Drift parameter of the asset price.
+/// - `kappa`: Rate of mean reversion of the volatility.
+/// - `theta`: Long-term mean level of the volatility.
+/// - `eta`: Volatility of the volatility (vol of vol).
+/// - `rho`: Correlation between the asset price and its volatility.
+/// - `n`: Number of time steps.
+/// - `s0`: Initial value of the asset price (optional, defaults to 0.0).
+/// - `v0`: Initial value of the volatility (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+/// - `use_sym`: Whether to use symmetric noise for the volatility (optional, defaults to false).
+///
+/// # Returns
+///
+/// A `[Vec<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
+///
+/// # Example
+///
+/// ```
+/// let paths = heston(0.05, 1.5, 0.04, 0.3, -0.7, 1000, Some(100.0), Some(0.04), Some(1.0), Some(false));
+/// let asset_prices = paths[0];
+/// let volatilities = paths[1];
+/// ```
 #[allow(clippy::too_many_arguments)]
 pub fn heston(
   mu: f64,

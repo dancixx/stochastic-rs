@@ -2,6 +2,29 @@ use ndarray::Array1;
 
 use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 
+/// Generates a path of the Merton jump diffusion process.
+///
+/// The Merton jump diffusion process combines a continuous diffusion process with jumps, commonly used in financial modeling.
+///
+/// # Parameters
+///
+/// - `alpha`: Drift parameter.
+/// - `sigma`: Volatility parameter.
+/// - `lambda`: Jump intensity.
+/// - `theta`: Jump size.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated Merton jump diffusion process path.
+///
+/// # Example
+///
+/// ```
+/// let merton_path = merton(0.1, 0.2, 0.5, 0.05, 1000, Some(0.0), Some(1.0));
+/// ```
 pub fn merton(
   alpha: f64,
   sigma: f64,
