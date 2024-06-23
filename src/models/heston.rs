@@ -26,6 +26,8 @@ use crate::prelude::correlated::correlated_bms;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::models::heston::heston;
+///
 /// let paths = heston(0.05, 1.5, 0.04, 0.3, -0.7, 1000, Some(100.0), Some(0.04), Some(1.0), Some(false));
 /// let asset_prices = paths[0];
 /// let volatilities = paths[1];

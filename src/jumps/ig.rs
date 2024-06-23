@@ -21,6 +21,8 @@ use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::ig::ig;
+///
 /// let ig_path = ig(0.1, 1000, Some(0.0), Some(1.0));
 /// ```
 pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
@@ -56,6 +58,8 @@ pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::ig::nig;
+///
 /// let nig_path = nig(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 pub fn nig(

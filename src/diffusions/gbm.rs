@@ -23,6 +23,8 @@ use ndarray::Array1;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::gbm::gbm;
+///
 /// let gbm_path = gbm(0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
 pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
@@ -63,6 +65,8 @@ pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Ve
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::gbm::fgbm;
+///
 /// let fgbm_path = fgbm(0.75, 0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
 pub fn fgbm(

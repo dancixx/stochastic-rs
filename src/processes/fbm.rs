@@ -33,6 +33,8 @@ impl Fbm {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::processes::fbm::Fbm;
+  ///
   /// let fbm = Fbm::new(0.75, 1000, Some(1.0), Some(10));
   /// ```
   ///
@@ -60,6 +62,8 @@ impl Generator for Fbm {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::processes::fbm::Fbm;
+  ///
   /// let fbm = Fbm::new(0.75, 1000, Some(1.0), None);
   /// let sample = fbm.sample();
   /// ```
@@ -83,6 +87,8 @@ impl Generator for Fbm {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::processes::fbm::Fbm;
+  ///
   /// let fbm = Fbm::new(0.75, 1000, Some(1.0), Some(10));
   /// let samples = fbm.sample_par();
   /// ```

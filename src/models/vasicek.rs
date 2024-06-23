@@ -24,6 +24,8 @@ use crate::diffusions::ou::{fou, ou};
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::models::vasicek::vasicek;
+///
 /// let vasicek_path = vasicek(0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
 /// ```
 pub fn vasicek(
@@ -66,6 +68,8 @@ pub fn vasicek(
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::models::vasicek::fvasicek;
+///
 /// let fvasicek_path = fvasicek(0.75, 0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
 /// ```
 #[allow(clippy::too_many_arguments)]
