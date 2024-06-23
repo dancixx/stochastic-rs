@@ -1,3 +1,6 @@
+use plotly::common::Mode;
+use plotly::Plot;
+use plotly::Scatter;
 use std::time::Instant;
 
 use stochastic_rs::{
@@ -5,16 +8,33 @@ use stochastic_rs::{
 };
 
 fn main() {
-  let m = 20000;
-  let hurst = 0.1;
-  let n = 50000;
+  let m = 20;
+  let hurst = 0.75;
+  let n = 500;
   let fgn = fbm::Fbm::new(hurst, n, None, None);
 
   let start = Instant::now();
+  let mut data_samples = Vec::new();
+
   for _ in 0..m {
     let data = fgn.sample();
-    let h = 2.0 - higuchi_fd(data.as_slice(), 10);
-    println!("{}", h);
+    data_samples.push(data);
   }
-  println!("elasped {}", start.elapsed().as_secs_f64());
+
+  println!("elapsed {}", start.elapsed().as_secs_f64());
+
+  // Create a Plotly plot
+  let mut plot = Plot::new();
+
+  for (i, data) in data_samples.iter().enumerate() {
+    let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.clone())
+      .mode(Mode::Lines)
+      .name(format!("Sequence {}", i + 1).as_str());
+    plot.add_trace(trace);
+  }
+
+  // Save the plot as an HTML file
+  plot.write_html("plot.html");
+
+  println!("Plot saved as plot.html");
 }
