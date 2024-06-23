@@ -1,5 +1,3 @@
-use std::error::Error;
-
 /// A trait for generating stochastic process samples.
 ///
 /// This trait defines methods for generating single and parallel samples of stochastic processes.

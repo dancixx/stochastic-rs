@@ -23,6 +23,8 @@ use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::merton::merton;
+///
 /// let merton_path = merton(0.1, 0.2, 0.5, 0.05, 1000, Some(0.0), Some(1.0));
 /// ```
 pub fn merton(

@@ -25,6 +25,8 @@ use rand::thread_rng;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::processes::poisson::poisson;
+///
 /// let poisson_path = poisson(1.0, Some(1000), None);
 /// let poisson_path = poisson(1.0, None, Some(100.0));
 /// ```
@@ -79,6 +81,8 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::processes::poisson::compound_poisson;
+///
 /// let cp_path = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 pub fn compound_poisson(

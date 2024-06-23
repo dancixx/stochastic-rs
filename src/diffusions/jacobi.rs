@@ -30,6 +30,8 @@ use crate::{
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::jacobi::jacobi;
+///
 /// let jacobi_path = jacobi(0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
 /// ```
 pub fn jacobi(
@@ -96,6 +98,8 @@ pub fn jacobi(
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::jacobi::fjacobi;
+///
 /// let fjacobi_path = fjacobi(0.75, 0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
 /// ```
 #[allow(clippy::too_many_arguments)]

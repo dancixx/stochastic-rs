@@ -18,6 +18,8 @@ use ndarray_rand::RandomExt;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::noises::gn::gn;
+///
 /// let gn_path = gn(1000, Some(1.0));
 /// ```
 pub fn gn(n: usize, t: Option<f64>) -> Vec<f64> {

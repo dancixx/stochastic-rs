@@ -27,6 +27,8 @@ use crate::prelude::{correlated::correlated_bms, poisson::compound_poisson};
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::bates::bates_1996;
+///
 /// let paths = bates_1996(0.05, 1.5, 0.04, 0.3, -0.7, 0.1, 1000, Some(100.0), Some(0.04), Some(1.0), Some(false));
 /// let asset_prices = paths[0];
 /// let volatilities = paths[1];

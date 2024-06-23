@@ -21,6 +21,8 @@ use ndarray::Array1;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::levy_diffusion::levy_diffusion;
+///
 /// let levy_path = levy_diffusion(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 

@@ -18,6 +18,8 @@ use crate::noises::gn;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::processes::bm::bm;
+///
 /// let bm_path = bm(1000, Some(1.0));
 /// ```
 

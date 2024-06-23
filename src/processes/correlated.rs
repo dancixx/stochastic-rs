@@ -23,6 +23,8 @@ use ndarray::Array2;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::processes::correlated::correlated_bms;
+///
 /// let correlated_paths = correlated_bms(0.5, 1000, Some(1.0));
 /// let bm1 = correlated_paths[0];
 /// let bm2 = correlated_paths[1];
@@ -67,6 +69,8 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::processes::correlated::correlated_fbms;
+///
 /// let correlated_fbms = correlated_fbms(0.75, 0.75, 0.5, 1000, Some(1.0));
 /// let fbm1 = correlated_fbms[0];
 /// let fbm2 = correlated_fbms[1];

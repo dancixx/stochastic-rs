@@ -17,6 +17,8 @@ use linreg::linear_regression;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::statistics::higuchi_fd::higuchi_fd;
+///
 /// let data = vec![1.0, 2.0, 1.5, 3.0, 2.5, 4.0, 3.5, 5.0];
 /// let fd = higuchi_fd(&data, 5);
 /// println!("Fractal Dimension: {}", fd);

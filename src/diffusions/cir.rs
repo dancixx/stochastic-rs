@@ -29,6 +29,8 @@ use ndarray::Array1;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::cir::cir;
+///
 /// let cir_path = cir(0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
 /// ```
 pub fn cir(
@@ -88,6 +90,8 @@ pub fn cir(
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::diffusions::cir::fcir;
+///
 /// let fcir_path = fcir(0.75, 0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
 /// ```
 #[allow(clippy::too_many_arguments)]

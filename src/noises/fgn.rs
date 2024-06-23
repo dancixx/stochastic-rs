@@ -47,6 +47,8 @@ impl FgnFft {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::noises::fgn::FgnFft;
+  ///
   /// let fgn_fft = FgnFft::new(0.75, 1000, Some(1.0), Some(10));
   /// ```
   pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
@@ -101,6 +103,8 @@ impl Generator for FgnFft {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::noises::fgn::FgnFft;
+  ///
   /// let fgn_fft = FgnFft::new(0.75, 1000, Some(1.0), None);
   /// let sample = fgn_fft.sample();
   /// ```
@@ -147,6 +151,8 @@ impl Generator for FgnFft {
   /// # Example
   ///
   /// ```
+  /// use stochastic_rs::noises::fgn::FgnFft;
+  ///
   /// let fgn_fft = FgnFft::new(0.75, 1000, Some(1.0), Some(10));
   /// let samples = fgn_fft.sample_par();
   /// ```

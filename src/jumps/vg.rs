@@ -23,6 +23,8 @@ use ndarray_rand::RandomExt;
 /// # Example
 ///
 /// ```
+/// use stochastic_rs::jumps::vg::vg;
+///
 /// let vg_path = vg(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 pub fn vg(mu: f64, sigma: f64, nu: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
