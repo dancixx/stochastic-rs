@@ -6,7 +6,9 @@ use rayon::prelude::*;
 
 /// Struct for generating Fractional Brownian Motion (fBM).
 pub struct Fbm {
+  #[allow(dead_code)]
   hurst: f64,
+  #[allow(dead_code)]
   n: usize,
   m: Option<usize>,
   fgn: Option<FgnFft>,

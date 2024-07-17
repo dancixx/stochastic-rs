@@ -15,6 +15,7 @@ use num_complex::{Complex, ComplexDistribution};
 pub struct FgnFft {
   hurst: f64,
   n: usize,
+  offset: usize,
   t: f64,
   sqrt_eigenvalues: Array1<Complex<f64>>,
   m: Option<usize>,
@@ -49,6 +50,9 @@ impl FgnFft {
     if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
+    let n_ = n.next_power_of_two();
+    let offset = n_ - n;
+    let n = n_;
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
     r.par_mapv_inplace(|x| {
       if x == 0.0 {
@@ -64,10 +68,7 @@ impl FgnFft {
       &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
     )
     .unwrap();
-    let mut data = Array1::<Complex<f64>>::zeros(r.len());
-    for (i, v) in r.iter().enumerate() {
-      data[i] = Complex::new(*v, 0.0);
-    }
+    let data = r.mapv(|v| Complex::new(v, 0.0));
     let mut r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
     ndfft_par(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
@@ -76,6 +77,7 @@ impl FgnFft {
     Self {
       hurst,
       n,
+      offset,
       t: t.unwrap_or(1.0),
       sqrt_eigenvalues,
       m,
@@ -108,7 +110,7 @@ impl Generator for FgnFft {
     let mut fgn_fft = self.fft_fgn.clone();
     ndfft_par(&fgn, &mut fgn_fft, &mut fft_handler, 0);
     let fgn = fgn_fft
-      .slice(s![1..self.n + 1])
+      .slice(s![1..self.n - self.offset + 1])
       .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
     fgn.to_vec()
   }
