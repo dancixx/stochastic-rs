@@ -1,8 +1,6 @@
-use std::ops::Add;
-
 use ndarray::{Array0, Array1, Axis, Dim};
+use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::rand_distr::{Distribution, Exp};
-use ndarray_rand::rand_distr::{Normal, Poisson};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
@@ -132,7 +130,7 @@ mod tests {
     let n = 1000;
     let lambda = 2.0;
     let t = 10.0;
-    let cp = compound_poisson(n, lambda, None, Some(t), None, None);
+    let (.., cp) = compound_poisson(n, lambda, None, Some(t), None);
     assert_eq!(cp.len(), n);
   }
 }

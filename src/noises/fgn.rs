@@ -69,9 +69,9 @@ impl FgnFft {
     )
     .unwrap();
     let data = r.mapv(|v| Complex::new(v, 0.0));
-    let mut r_fft = FftHandler::new(r.len());
+    let r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
-    ndfft_par(&data, &mut sqrt_eigenvalues, &mut r_fft, 0);
+    ndfft_par(&data, &mut sqrt_eigenvalues, &r_fft, 0);
     sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
     Self {
@@ -106,9 +106,9 @@ impl Generator for FgnFft {
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
     let fgn = &self.sqrt_eigenvalues * &rnd;
-    let mut fft_handler = self.fft_handler.clone();
+    let fft_handler = self.fft_handler.clone();
     let mut fgn_fft = self.fft_fgn.clone();
-    ndfft_par(&fgn, &mut fgn_fft, &mut fft_handler, 0);
+    ndfft_par(&fgn, &mut fgn_fft, &fft_handler, 0);
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
       .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));

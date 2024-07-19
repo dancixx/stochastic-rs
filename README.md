@@ -37,6 +37,8 @@ Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 - [x] Merton model
 - [x] Bates model
 - [x] Vasicek model
+- [x] SABR model (unstable)
+- [x] Duffie-Kan model (unstable)
 
 
 # Fractional Stochastic processes
@@ -52,7 +54,6 @@ Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 - [ ] Rough Heston model
 - [ ] Bergomi model
 - [ ] Rough Bergomi model
-- [ ] SABR model
 - [ ] Hull-White model
 - [ ] Barndorff-Nielsen & Shephard model
 - [ ] Alpha-stable models
@@ -63,7 +64,6 @@ Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 - [ ] Wu-Zhang model
 - [ ] Affine model
 - [ ] Heath-Jarrow-Morton model & Multi-factor Heath-Jarrow-Morton model
-- [ ] Duffie-Kan model
 
 ## Future work
 - [x] Add more tests
