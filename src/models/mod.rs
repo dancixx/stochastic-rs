@@ -4,8 +4,8 @@
 //!
 //! - Duffie-Kan Model
 //!   - The Duffie-Kan model is a multifactor interest rate model incorporating correlated Brownian motions.
-//!   - SDE: dr(t) = (a1 * r(t) + b1 * x(t) + c1) * dt + sigma1 * (alpha * r(t) + beta * x(t) + gamma) * dW_r(t)
-//!   - SDE: dx(t) = (a2 * r(t) + b2 * x(t) + c2) * dt + sigma2 * (alpha * r(t) + beta * x(t) + gamma) * dW_x(t)
+//!   - SDE: `dr(t) = (a1 * r(t) + b1 * x(t) + c1) * dt + sigma1 * (alpha * r(t) + beta * x(t) + gamma) * dW_r(t)`
+//!   - SDE: `dx(t) = (a2 * r(t) + b2 * x(t) + c2) * dt + sigma2 * (alpha * r(t) + beta * x(t) + gamma) * dW_x(t)`
 //!   - where Corr(W_r(t), W_x(t)) = rho
 //!
 //! - **Heston Model**
@@ -15,8 +15,8 @@
 //!
 //! - SABR (Stochastic Alpha, Beta, Rho) Model
 //! - Widely used in financial mathematics for modeling stochastic volatility.
-//!   - SDE: dF(t) = V(t) * F(t)^beta * dW_F(t)
-//!   - SDE: dV(t) = alpha * V(t) * dW_V(t)
+//!   - SDE: `dF(t) = V(t) * F(t)^beta * dW_F(t)`
+//!   - SDE: `dV(t) = alpha * V(t) * dW_V(t)`
 //!   - where Corr(W_F(t), W_V(t)) = rho
 //!
 //! - **Vasicek Model**
