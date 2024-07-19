@@ -22,9 +22,10 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [x] Ornstein-Uhlenbeck process
 - [x] Jacobi process
 
-# Jumps and Levy processes
+# Jumps and Levy processes (unstable)
 - [x] Poisson process
 - [x] Compound Poisson process
+- [x] Fractional Ornstein-Uhlenbeck process with jumps
 - [x] Levy jump diffusion
 - [x] Inverse Gaussian
 - [x] Normal Inverse Gaussian
@@ -49,7 +50,7 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 
 # Features
 - [ ] Rough Heston model
-- [ ] Bergomi model 
+- [ ] Bergomi model
 - [ ] Rough Bergomi model
 - [ ] SABR model
 - [ ] Hull-White model
@@ -65,6 +66,6 @@ Minimal documentation is available at [stochastic-rs](https://docs.rs/stochastic
 - [ ] Duffie-Kan model
 
 ## Future work
-- [ ] Add more tests
-- [ ] Add more examples
-- [ ] Full documentation
+- [x] Add more tests
+- [x] Add more examples
+- [x] Full documentation
