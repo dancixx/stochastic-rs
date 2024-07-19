@@ -72,7 +72,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated compound Poisson process path.
+/// A `(Vec<f64>, Vec<f64>, Vec<f64>)` representing the exponetial times from Poisson, generated compound Poisson cumulative process path and the jumps.
 ///
 /// # Panics
 ///
@@ -81,7 +81,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
 /// # Example
 ///
 /// ```
-/// let (cp_path) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
+/// let (p, cum_cp, cp) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 pub fn compound_poisson(
   n: usize,

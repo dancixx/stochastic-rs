@@ -2,6 +2,32 @@ use ndarray::Array1;
 
 use crate::{diffusions::ou, prelude::poisson::compound_poisson};
 
+/// Generates a path of the jump fractional Ornstein-Uhlenbeck (FOU) process.
+///
+/// The jump FOU process incorporates both the fractional Ornstein-Uhlenbeck dynamics and compound Poisson jumps,
+/// which can be useful in various financial and physical modeling contexts.
+///
+/// # Parameters
+///
+/// - `hurst`: The Hurst parameter for the fractional Ornstein-Uhlenbeck process.
+/// - `mu`: The mean reversion level.
+/// - `sigma`: The volatility parameter.
+/// - `theta`: The mean reversion speed.
+/// - `lambda`: The jump intensity of the compound Poisson process.
+/// - `n`: Number of time steps.
+/// - `x0`: Initial value of the process (optional, defaults to 0.0).
+/// - `t`: Total time (optional, defaults to 1.0).
+///
+/// # Returns
+///
+/// A `Vec<f64>` representing the generated jump FOU process path.
+///
+/// # Example
+///
+/// ```
+/// let jump_fou_path = jump_fou(0.1, 0.2, 0.5, 0.3, 0.5, 1000, None, Some(1.0));
+/// ```
+
 #[allow(clippy::too_many_arguments)]
 pub fn jump_fou(
   hurst: f64,
