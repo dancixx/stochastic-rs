@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use ndarray::{Array0, Array1, Axis, Dim};
 use ndarray_rand::rand_distr::{Distribution, Exp};
 use ndarray_rand::rand_distr::{Normal, Poisson};
@@ -30,7 +32,7 @@ use rand::thread_rng;
 /// ```
 pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
   if let Some(n) = n {
-    let exponentials = Array1::random(n - 1, Exp::new(lambda).unwrap());
+    let exponentials = Array1::random(n - 1, Exp::new(1.0 / lambda).unwrap());
     let mut poisson = Array1::<f64>::zeros(n);
 
     for i in 1..n {
@@ -79,40 +81,35 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
 /// # Example
 ///
 /// ```
-/// let cp_path = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
+/// let (cp_path) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 pub fn compound_poisson(
   n: usize,
   lambda: f64,
-  jumps: Option<Vec<f64>>,
   t_max: Option<f64>,
   jump_mean: Option<f64>,
   jump_std: Option<f64>,
-) -> Vec<f64> {
+) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
   if n == 0 {
     panic!("n must be a positive integer");
   }
 
   let _t_max = t_max.unwrap_or(1.0);
-  let p = Array1::random(n, Poisson::new(lambda).unwrap());
+  let p = poisson(lambda, Some(n), t_max);
   let mut cp = Array1::<f64>::zeros(n);
 
-  match jumps {
-    Some(jumps) => jumps,
-    None => {
-      let _jump_mean = jump_mean.unwrap_or(0.0);
-      let _jump_std = jump_std.unwrap_or(1.0);
+  let _jump_mean = jump_mean.unwrap_or(0.0);
+  let _jump_std = jump_std.unwrap_or(1.0);
 
-      for i in 0..n {
-        for j in &p {
-          let norm = Array1::random(*j as usize, Normal::new(_jump_mean, _jump_std).unwrap());
-          cp[i] = norm.sum();
-        }
-      }
-
-      cp.to_vec()
-    }
+  for i in 1..p.len() {
+    let norm = Array1::random(i, Normal::new(_jump_mean, _jump_std).unwrap());
+    cp[i] = norm.sum();
   }
+
+  let mut cum_cp = cp.clone();
+  cum_cp.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
+
+  (p, cum_cp.to_vec(), cp.to_vec())
 }
 
 #[cfg(test)]

@@ -10,6 +10,10 @@
 //!   - Models heavy-tailed distributions.
 //!   - SDE: `dX(t) = gamma * dt + dW(t)`
 //!
+//! - **Jump-Fractional Ornstein-Uhlenbeck (JFOU) Process**
+//!  - Combines jumps with fractional Ornstein-Uhlenbeck process.
+//!  - SDE: `dX(t) = theta(mu - X(t))dt + sigma dW^H(t) + Jumps`
+//!
 //! - **Normal Inverse Gaussian (NIG) Process**
 //!   - Models stock returns with normal and inverse Gaussian components.
 //!   - SDE: `dX(t) = theta * IG(t) + sigma * sqrt(IG(t)) * dW(t)`
@@ -30,6 +34,7 @@
 
 pub mod bates;
 pub mod ig;
+pub mod jump_fou;
 pub mod levy_diffusion;
 pub mod merton;
 pub mod vg;
