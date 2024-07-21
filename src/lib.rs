@@ -55,6 +55,8 @@
 
 pub mod prelude;
 
+pub mod stochastic;
+
 pub mod diffusions;
 pub mod jumps;
 pub mod models;

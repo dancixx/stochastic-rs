@@ -32,3 +32,6 @@ ndrustfft = "0.4.2"
 name = "stochastic_rs"
 crate-type = ["cdylib", "lib"]
 path = "src/lib.rs"
+
+[features]
+f32 = []
