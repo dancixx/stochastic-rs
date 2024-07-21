@@ -1,4 +1,7 @@
-use crate::stochastic::traits::{Process, ProcessF32};
+use crate::stochastic::traits::Process;
+
+#[cfg(feature = "f32")]
+use crate::stochastic::traits::ProcessF32;
 
 pub struct OU {
   pub theta: f64,

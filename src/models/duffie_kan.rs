@@ -35,7 +35,7 @@ use crate::processes::correlated::correlated_bms;
 /// ```
 /// let (r_path, x_path) = duffie_kan(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1000, Some(0.05), Some(0.02), Some(1.0));
 /// ```
-#[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 pub fn duffie_kan(
   alpha: f64,
   beta: f64,
