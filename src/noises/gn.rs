@@ -13,7 +13,7 @@ use ndarray_rand::RandomExt;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Gaussian noise path.
+/// A `Array1<f64>` representing the generated Gaussian noise path.
 ///
 /// # Example
 ///

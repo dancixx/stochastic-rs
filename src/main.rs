@@ -27,13 +27,13 @@ fn main() {
     //let d = compound_poisson(50, 1.0, None, None, None);
     //let d = poisson(10.0, Some(50), None);
 
-    let trace = Scatter::new((0..d.len()).collect::<Vec<_>>(), d.to_vec())
-      .mode(plotly::common::Mode::Lines)
-      .line(
-        Line::new().color("blue"), //.shape(plotly::common::LineShape::Hv),
-      )
-      .name(format!("Sequence {}", i + 1).as_str());
-    plot.add_trace(trace);
+    // let trace = Scatter::new((0..d.len()).collect::<Array1<_>>(), d.to_vec())
+    //   .mode(plotly::common::Mode::Lines)
+    //   .line(
+    //     Line::new().color("blue"), //.shape(plotly::common::LineShape::Hv),
+    //   )
+    //   .name(format!("Sequence {}", i + 1).as_str());
+    // plot.add_trace(trace);
   }
 
   plot.show();

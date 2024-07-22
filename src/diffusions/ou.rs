@@ -19,7 +19,7 @@ use ndarray::Array1;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated OU process path.
+/// A `Array1<f64>` representing the generated OU process path.
 ///
 /// # Example
 ///
@@ -63,7 +63,7 @@ pub fn ou(
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated fOU process path.
+/// A `Array1<f64>` representing the generated fOU process path.
 ///
 /// # Panics
 ///

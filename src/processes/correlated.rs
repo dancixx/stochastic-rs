@@ -14,7 +14,7 @@ use ndarray::{Array1, Array2};
 ///
 /// # Returns
 ///
-/// A `[Vec<f64>; 2]` where each vector represents a generated BM path.
+/// A `[Array1<f64>; 2]` where each vector represents a generated BM path.
 ///
 /// # Panics
 ///
@@ -57,7 +57,7 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Array1<f64>; 2] {
 ///
 /// # Returns
 ///
-/// A `[Vec<f64>; 2]` where each vector represents a generated fBM path.
+/// A `[Array1<f64>; 2]` where each vector represents a generated fBM path.
 ///
 /// # Panics
 ///
@@ -77,7 +77,7 @@ pub fn correlated_fbms(
   rho: f64,
   n: usize,
   t: Option<f64>,
-) -> [Vec<f64>; 2] {
+) -> [Array1<f64>; 2] {
   if !(-1.0..=1.0).contains(&rho) || !(0.0..1.0).contains(&hurst1) || !(0.0..1.0).contains(&hurst2)
   {
     panic!("Correlation coefficient must be in [-1, 1] and Hurst parameters must be in (0, 1)");
@@ -93,5 +93,5 @@ pub fn correlated_fbms(
     fbms[[i, 1]] = rho * fgn2[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }
 
-  [fbms.column(0).to_vec(), fbms.column(1).to_vec()]
+  [fbms.column(0).to_owned(), fbms.column(1).to_owned()]
 }

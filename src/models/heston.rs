@@ -21,7 +21,7 @@ use crate::prelude::correlated::correlated_bms;
 ///
 /// # Returns
 ///
-/// A `[Vec<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
+/// A `[Array1<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
 ///
 /// # Example
 ///

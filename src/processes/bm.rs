@@ -13,7 +13,7 @@ use crate::noises::gn;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Brownian Motion path.
+/// A `Array1<f64>` representing the generated Brownian Motion path.
 ///
 /// # Example
 ///

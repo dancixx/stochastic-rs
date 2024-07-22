@@ -20,7 +20,7 @@ use crate::{
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Jacobi process path.
+/// A `Array1<f64>` representing the generated Jacobi process path.
 ///
 /// # Panics
 ///
@@ -85,7 +85,7 @@ pub fn jacobi(
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated fJacobi process path.
+/// A `Array1<f64>` representing the generated fJacobi process path.
 ///
 /// # Panics
 ///

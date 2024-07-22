@@ -16,7 +16,7 @@ use ndarray::Array1;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Lévy diffusion process path.
+/// A `Array1<f64>` representing the generated Lévy diffusion process path.
 ///
 /// # Example
 ///

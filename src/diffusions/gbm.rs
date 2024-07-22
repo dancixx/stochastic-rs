@@ -18,7 +18,7 @@ use ndarray::Array1;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated GBM process path.
+/// A `Array1<f64>` representing the generated GBM process path.
 ///
 /// # Example
 ///
@@ -54,7 +54,7 @@ pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Ar
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated fGBM process path.
+/// A `Array1<f64>` representing the generated fGBM process path.
 ///
 /// # Panics
 ///
@@ -72,7 +72,7 @@ pub fn fgbm(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
@@ -87,5 +87,5 @@ pub fn fgbm(
     fgbm[i] = fgbm[i - 1] + mu * fgbm[i - 1] * dt + sigma * fgbm[i - 1] * fgn[i - 1]
   }
 
-  fgbm.to_vec()
+  fgbm
 }

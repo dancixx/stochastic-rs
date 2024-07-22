@@ -16,7 +16,7 @@ use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated IG process path.
+/// A `Array1<f64>` representing the generated IG process path.
 ///
 /// # Example
 ///
@@ -51,7 +51,7 @@ pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Array1<f64> 
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated NIG process path.
+/// A `Array1<f64>` representing the generated NIG process path.
 ///
 /// # Example
 ///

@@ -17,7 +17,7 @@ use crate::diffusions::ou::{fou, ou};
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Vasicek process path.
+/// A `Array1<f64>` representing the generated Vasicek process path.
 ///
 /// # Panics
 ///
@@ -59,7 +59,7 @@ pub fn vasicek(
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated fVasicek process path.
+/// A `Array1<f64>` representing the generated fVasicek process path.
 ///
 /// # Panics
 ///

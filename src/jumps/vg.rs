@@ -18,7 +18,7 @@ use ndarray_rand::RandomExt;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated VG process path.
+/// A `Array1<f64>` representing the generated VG process path.
 ///
 /// # Example
 ///

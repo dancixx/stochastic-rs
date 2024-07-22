@@ -57,7 +57,7 @@ impl Generator for Fbm {
   ///
   /// # Returns
   ///
-  /// A `Vec<f64>` representing the generated fBM sample.
+  /// A `Array1<f64>` representing the generated fBM sample.
   ///
   /// # Example
   ///
@@ -76,7 +76,7 @@ impl Generator for Fbm {
   ///
   /// # Returns
   ///
-  /// A `Vec<Vec<f64>>` representing the generated parallel fBM samples.
+  /// A `Array2<f64>>` representing the generated parallel fBM samples.
   ///
   /// # Panics
   ///

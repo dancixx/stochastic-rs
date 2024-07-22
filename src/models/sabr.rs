@@ -19,7 +19,7 @@ use crate::prelude::correlated::correlated_bms;
 ///
 /// # Returns
 ///
-/// A tuple of two `Vec<f64>` representing the generated paths for the forward rate and volatility.
+/// A tuple of two `Array1<f64>` representing the generated paths for the forward rate and volatility.
 ///
 /// # Example
 ///

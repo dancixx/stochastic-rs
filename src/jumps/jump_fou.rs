@@ -20,7 +20,7 @@ use crate::{diffusions::ou, prelude::poisson::compound_poisson};
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated jump FOU process path.
+/// A `Array1<f64>` representing the generated jump FOU process path.
 ///
 /// # Example
 ///

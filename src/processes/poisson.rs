@@ -16,7 +16,7 @@ use rand::thread_rng;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Poisson process path.
+/// A `Array1<f64>` representing the generated Poisson process path.
 ///
 /// # Panics
 ///
@@ -70,7 +70,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Array1<f64>
 ///
 /// # Returns
 ///
-/// A `(Vec<f64>, Vec<f64>, Vec<f64>)` representing the exponetial times from Poisson, generated compound Poisson cumulative process path and the jumps.
+/// A `(Array1<f64>, Array1<f64>, Array1<f64>)` representing the exponetial times from Poisson, generated compound Poisson cumulative process path and the jumps.
 ///
 /// # Panics
 ///

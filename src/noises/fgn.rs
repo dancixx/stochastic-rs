@@ -92,7 +92,7 @@ impl Generator for FgnFft {
   ///
   /// # Returns
   ///
-  /// A `Vec<f64>` representing the generated FGN sample.
+  /// A `Array1<f64>` representing the generated FGN sample.
   ///
   /// # Example
   ///
@@ -119,7 +119,7 @@ impl Generator for FgnFft {
   ///
   /// # Returns
   ///
-  /// A `Vec<Vec<f64>>` representing the generated parallel FGN samples.
+  /// A `Array2<f64>>` representing the generated parallel FGN samples.
   ///
   /// # Panics
   ///

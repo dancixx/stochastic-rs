@@ -18,7 +18,7 @@ use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Merton jump diffusion process path.
+/// A `Array1<f64>` representing the generated Merton jump diffusion process path.
 ///
 /// # Example
 ///
