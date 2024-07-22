@@ -1,5 +1,3 @@
-cargo-features = ["edition2024"]
-
 [package]
 name = "stochastic-rs"
 version = "0.5.3"
