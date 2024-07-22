@@ -1,7 +1,9 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "stochastic-rs"
 version = "0.5.2"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 description = "A Rust library for stochastic processes"
 homepage = "https://github.com/dancixx/stochastic-rs"
@@ -9,6 +11,7 @@ documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs/"
 repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
 keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
+
 
 [dependencies]
 linreg = "0.2.0"
@@ -24,6 +27,7 @@ indicatif = "0.17.7"
 plotly = "0.8.4"
 ndarray-rand = "0.14.0"
 ndrustfft = "0.4.2"
+# nalgebra = { version = "0.33.0", default-features = true, features = ["rand"] }
 
 [dev-dependencies]
 

@@ -1,13 +1,37 @@
-use ndarray::{Array1, Array2};
+use ndarray::{Array1, Array2, Axis};
 use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::RandomExt;
 use rayon::prelude::*;
 
-pub trait Process: Send + Sync {
-  fn drift(&self, x: f64, t: f64) -> f64;
+pub trait Process<T>: Send + Sync {
+  fn drift(&self, x: T, t: T) -> T;
+  fn diffusion(&self, x: T, t: T) -> T;
+}
 
-  fn diffusion(&self, x: f64, t: f64) -> f64;
+pub trait Sampling<T> {
+  fn sample(&self, n: usize, x_0: T, t_0: T, t: T, hurst: Option<T>) -> Array1<T>;
+  fn sample_as_vec(&self, n: usize, x_0: T, t_0: T, t: T, hurst: Option<T>) -> Vec<T>;
+  fn sample_parallel(
+    &self,
+    m: usize,
+    n: usize,
+    x_0: T,
+    t_0: T,
+    t: T,
+    hurst: Option<T>,
+  ) -> Array2<T>;
+  fn sample_parallel_as_vec(
+    &self,
+    m: usize,
+    n: usize,
+    x_0: T,
+    t_0: T,
+    t: T,
+    hurst: Option<T>,
+  ) -> Vec<Vec<T>>;
+}
 
+impl<T: Process<f64>> Sampling<f64> for T {
   fn sample(&self, n: usize, x_0: f64, t_0: f64, t: f64, hurst: Option<f64>) -> Array1<f64> {
     let dt = (t - t_0) / n as f64;
     let mut x = Array1::zeros(n);
@@ -20,6 +44,7 @@ pub trait Process: Send + Sync {
     };
     let times = Array1::linspace(t_0, t, n);
 
+    // TODO: test idx
     noise.into_iter().enumerate().for_each(|(idx, dw)| {
       x[idx + 1] =
         x[idx] + self.drift(x[idx], times[idx]) * dt + self.diffusion(x[idx], times[idx]) * dw;
@@ -40,11 +65,11 @@ pub trait Process: Send + Sync {
     t_0: f64,
     t: f64,
     hurst: Option<f64>,
-  ) -> Array2<Array1<f64>> {
-    let mut xs = Array2::<Array1<f64>>::default((m, n));
+  ) -> Array2<f64> {
+    let mut xs = Array2::<f64>::zeros((m, n));
 
-    xs.par_iter_mut().for_each(|x| {
-      *x = self.sample(n, x_0, t_0, t, hurst);
+    xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
+      x.assign(&self.sample(n, x_0, t_0, t, hurst));
     });
 
     xs
@@ -61,6 +86,7 @@ pub trait Process: Send + Sync {
   ) -> Vec<Vec<f64>> {
     self
       .sample_parallel(m, n, x_0, t_0, t, hurst)
+      .axis_iter(Axis(0))
       .into_par_iter()
       .map(|x| x.to_vec())
       .collect()
@@ -68,14 +94,7 @@ pub trait Process: Send + Sync {
 }
 
 #[cfg(feature = "f32")]
-pub trait ProcessF32: Send + Sync {
-  #[cfg(feature = "f32")]
-  fn drift(&self, x: f32, t: f32) -> f32;
-
-  #[cfg(feature = "f32")]
-  fn diffusion(&self, x: f32, t: f32) -> f32;
-
-  #[cfg(feature = "f32")]
+impl<T: Process<f32>> Sampling<f32> for T {
   fn sample(&self, n: usize, x_0: f32, t_0: f32, t: f32, hurst: Option<f32>) -> Array1<f32> {
     let dt = (t - t_0) / n as f32;
     let mut x = Array1::zeros(n);
@@ -96,12 +115,10 @@ pub trait ProcessF32: Send + Sync {
     x
   }
 
-  #[cfg(feature = "f32")]
   fn sample_as_vec(&self, n: usize, x_0: f32, t_0: f32, t: f32, hurst: Option<f32>) -> Vec<f32> {
     self.sample(n, x_0, t_0, t, hurst).to_vec()
   }
 
-  #[cfg(feature = "f32")]
   fn sample_parallel(
     &self,
     m: usize,
@@ -110,17 +127,16 @@ pub trait ProcessF32: Send + Sync {
     t_0: f32,
     t: f32,
     hurst: Option<f32>,
-  ) -> Array2<Array1<f32>> {
-    let mut xs = Array2::<Array1<f32>>::default((m, n));
+  ) -> Array2<f32> {
+    let mut xs = Array2::<f32>::zeros((m, n));
 
-    xs.par_iter_mut().for_each(|x| {
-      *x = self.sample(n, x_0, t_0, t, hurst);
+    xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
+      x.assign(&self.sample(n, x_0, t_0, t, hurst));
     });
 
     xs
   }
 
-  #[cfg(feature = "f32")]
   fn sample_parallel_as_vec(
     &self,
     m: usize,
@@ -132,6 +148,7 @@ pub trait ProcessF32: Send + Sync {
   ) -> Vec<Vec<f32>> {
     self
       .sample_parallel(m, n, x_0, t_0, t, hurst)
+      .axis_iter(Axis(0))
       .into_par_iter()
       .map(|x| x.to_vec())
       .collect()
