@@ -1,9 +1,7 @@
-cargo-features = ["edition2024"]
-
 [package]
 name = "stochastic-rs"
 version = "0.5.3"
-edition = "2024"
+edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
 homepage = "https://github.com/dancixx/stochastic-rs"
