@@ -55,7 +55,7 @@
 
 pub mod prelude;
 
-pub mod stochastic;
+pub mod quant;
 
 pub mod diffusions;
 pub mod jumps;
