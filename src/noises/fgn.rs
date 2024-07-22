@@ -100,7 +100,7 @@ impl Generator for FgnFft {
   /// let fgn_fft = FgnFft::new(0.75, 1000, Some(1.0), None);
   /// let sample = fgn_fft.sample();
   /// ```
-  fn sample(&self) -> Vec<f64> {
+  fn sample(&self) -> Array1<f64> {
     let rnd = Array1::<Complex<f64>>::random(
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
@@ -112,7 +112,7 @@ impl Generator for FgnFft {
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
       .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
-    fgn.to_vec()
+    fgn
   }
 
   /// Generates parallel samples of fractional Gaussian noise (FGN).
@@ -135,10 +135,10 @@ impl Generator for FgnFft {
     if self.m.is_none() {
       panic!("m must be specified for parallel sampling");
     }
-
-    (0..self.m.unwrap())
-      .into_par_iter()
-      .map(|_| self.sample())
-      .collect()
+    Vec::new()
+    // (0..self.m.unwrap())
+    //   .into_par_iter()
+    //   .map(|_| self.sample())
+    //   .collect()
   }
 }

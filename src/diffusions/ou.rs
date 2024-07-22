@@ -26,7 +26,14 @@ use ndarray::Array1;
 /// ```
 /// let ou_path = ou(0.0, 0.1, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
-pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
+pub fn ou(
+  mu: f64,
+  sigma: f64,
+  theta: f64,
+  n: usize,
+  x0: Option<f64>,
+  t: Option<f64>,
+) -> Array1<f64> {
   let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -37,7 +44,7 @@ pub fn ou(mu: f64, sigma: f64, theta: f64, n: usize, x0: Option<f64>, t: Option<
     ou[i] = ou[i - 1] + theta * (mu - ou[i - 1]) * dt + sigma * gn[i - 1]
   }
 
-  ou.to_vec()
+  ou
 }
 
 /// Generates a path of the fractional Ornstein-Uhlenbeck (fOU) process.
@@ -76,7 +83,7 @@ pub fn fou(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
@@ -91,5 +98,5 @@ pub fn fou(
     fou[i] = fou[i - 1] + theta * (mu - fou[i - 1]) * dt + sigma * fgn[i - 1]
   }
 
-  fou.to_vec()
+  fou
 }

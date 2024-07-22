@@ -1,3 +1,5 @@
+use ndarray::Array1;
+
 use crate::diffusions::ou::{fou, ou};
 
 /// Generates a path of the Vasicek model.
@@ -33,7 +35,7 @@ pub fn vasicek(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if mu == 0.0 {
     panic!("mu must be non-zero");
   }
@@ -77,7 +79,7 @@ pub fn fvasicek(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if mu == 0.0 {
     panic!("mu must be non-zero");
   }

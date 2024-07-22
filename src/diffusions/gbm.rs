@@ -25,7 +25,7 @@ use ndarray::Array1;
 /// ```
 /// let gbm_path = gbm(0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
-pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
+pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Array1<f64> {
   let gn = gn(n - 1, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -36,7 +36,7 @@ pub fn gbm(mu: f64, sigma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Ve
     gbm[i] = gbm[i - 1] + mu * gbm[i - 1] * dt + sigma * gbm[i - 1] * gn[i - 1]
   }
 
-  gbm.to_vec()
+  gbm
 }
 
 /// Generates a path of the fractional Geometric Brownian Motion (fGBM) process.

@@ -39,7 +39,7 @@ pub fn cir(
   x0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if 2.0 * theta * mu < sigma.powi(2) {
     panic!("2 * theta * mu < sigma^2")
   }
@@ -58,7 +58,7 @@ pub fn cir(
     cir[i] = cir[i - 1] + theta * (mu - cir[i - 1]) * dt + random
   }
 
-  cir.to_vec()
+  cir
 }
 
 /// Generates a path of the fractional Cox-Ingersoll-Ross (fCIR) process.
@@ -100,7 +100,7 @@ pub fn fcir(
   x0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
@@ -123,5 +123,5 @@ pub fn fcir(
     fcir[i] = fcir[i - 1] + theta * (mu - fcir[i - 1]) * dt + random
   }
 
-  fcir.to_vec()
+  fcir
 }

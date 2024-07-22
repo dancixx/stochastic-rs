@@ -23,7 +23,7 @@ use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 /// ```
 /// let ig_path = ig(0.1, 1000, Some(0.0), Some(1.0));
 /// ```
-pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
+pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let gn = gn(n - 1, t);
   let mut ig = Array1::zeros(n);
@@ -33,7 +33,7 @@ pub fn ig(gamma: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Vec<f64> {
     ig[i] = ig[i - 1] + gamma * dt + gn[i - 1]
   }
 
-  ig.to_vec()
+  ig
 }
 
 /// Generates a path of the Normal Inverse Gaussian (NIG) process.
@@ -65,7 +65,7 @@ pub fn nig(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let scale = dt.powf(2.0) / kappa;
   let mean = dt / scale;
@@ -78,5 +78,5 @@ pub fn nig(
     nig[i] = nig[i - 1] + theta * ig[i - 1] + sigma * ig[i - 1].sqrt() * gn[i - 1]
   }
 
-  nig.to_vec()
+  nig
 }

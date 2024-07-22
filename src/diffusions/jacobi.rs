@@ -39,7 +39,7 @@ pub fn jacobi(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if alpha < 0.0 || beta < 0.0 || sigma < 0.0 {
     panic!("alpha, beta, and sigma must be positive")
   }
@@ -66,7 +66,7 @@ pub fn jacobi(
     }
   }
 
-  jacobi.to_vec()
+  jacobi
 }
 
 /// Generates a path of the fractional Jacobi (fJacobi) process.
@@ -107,7 +107,7 @@ pub fn fjacobi(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   if !(0.0..1.0).contains(&hurst) {
     panic!("Hurst parameter must be in (0, 1)")
   }
@@ -138,5 +138,5 @@ pub fn fjacobi(
     }
   }
 
-  fjacobi.to_vec()
+  fjacobi
 }

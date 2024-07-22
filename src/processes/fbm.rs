@@ -65,9 +65,9 @@ impl Generator for Fbm {
   /// let fbm = Fbm::new(0.75, 1000, Some(1.0), None);
   /// let sample = fbm.sample();
   /// ```
-  fn sample(&self) -> Vec<f64> {
+  fn sample(&self) -> Array1<f64> {
     let fgn = self.fgn.as_ref().unwrap().sample();
-    let mut fbm = Array1::<f64>::from_vec(fgn);
+    let mut fbm = Array1::<f64>::from(fgn);
     fbm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
     vec![0.0].into_iter().chain(fbm).collect()
   }
@@ -92,10 +92,10 @@ impl Generator for Fbm {
     if self.m.is_none() {
       panic!("Number of paths must be specified")
     }
-
-    (0..self.m.unwrap())
-      .into_par_iter()
-      .map(|_| self.sample())
-      .collect()
+    Vec::new()
+    // (0..self.m.unwrap())
+    //   .into_par_iter()
+    //   .map(|_| self.sample())
+    //   .collect()
   }
 }

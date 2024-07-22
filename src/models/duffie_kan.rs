@@ -53,7 +53,7 @@ pub fn duffie_kan(
   r0: Option<f64>,
   x0: Option<f64>,
   t: Option<f64>,
-) -> (Vec<f64>, Vec<f64>) {
+) -> [Array1<f64>; 2] {
   let correlated_bms = correlated_bms(rho, n, t);
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -72,5 +72,5 @@ pub fn duffie_kan(
       + sigma2 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * correlated_bms[1][i - 1];
   }
 
-  (r.to_vec(), x.to_vec())
+  [r, x]
 }

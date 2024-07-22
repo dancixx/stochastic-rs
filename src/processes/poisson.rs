@@ -28,7 +28,7 @@ use rand::thread_rng;
 /// let poisson_path = poisson(1.0, Some(1000), None);
 /// let poisson_path = poisson(1.0, None, Some(100.0));
 /// ```
-pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
+pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Array1<f64> {
   if let Some(n) = n {
     let exponentials = Array1::random(n - 1, Exp::new(1.0 / lambda).unwrap());
     let mut poisson = Array1::<f64>::zeros(n);
@@ -37,7 +37,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
       poisson[i] = poisson[i - 1] + exponentials[i - 1];
     }
 
-    poisson.to_vec()
+    poisson
   } else if let Some(t_max) = t_max {
     let mut poisson = Array1::from(vec![0.0]);
     let mut t = 0.0;
@@ -49,7 +49,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Vec<f64> {
         .unwrap();
     }
 
-    poisson.to_vec()
+    poisson
   } else {
     panic!("n or t_max must be provided");
   }
@@ -87,7 +87,7 @@ pub fn compound_poisson(
   t_max: Option<f64>,
   jump_mean: Option<f64>,
   jump_std: Option<f64>,
-) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+) -> [Array1<f64>; 3] {
   if n == 0 {
     panic!("n must be a positive integer");
   }
@@ -107,7 +107,7 @@ pub fn compound_poisson(
   let mut cum_cp = cp.clone();
   cum_cp.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
 
-  (p, cum_cp.to_vec(), cp.to_vec())
+  [p, cum_cp, cp]
 }
 
 #[cfg(test)]
@@ -130,7 +130,7 @@ mod tests {
     let n = 1000;
     let lambda = 2.0;
     let t = 10.0;
-    let (.., cp) = compound_poisson(n, lambda, None, Some(t), None);
+    let [.., cp] = compound_poisson(n, lambda, None, Some(t), None);
     assert_eq!(cp.len(), n);
   }
 }

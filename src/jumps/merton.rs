@@ -33,7 +33,7 @@ pub fn merton(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let mut merton = Array1::<f64>::zeros(n);
   merton[0] = x0.unwrap_or(0.0);
@@ -41,14 +41,14 @@ pub fn merton(
   let z = compound_poisson(n, lambda, None, t, None);
 
   for i in 1..n {
-    let jump_idx = z.0.iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0].iter().position(|&x| x > i as f64).unwrap_or(n);
     merton[i] = merton[i - 1]
       + (alpha * sigma.powf(2.0) / 2.0 - lambda * theta) * dt
       + sigma * gn[i - 1]
-      + z.2[jump_idx];
+      + z[2][jump_idx];
   }
 
-  merton.to_vec()
+  merton
 }
 
 #[cfg(test)]

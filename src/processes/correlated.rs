@@ -2,7 +2,7 @@ use crate::{
   noises::{fgn::FgnFft, gn},
   utils::Generator,
 };
-use ndarray::Array2;
+use ndarray::{Array1, Array2};
 
 /// Generates two correlated Brownian motion (BM) paths.
 ///
@@ -27,7 +27,7 @@ use ndarray::Array2;
 /// let bm1 = correlated_paths[0];
 /// let bm2 = correlated_paths[1];
 /// ```
-pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
+pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Array1<f64>; 2] {
   if !(-1.0..=1.0).contains(&rho) {
     panic!("Correlation coefficient must be in [-1, 1]");
   }
@@ -42,7 +42,7 @@ pub fn correlated_bms(rho: f64, n: usize, t: Option<f64>) -> [Vec<f64>; 2] {
     bms[[i, 1]] = rho * gn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * gn2[i - 1];
   }
 
-  [bms.column(0).to_vec(), bms.column(1).to_vec()]
+  [bms.column(0).into_owned(), bms.column(1).into_owned()]
 }
 
 /// Generates two correlated fractional Brownian motion (fBM) paths.
