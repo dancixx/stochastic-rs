@@ -19,19 +19,21 @@ fn main() {
   let start = Instant::now();
 
   let mut plot = Plot::new();
+  let fbm = Fbm::new(0.9, 1000, Some(1.0), Some(10));
 
   for i in 0..1 {
-    let d = jump_fou(0.1, 2.0, 0.5, 2.0, 2.0, 100, Some(0.0), Some(1.0));
+    let d = fbm.sample();
+    let d = jump_fou(0.3, 1.0, 0.5, 2.0, 1.0, 1000, Some(0.0), Some(1.0));
     //let d = compound_poisson(50, 1.0, None, None, None);
     //let d = poisson(10.0, Some(50), None);
 
-    let trace = Scatter::new((0..d.len()).collect::<Vec<_>>(), d.clone())
-      .mode(plotly::common::Mode::Lines)
-      .line(
-        Line::new().color("blue"), //.shape(plotly::common::LineShape::Hv),
-      )
-      .name(format!("Sequence {}", i + 1).as_str());
-    plot.add_trace(trace);
+    // let trace = Scatter::new((0..d.len()).collect::<Array1<_>>(), d.to_vec())
+    //   .mode(plotly::common::Mode::Lines)
+    //   .line(
+    //     Line::new().color("blue"), //.shape(plotly::common::LineShape::Hv),
+    //   )
+    //   .name(format!("Sequence {}", i + 1).as_str());
+    // plot.add_trace(trace);
   }
 
   plot.show();

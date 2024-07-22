@@ -19,7 +19,7 @@ use crate::prelude::correlated::correlated_bms;
 ///
 /// # Returns
 ///
-/// A tuple of two `Vec<f64>` representing the generated paths for the forward rate and volatility.
+/// A tuple of two `Array1<f64>` representing the generated paths for the forward rate and volatility.
 ///
 /// # Example
 ///
@@ -34,7 +34,7 @@ pub fn sabr(
   f0: Option<f64>,
   v0: Option<f64>,
   t: Option<f64>,
-) -> (Vec<f64>, Vec<f64>) {
+) -> [Array1<f64>; 2] {
   if !(0.0..1.0).contains(&beta) {
     panic!("Beta parameter must be in (0, 1)")
   }
@@ -60,7 +60,7 @@ pub fn sabr(
     v[i] = v[i - 1] + alpha * v[i - 1] * correlated_bms[1][i - 1];
   }
 
-  (f.to_vec(), v.to_vec())
+  [f, v]
 }
 
 #[cfg(test)]
@@ -76,7 +76,7 @@ mod tests {
     let f0 = Some(0.04);
     let v0 = Some(0.2);
     let t = Some(1.0);
-    let (f, v) = sabr(alpha, beta, rho, n, f0, v0, t);
+    let [f, v] = sabr(alpha, beta, rho, n, f0, v0, t);
     assert_eq!(f.len(), n);
     assert_eq!(v.len(), n);
   }

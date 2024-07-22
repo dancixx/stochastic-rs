@@ -21,7 +21,7 @@ use crate::prelude::correlated::correlated_bms;
 ///
 /// # Returns
 ///
-/// A `[Vec<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
+/// A `[Array1<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
 ///
 /// # Example
 ///
@@ -42,7 +42,7 @@ pub fn heston(
   v0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
-) -> [Vec<f64>; 2] {
+) -> [Array1<f64>; 2] {
   let correlated_bms = correlated_bms(rho, n, t);
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -62,5 +62,5 @@ pub fn heston(
     v[i] = v[i - 1] + kappa * (theta - v[i - 1]) * dt + random;
   }
 
-  [s.to_vec(), v.to_vec()]
+  [s, v]
 }

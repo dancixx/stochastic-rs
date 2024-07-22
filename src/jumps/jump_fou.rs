@@ -20,7 +20,7 @@ use crate::{diffusions::ou, prelude::poisson::compound_poisson};
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated jump FOU process path.
+/// A `Array1<f64>` representing the generated jump FOU process path.
 ///
 /// # Example
 ///
@@ -38,18 +38,22 @@ pub fn jump_fou(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
-) -> Vec<f64> {
+) -> Array1<f64> {
   let fou = ou::fou(hurst, mu, sigma, theta, n, x0, t);
   let z = compound_poisson(n, lambda, None, t, None);
   let mut jump_fou = Array1::<f64>::zeros(n);
   jump_fou[0] = fou[0];
 
   for i in 1..n {
-    let jump_idx = z.0.iter().position(|&x| x > i as f64).unwrap_or(n);
-    jump_fou[i] = fou[i] + z.2[jump_idx];
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
+    jump_fou[i] = fou[i] + z[2][jump_idx];
   }
 
-  jump_fou.to_vec()
+  jump_fou
 }
 
 #[cfg(test)]
