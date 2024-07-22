@@ -45,7 +45,11 @@ pub fn jump_fou(
   jump_fou[0] = fou[0];
 
   for i in 1..n {
-    let jump_idx = z[0].iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
     jump_fou[i] = fou[i] + z[2][jump_idx];
   }
 

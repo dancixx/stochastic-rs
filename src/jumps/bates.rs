@@ -60,7 +60,11 @@ pub fn bates_1996(
   v[0] = v0.unwrap_or(0.0);
 
   for i in 1..n {
-    let jump_idx = z[0].iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
     s[i] = s[i - 1]
       + mu * s[i - 1] * dt
       + s[i - 1] * v[i - 1].sqrt() * correlated_bms[0][i - 1]
@@ -70,6 +74,7 @@ pub fn bates_1996(
       true => eta * (v[i]).abs().sqrt() * correlated_bms[1][i - 1],
       false => eta * (v[i]).max(0.0).sqrt() * correlated_bms[1][i - 1],
     };
+
     v[i] = v[i - 1] + kappa * (theta - v[i - 1]) * dt + random;
   }
 

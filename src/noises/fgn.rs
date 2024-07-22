@@ -131,14 +131,17 @@ impl Generator for FgnFft {
   /// let fgn_fft = FgnFft::new(0.75, 1000, Some(1.0), Some(10));
   /// let samples = fgn_fft.sample_par();
   /// ```
-  fn sample_par(&self) -> Vec<Vec<f64>> {
+  fn sample_par(&self) -> Array2<f64> {
     if self.m.is_none() {
       panic!("m must be specified for parallel sampling");
     }
-    Vec::new()
-    // (0..self.m.unwrap())
-    //   .into_par_iter()
-    //   .map(|_| self.sample())
-    //   .collect()
+
+    let mut xs = Array2::zeros((self.m.unwrap(), self.n));
+
+    xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
+      x.assign(&self.sample());
+    });
+
+    xs
   }
 }

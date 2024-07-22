@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{Array1, Array2};
 
 /// A trait for generating stochastic process samples.
 ///
@@ -35,7 +35,5 @@ pub trait Generator: Sync + Send {
   /// # Returns
   ///
   /// A `Vec<Vec<f64>>` where each inner vector represents a sample of the stochastic process.
-  fn sample_par(&self) -> Vec<Vec<f64>> {
-    Vec::new()
-  }
+  fn sample_par(&self) -> Array2<f64>;
 }

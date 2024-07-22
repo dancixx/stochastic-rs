@@ -39,7 +39,11 @@ pub fn levy_diffusion(
   let z = compound_poisson(n, lambda, None, t, None);
 
   for i in 1..n {
-    let jump_idx = z[0].iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
     levy[i] = levy[i - 1] + gamma * dt + sigma * gn[i - 1] * z[2][jump_idx];
   }
 

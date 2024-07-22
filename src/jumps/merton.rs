@@ -41,7 +41,11 @@ pub fn merton(
   let z = compound_poisson(n, lambda, None, t, None);
 
   for i in 1..n {
-    let jump_idx = z[0].iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
     merton[i] = merton[i - 1]
       + (alpha * sigma.powf(2.0) / 2.0 - lambda * theta) * dt
       + sigma * gn[i - 1]

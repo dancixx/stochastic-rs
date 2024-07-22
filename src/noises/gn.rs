@@ -22,9 +22,7 @@ use ndarray_rand::RandomExt;
 /// ```
 pub fn gn(n: usize, t: Option<f64>) -> Array1<f64> {
   let sqrt_dt = (t.unwrap_or(1.0) / n as f64).sqrt();
-  let gn = Array1::random(n, Normal::new(0.0, sqrt_dt).unwrap());
-
-  gn
+  Array1::random(n, Normal::new(0.0, sqrt_dt).unwrap())
 }
 
 #[cfg(test)]
