@@ -1,3 +1,5 @@
+use ndarray::{Array1, Array2};
+
 /// A trait for generating stochastic process samples.
 ///
 /// This trait defines methods for generating single and parallel samples of stochastic processes.
@@ -8,11 +10,11 @@
 /// struct MyProcess;
 ///
 /// impl Generator for MyProcess {
-///     fn sample(&self) -> Vec<f64> {
+///     fn sample(&self) -> Array1<f64> {
 ///         vec![0.0, 1.0, 2.0]
 ///     }
 ///
-///     fn sample_par(&self) -> Vec<Vec<f64>> {
+///     fn sample_par(&self) -> Array2<f64>> {
 ///         vec![self.sample(), self.sample()]
 ///     }
 /// }
@@ -26,12 +28,12 @@ pub trait Generator: Sync + Send {
   ///
   /// # Returns
   ///
-  /// A `Vec<f64>` representing a single sample of the stochastic process.
-  fn sample(&self) -> Vec<f64>;
+  /// A `Array1<f64>` representing a single sample of the stochastic process.
+  fn sample(&self) -> Array1<f64>;
   /// Generates parallel samples of the stochastic process.
   ///
   /// # Returns
   ///
-  /// A `Vec<Vec<f64>>` where each inner vector represents a sample of the stochastic process.
-  fn sample_par(&self) -> Vec<Vec<f64>>;
+  /// A `Array2<f64>>` where each inner vector represents a sample of the stochastic process.
+  fn sample_par(&self) -> Array2<f64>;
 }

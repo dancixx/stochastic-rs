@@ -22,7 +22,7 @@ use crate::prelude::{correlated::correlated_bms, poisson::compound_poisson};
 ///
 /// # Returns
 ///
-/// A `[Vec<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
+/// A `[Array1<f64>; 2]` where the first vector represents the asset price path and the second vector represents the volatility path.
 ///
 /// # Example
 ///
@@ -48,7 +48,7 @@ pub fn bates_1996(
   v0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
-) -> [Vec<f64>; 2] {
+) -> [Array1<f64>; 2] {
   let correlated_bms = correlated_bms(rho, n, t);
   let dt = t.unwrap_or(1.0) / n as f64;
 
@@ -60,20 +60,25 @@ pub fn bates_1996(
   v[0] = v0.unwrap_or(0.0);
 
   for i in 1..n {
-    let jump_idx = z.0.iter().position(|&x| x > i as f64).unwrap_or(n);
+    let jump_idx = z[0]
+      .iter()
+      .position(|&x| x > i as f64)
+      .unwrap_or(z[0].len() - 1);
+
     s[i] = s[i - 1]
       + mu * s[i - 1] * dt
       + s[i - 1] * v[i - 1].sqrt() * correlated_bms[0][i - 1]
-      + z.2[jump_idx];
+      + z[2][jump_idx];
 
     let random: f64 = match use_sym.unwrap_or(false) {
       true => eta * (v[i]).abs().sqrt() * correlated_bms[1][i - 1],
       false => eta * (v[i]).max(0.0).sqrt() * correlated_bms[1][i - 1],
     };
+
     v[i] = v[i - 1] + kappa * (theta - v[i - 1]) * dt + random;
   }
 
-  [s.to_vec(), v.to_vec()]
+  [s, v]
 }
 
 #[cfg(test)]

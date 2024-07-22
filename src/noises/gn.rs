@@ -13,18 +13,16 @@ use ndarray_rand::RandomExt;
 ///
 /// # Returns
 ///
-/// A `Vec<f64>` representing the generated Gaussian noise path.
+/// A `Array1<f64>` representing the generated Gaussian noise path.
 ///
 /// # Example
 ///
 /// ```
 /// let gn_path = gn(1000, Some(1.0));
 /// ```
-pub fn gn(n: usize, t: Option<f64>) -> Vec<f64> {
+pub fn gn(n: usize, t: Option<f64>) -> Array1<f64> {
   let sqrt_dt = (t.unwrap_or(1.0) / n as f64).sqrt();
-  let gn = Array1::random(n, Normal::new(0.0, sqrt_dt).unwrap());
-
-  gn.to_vec()
+  Array1::random(n, Normal::new(0.0, sqrt_dt).unwrap())
 }
 
 #[cfg(test)]
