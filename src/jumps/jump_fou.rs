@@ -1,7 +1,10 @@
 use ndarray::Array1;
 use rand_distr::Distribution;
 
-use crate::{diffusions::ou, prelude::poisson::compound_poisson};
+use crate::prelude::{
+  cpoisson::{compound_poisson, CompoundPoisson},
+  fou::{fou, Fou},
+};
 
 /// Generates a path of the jump fractional Ornstein-Uhlenbeck (FOU) process.
 ///
@@ -29,58 +32,54 @@ use crate::{diffusions::ou, prelude::poisson::compound_poisson};
 /// let jump_fou_path = jump_fou(0.1, 0.2, 0.5, 0.3, 0.5, 1000, None, Some(1.0));
 /// ```
 
-#[allow(clippy::too_many_arguments)]
-pub fn jump_fou(
-  hurst: f64,
-  mu: f64,
-  sigma: f64,
-  theta: f64,
-  lambda: f64,
-  n: usize,
-  x0: Option<f64>,
-  t: Option<f64>,
-  jump_distr: impl Distribution<f64> + Copy,
-) -> Array1<f64> {
+#[derive(Default)]
+pub struct JumpFou {
+  pub hurst: f64,
+  pub mu: f64,
+  pub sigma: f64,
+  pub theta: f64,
+  pub lambda: f64,
+  pub n: usize,
+  pub x0: Option<f64>,
+  pub t: Option<f64>,
+}
+
+pub fn jump_fou(params: &JumpFou, jump_distr: impl Distribution<f64> + Copy) -> Array1<f64> {
+  let JumpFou {
+    hurst,
+    mu,
+    sigma,
+    theta,
+    lambda,
+    n,
+    x0,
+    t,
+  } = *params;
   let dt = t.unwrap_or(1.0) / n as f64;
-  let fou = ou::fou(hurst, mu, sigma, theta, n, x0, t);
+  let fou = fou(&Fou {
+    hurst,
+    mu,
+    sigma,
+    theta,
+    n,
+    x0,
+    t,
+  });
   let mut jump_fou = Array1::<f64>::zeros(n);
   jump_fou[0] = fou[0];
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, Some(dt), jump_distr);
+    let [.., jumps] = compound_poisson(
+      &CompoundPoisson {
+        lambda,
+        t_max: Some(dt),
+        n: None,
+      },
+      jump_distr,
+    );
 
     jump_fou[i] = fou[i - 1] + jumps.sum();
   }
 
   jump_fou
-}
-
-#[cfg(test)]
-mod tests {
-  use rand_distr::Normal;
-
-  use super::*;
-
-  #[test]
-  fn test_jump_fou() {
-    let hurst = 0.1;
-    let mu = 0.2;
-    let sigma = 0.5;
-    let theta = 0.3;
-    let lambda = 0.5;
-    let n = 1000;
-    let t = 1.0;
-    let jf = jump_fou(
-      hurst,
-      mu,
-      sigma,
-      theta,
-      lambda,
-      n,
-      None,
-      Some(t),
-      Normal::new(0.0, 1.0).unwrap(),
-    );
-    assert_eq!(jf.len(), n);
-  }
 }

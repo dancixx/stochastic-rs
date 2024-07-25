@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::processes::correlated::correlated_bms;
+use crate::processes::cbms::{correlated_bms, CorrelatedBms};
 
 /// Generates paths for the Duffie-Kan multifactor interest rate model.
 ///
@@ -35,26 +35,48 @@ use crate::processes::correlated::correlated_bms;
 /// ```
 /// let (r_path, x_path) = duffie_kan(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1000, Some(0.05), Some(0.02), Some(1.0));
 /// ```
-#[allow(clippy::too_many_arguments)]
-pub fn duffie_kan(
-  alpha: f64,
-  beta: f64,
-  gamma: f64,
-  rho: f64,
-  a1: f64,
-  b1: f64,
-  c1: f64,
-  sigma1: f64,
-  a2: f64,
-  b2: f64,
-  c2: f64,
-  sigma2: f64,
-  n: usize,
-  r0: Option<f64>,
-  x0: Option<f64>,
-  t: Option<f64>,
-) -> [Array1<f64>; 2] {
-  let correlated_bms = correlated_bms(rho, n, t);
+
+#[derive(Default)]
+pub struct DuffieKan {
+  pub alpha: f64,
+  pub beta: f64,
+  pub gamma: f64,
+  pub rho: f64,
+  pub a1: f64,
+  pub b1: f64,
+  pub c1: f64,
+  pub sigma1: f64,
+  pub a2: f64,
+  pub b2: f64,
+  pub c2: f64,
+  pub sigma2: f64,
+  pub n: usize,
+  pub r0: Option<f64>,
+  pub x0: Option<f64>,
+  pub t: Option<f64>,
+}
+
+pub fn duffie_kan(params: &DuffieKan) -> [Array1<f64>; 2] {
+  let DuffieKan {
+    alpha,
+    beta,
+    gamma,
+    rho,
+    a1,
+    b1,
+    c1,
+    sigma1,
+    a2,
+    b2,
+    c2,
+    sigma2,
+    n,
+    r0,
+    x0,
+    t,
+  } = *params;
+
+  let correlated_bms = correlated_bms(&CorrelatedBms { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut r = Array1::<f64>::zeros(n);

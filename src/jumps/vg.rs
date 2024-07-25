@@ -25,7 +25,27 @@ use ndarray_rand::RandomExt;
 /// ```
 /// let vg_path = vg(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
-pub fn vg(mu: f64, sigma: f64, nu: f64, n: usize, x0: Option<f64>, t: Option<f64>) -> Array1<f64> {
+
+#[derive(Default)]
+pub struct Vg {
+  mu: f64,
+  sigma: f64,
+  nu: f64,
+  n: usize,
+  x0: Option<f64>,
+  t: Option<f64>,
+}
+
+pub fn vg(params: &Vg) -> Array1<f64> {
+  let Vg {
+    mu,
+    sigma,
+    nu,
+    n,
+    x0,
+    t,
+  } = *params;
+
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let shape = dt / nu;
