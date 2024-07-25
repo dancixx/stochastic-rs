@@ -1,13 +1,14 @@
 use ndarray::Array1;
 
-use crate::{diffusions::ou::ou, prelude::ou::Ou};
+use crate::{diffusions::fou::fou, prelude::fou::Fou};
 
-/// Generates a path of the Vasicek model.
+/// Generates a path of the fractional Vasicek (fVasicek) model.
 ///
-/// The Vasicek model is a type of Ornstein-Uhlenbeck process used to model interest rates.
+/// The fVasicek model incorporates fractional Brownian motion into the Vasicek model.
 ///
 /// # Parameters
 ///
+/// - `hurst`: Hurst parameter for fractional Brownian motion, must be in (0, 1).
 /// - `mu`: Long-term mean level, must be non-zero.
 /// - `sigma`: Volatility parameter.
 /// - `theta`: Speed of mean reversion.
@@ -17,7 +18,7 @@ use crate::{diffusions::ou::ou, prelude::ou::Ou};
 ///
 /// # Returns
 ///
-/// A `Array1<f64>` representing the generated Vasicek process path.
+/// A `Array1<f64>` representing the generated fVasicek process path.
 ///
 /// # Panics
 ///
@@ -26,11 +27,12 @@ use crate::{diffusions::ou::ou, prelude::ou::Ou};
 /// # Example
 ///
 /// ```
-/// let vasicek_path = vasicek(0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
+/// let fvasicek_path = fvasicek(0.75, 0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
 /// ```
 
 #[derive(Default)]
-pub struct Vasicek {
+pub struct Fvasicek {
+  pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
   pub theta: f64,
@@ -39,8 +41,9 @@ pub struct Vasicek {
   pub t: Option<f64>,
 }
 
-pub fn vasicek(params: &Vasicek) -> Array1<f64> {
-  let Vasicek {
+pub fn fvasicek(params: &Fvasicek) -> Array1<f64> {
+  let Fvasicek {
+    hurst,
     mu,
     sigma,
     theta,
@@ -51,7 +54,8 @@ pub fn vasicek(params: &Vasicek) -> Array1<f64> {
 
   assert!(mu != 0.0, "mu must be non-zero");
 
-  ou(&Ou {
+  fou(&Fou {
+    hurst,
     mu,
     sigma,
     theta,

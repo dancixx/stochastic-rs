@@ -22,6 +22,8 @@
 //!   - SDE: `dX(t) = \sum_{i=1}^{N(t)} Z_i` where `N(t)` is a Poisson process with rate `\lambda` and `Z_i` are i.i.d. jump sizes.
 
 pub mod bm;
-pub mod correlated;
+pub mod cbms;
+pub mod cfbms;
+pub mod cpoisson;
 pub mod fbm;
 pub mod poisson;

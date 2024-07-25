@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::prelude::correlated::correlated_bms;
+use crate::prelude::cbms::{correlated_bms, CorrelatedBms};
 
 /// Generates paths for the Heston model.
 ///
@@ -30,20 +30,36 @@ use crate::prelude::correlated::correlated_bms;
 /// let asset_prices = paths[0];
 /// let volatilities = paths[1];
 /// ```
-#[allow(clippy::too_many_arguments)]
-pub fn heston(
-  mu: f64,
-  kappa: f64,
-  theta: f64,
-  eta: f64,
-  rho: f64,
-  n: usize,
-  s0: Option<f64>,
-  v0: Option<f64>,
-  t: Option<f64>,
-  use_sym: Option<bool>,
-) -> [Array1<f64>; 2] {
-  let correlated_bms = correlated_bms(rho, n, t);
+
+#[derive(Default)]
+pub struct Heston {
+  pub mu: f64,
+  pub kappa: f64,
+  pub theta: f64,
+  pub eta: f64,
+  pub rho: f64,
+  pub n: usize,
+  pub s0: Option<f64>,
+  pub v0: Option<f64>,
+  pub t: Option<f64>,
+  pub use_sym: Option<bool>,
+}
+
+pub fn heston(params: &Heston) -> [Array1<f64>; 2] {
+  let Heston {
+    mu,
+    kappa,
+    theta,
+    eta,
+    rho,
+    n,
+    s0,
+    v0,
+    t,
+    use_sym,
+  } = *params;
+
+  let correlated_bms = correlated_bms(&CorrelatedBms { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut s = Array1::<f64>::zeros(n);

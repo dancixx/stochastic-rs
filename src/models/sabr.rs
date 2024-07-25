@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::prelude::correlated::correlated_bms;
+use crate::prelude::cbms::{correlated_bms, CorrelatedBms};
 
 /// Generates a path of the SABR (Stochastic Alpha, Beta, Rho) model.
 ///
@@ -26,28 +26,34 @@ use crate::prelude::correlated::correlated_bms;
 /// ```
 /// let (forward_rate_path, volatility_path) = sabr(0.2, 0.5, -0.3, 1000, Some(0.04), Some(0.2), Some(1.0));
 /// ```
-pub fn sabr(
-  alpha: f64,
-  beta: f64,
-  rho: f64,
-  n: usize,
-  f0: Option<f64>,
-  v0: Option<f64>,
-  t: Option<f64>,
-) -> [Array1<f64>; 2] {
-  if !(0.0..1.0).contains(&beta) {
-    panic!("Beta parameter must be in (0, 1)")
-  }
 
-  if !(-1.0..1.0).contains(&rho) {
-    panic!("Rho parameter must be in (-1, 1)")
-  }
+#[derive(Default)]
+pub struct Sabr {
+  pub alpha: f64,
+  pub beta: f64,
+  pub rho: f64,
+  pub n: usize,
+  pub f0: Option<f64>,
+  pub v0: Option<f64>,
+  pub t: Option<f64>,
+}
 
-  if alpha < 0.0 {
-    panic!("Alpha parameter must be positive")
-  }
+pub fn sabr(params: &Sabr) -> [Array1<f64>; 2] {
+  let Sabr {
+    alpha,
+    beta,
+    rho,
+    n,
+    f0,
+    v0,
+    t,
+  } = *params;
 
-  let correlated_bms = correlated_bms(rho, n, t);
+  assert!(0.0 < beta && beta < 1.0, "Beta parameter must be in (0, 1)");
+  assert!(-1.0 < rho && rho < 1.0, "Rho parameter must be in (-1, 1)");
+  assert!(alpha > 0.0, "Alpha parameter must be positive");
+
+  let correlated_bms = correlated_bms(&CorrelatedBms { rho, n, t });
 
   let mut f = Array1::<f64>::zeros(n);
   let mut v = Array1::<f64>::zeros(n);
@@ -61,23 +67,4 @@ pub fn sabr(
   }
 
   [f, v]
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_sabr() {
-    let alpha = 0.2;
-    let beta = 0.5;
-    let rho = -0.3;
-    let n = 1000;
-    let f0 = Some(0.04);
-    let v0 = Some(0.2);
-    let t = Some(1.0);
-    let [f, v] = sabr(alpha, beta, rho, n, f0, v0, t);
-    assert_eq!(f.len(), n);
-    assert_eq!(v.len(), n);
-  }
 }
