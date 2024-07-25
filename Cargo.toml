@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs"
-version = "0.5.5"
+version = "0.5.6"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
