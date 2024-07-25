@@ -54,13 +54,12 @@ pub fn bates_1996(
 
   let mut s = Array1::<f64>::zeros(n);
   let mut v = Array1::<f64>::zeros(n);
-  let z = compound_poisson(Some(n), lambda, None, t, None);
 
   s[0] = s0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
 
     s[i] = s[i - 1]
       + mu * s[i - 1] * dt

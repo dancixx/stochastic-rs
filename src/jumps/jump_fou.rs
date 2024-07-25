@@ -39,12 +39,13 @@ pub fn jump_fou(
   x0: Option<f64>,
   t: Option<f64>,
 ) -> Array1<f64> {
+  let dt = t.unwrap_or(1.0) / n as f64;
   let fou = ou::fou(hurst, mu, sigma, theta, n, x0, t);
   let mut jump_fou = Array1::<f64>::zeros(n);
   jump_fou[0] = fou[0];
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
 
     jump_fou[i] = fou[i] + jumps.sum();
   }

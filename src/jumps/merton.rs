@@ -40,7 +40,7 @@ pub fn merton(
   let gn = gn(n - 1, t);
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
 
     merton[i] = merton[i - 1]
       + (alpha * sigma.powf(2.0) / 2.0 - lambda * theta) * dt
