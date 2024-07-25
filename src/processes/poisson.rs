@@ -43,7 +43,7 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Array1<f64>
     let mut t = 0.0;
 
     while t < t_max {
-      t += Exp::new(lambda).unwrap().sample(&mut thread_rng());
+      t += Exp::new(1.0 / lambda).unwrap().sample(&mut thread_rng());
       poisson
         .push(Axis(0), Array0::from_elem(Dim(()), t).view())
         .unwrap();
@@ -82,32 +82,33 @@ pub fn poisson(lambda: f64, n: Option<usize>, t_max: Option<f64>) -> Array1<f64>
 /// let (p, cum_cp, cp) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 pub fn compound_poisson(
-  n: usize,
+  n: Option<usize>,
   lambda: f64,
   t_max: Option<f64>,
   jump_mean: Option<f64>,
   jump_std: Option<f64>,
 ) -> [Array1<f64>; 3] {
-  if n == 0 {
-    panic!("n must be a positive integer");
+  if n.is_none() && t_max.is_none() {
+    panic!("n or t_max must be provided");
   }
 
   let _t_max = t_max.unwrap_or(1.0);
-  let p = poisson(lambda, Some(n), t_max);
-  let mut cp = Array1::<f64>::zeros(n);
+  let p = poisson(lambda, n, t_max);
+  let mut jumps = Array1::<f64>::zeros(n.unwrap_or(p.len()));
 
   let _jump_mean = jump_mean.unwrap_or(0.0);
   let _jump_std = jump_std.unwrap_or(1.0);
 
   for i in 1..p.len() {
-    let norm = Array1::random(i, Normal::new(_jump_mean, _jump_std).unwrap());
-    cp[i] = norm.sum();
+    jumps[i] = Normal::new(_jump_mean, _jump_std)
+      .unwrap()
+      .sample(&mut thread_rng());
   }
 
-  let mut cum_cp = cp.clone();
-  cum_cp.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
+  let mut cum_jupms = jumps.clone();
+  cum_jupms.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
 
-  [p, cum_cp, cp]
+  [p, cum_jupms, jumps]
 }
 
 #[cfg(test)]
@@ -130,7 +131,7 @@ mod tests {
     let n = 1000;
     let lambda = 2.0;
     let t = 10.0;
-    let [.., cp] = compound_poisson(n, lambda, None, Some(t), None);
+    let [.., cp] = compound_poisson(Some(n), lambda, None, Some(t), None);
     assert_eq!(cp.len(), n);
   }
 }

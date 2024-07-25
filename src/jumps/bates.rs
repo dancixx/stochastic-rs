@@ -54,21 +54,18 @@ pub fn bates_1996(
 
   let mut s = Array1::<f64>::zeros(n);
   let mut v = Array1::<f64>::zeros(n);
-  let z = compound_poisson(n, lambda, None, t, None);
+  let z = compound_poisson(Some(n), lambda, None, t, None);
 
   s[0] = s0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
 
   for i in 1..n {
-    let jump_idx = z[0]
-      .iter()
-      .position(|&x| x > i as f64)
-      .unwrap_or(z[0].len() - 1);
+    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
 
     s[i] = s[i - 1]
       + mu * s[i - 1] * dt
       + s[i - 1] * v[i - 1].sqrt() * correlated_bms[0][i - 1]
-      + z[2][jump_idx];
+      + jumps.sum();
 
     let random: f64 = match use_sym.unwrap_or(false) {
       true => eta * (v[i]).abs().sqrt() * correlated_bms[1][i - 1],

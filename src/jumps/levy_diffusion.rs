@@ -36,15 +36,12 @@ pub fn levy_diffusion(
   let mut levy = Array1::<f64>::zeros(n);
   levy[0] = x0.unwrap_or(0.0);
   let gn = gn(n - 1, t);
-  let z = compound_poisson(n, lambda, None, t, None);
+  let z = compound_poisson(Some(n), lambda, None, t, None);
 
   for i in 1..n {
-    let jump_idx = z[0]
-      .iter()
-      .position(|&x| x > i as f64)
-      .unwrap_or(z[0].len() - 1);
+    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
 
-    levy[i] = levy[i - 1] + gamma * dt + sigma * gn[i - 1] * z[2][jump_idx];
+    levy[i] = levy[i - 1] + gamma * dt + sigma * gn[i - 1] * jumps.sum();
   }
 
   levy

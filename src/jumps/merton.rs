@@ -38,18 +38,14 @@ pub fn merton(
   let mut merton = Array1::<f64>::zeros(n);
   merton[0] = x0.unwrap_or(0.0);
   let gn = gn(n - 1, t);
-  let z = compound_poisson(n, lambda, None, t, None);
 
   for i in 1..n {
-    let jump_idx = z[0]
-      .iter()
-      .position(|&x| x > i as f64)
-      .unwrap_or(z[0].len() - 1);
+    let [.., jumps] = compound_poisson(None, lambda, t, None, None);
 
     merton[i] = merton[i - 1]
       + (alpha * sigma.powf(2.0) / 2.0 - lambda * theta) * dt
       + sigma * gn[i - 1]
-      + z[2][jump_idx];
+      + jumps.sum();
   }
 
   merton
