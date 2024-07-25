@@ -1,4 +1,5 @@
 use ndarray::Array1;
+use rand_distr::Distribution;
 
 use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 
@@ -33,6 +34,7 @@ pub fn merton(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
+  jump_distr: impl Distribution<f64> + Copy,
 ) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let mut merton = Array1::<f64>::zeros(n);
@@ -40,7 +42,7 @@ pub fn merton(
   let gn = gn(n - 1, t);
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), jump_distr);
 
     merton[i] = merton[i - 1]
       + (alpha * sigma.powf(2.0) / 2.0 - lambda * theta) * dt
@@ -53,6 +55,8 @@ pub fn merton(
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::Normal;
+
   use super::*;
 
   #[test]
@@ -63,7 +67,16 @@ mod tests {
     let theta = 0.0;
     let n = 1000;
     let t = 10.0;
-    let m = merton(alpha, sigma, lambda, theta, n, None, Some(t));
+    let m = merton(
+      alpha,
+      sigma,
+      lambda,
+      theta,
+      n,
+      None,
+      Some(t),
+      Normal::new(0.0, 1.0).unwrap(),
+    );
     assert_eq!(m.len(), n);
   }
 }

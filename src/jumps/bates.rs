@@ -1,4 +1,5 @@
 use ndarray::Array1;
+use rand_distr::Distribution;
 
 use crate::prelude::{correlated::correlated_bms, poisson::compound_poisson};
 
@@ -48,6 +49,7 @@ pub fn bates_1996(
   v0: Option<f64>,
   t: Option<f64>,
   use_sym: Option<bool>,
+  jump_distr: impl Distribution<f64> + Copy,
 ) -> [Array1<f64>; 2] {
   let correlated_bms = correlated_bms(rho, n, t);
   let dt = t.unwrap_or(1.0) / n as f64;
@@ -59,7 +61,7 @@ pub fn bates_1996(
   v[0] = v0.unwrap_or(0.0);
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), jump_distr);
 
     s[i] = s[i - 1]
       + mu * s[i - 1] * dt
@@ -79,6 +81,8 @@ pub fn bates_1996(
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::Normal;
+
   use super::*;
 
   #[test]
@@ -103,6 +107,7 @@ mod tests {
       None,
       Some(t),
       None,
+      Normal::new(0.0, 1.0).unwrap(),
     );
     assert_eq!(b[0].len(), n);
     assert_eq!(b[1].len(), n);

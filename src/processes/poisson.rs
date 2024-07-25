@@ -1,5 +1,4 @@
 use ndarray::{Array0, Array1, Axis, Dim};
-use ndarray_rand::rand_distr::Normal;
 use ndarray_rand::rand_distr::{Distribution, Exp};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
@@ -85,24 +84,17 @@ pub fn compound_poisson(
   n: Option<usize>,
   lambda: f64,
   t_max: Option<f64>,
-  jump_mean: Option<f64>,
-  jump_std: Option<f64>,
+  distr: impl Distribution<f64> + Copy,
 ) -> [Array1<f64>; 3] {
   if n.is_none() && t_max.is_none() {
     panic!("n or t_max must be provided");
   }
 
-  let _t_max = t_max.unwrap_or(1.0);
   let p = poisson(lambda, n, t_max);
   let mut jumps = Array1::<f64>::zeros(n.unwrap_or(p.len()));
 
-  let _jump_mean = jump_mean.unwrap_or(0.0);
-  let _jump_std = jump_std.unwrap_or(1.0);
-
   for i in 1..p.len() {
-    jumps[i] = Normal::new(_jump_mean, _jump_std)
-      .unwrap()
-      .sample(&mut thread_rng());
+    jumps[i] = distr.sample(&mut thread_rng());
   }
 
   let mut cum_jupms = jumps.clone();
@@ -113,6 +105,8 @@ pub fn compound_poisson(
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::Normal;
+
   use super::*;
 
   #[test]
@@ -130,8 +124,7 @@ mod tests {
   fn test_compound_poisson() {
     let n = 1000;
     let lambda = 2.0;
-    let t = 10.0;
-    let [.., cp] = compound_poisson(Some(n), lambda, None, Some(t), None);
+    let [.., cp] = compound_poisson(Some(n), lambda, None, Normal::new(0.0, 1.0).unwrap());
     assert_eq!(cp.len(), n);
   }
 }

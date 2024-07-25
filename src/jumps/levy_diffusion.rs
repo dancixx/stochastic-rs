@@ -1,5 +1,6 @@
 use crate::{noises::gn::gn, processes::poisson::compound_poisson};
 use ndarray::Array1;
+use rand_distr::Distribution;
 
 /// Generates a path of the Lévy diffusion process.
 ///
@@ -31,6 +32,7 @@ pub fn levy_diffusion(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
+  jumps_distr: impl Distribution<f64> + Copy,
 ) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let mut levy = Array1::<f64>::zeros(n);
@@ -38,7 +40,7 @@ pub fn levy_diffusion(
   let gn = gn(n - 1, t);
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, Some(10.));
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), jumps_distr);
 
     levy[i] = levy[i - 1] + gamma * dt + sigma * gn[i - 1] + jumps.sum();
   }
@@ -48,6 +50,8 @@ pub fn levy_diffusion(
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::Normal;
+
   use super::*;
 
   #[test]
@@ -57,7 +61,15 @@ mod tests {
     let lambda = 10.0;
     let n = 1000;
     let t = 10.0;
-    let l = levy_diffusion(gamma, sigma, lambda, n, None, Some(t));
+    let l = levy_diffusion(
+      gamma,
+      sigma,
+      lambda,
+      n,
+      None,
+      Some(t),
+      Normal::new(0.0, 1.0).unwrap(),
+    );
     assert_eq!(l.len(), n);
   }
 }

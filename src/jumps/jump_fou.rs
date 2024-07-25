@@ -1,4 +1,5 @@
 use ndarray::Array1;
+use rand_distr::Distribution;
 
 use crate::{diffusions::ou, prelude::poisson::compound_poisson};
 
@@ -38,6 +39,7 @@ pub fn jump_fou(
   n: usize,
   x0: Option<f64>,
   t: Option<f64>,
+  jump_distr: impl Distribution<f64> + Copy,
 ) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let fou = ou::fou(hurst, mu, sigma, theta, n, x0, t);
@@ -45,9 +47,9 @@ pub fn jump_fou(
   jump_fou[0] = fou[0];
 
   for i in 1..n {
-    let [.., jumps] = compound_poisson(None, lambda, Some(dt), None, None);
+    let [.., jumps] = compound_poisson(None, lambda, Some(dt), jump_distr);
 
-    jump_fou[i] = fou[i] + jumps.sum();
+    jump_fou[i] = fou[i - 1] + jumps.sum();
   }
 
   jump_fou
@@ -55,6 +57,8 @@ pub fn jump_fou(
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::Normal;
+
   use super::*;
 
   #[test]
@@ -66,7 +70,17 @@ mod tests {
     let lambda = 0.5;
     let n = 1000;
     let t = 1.0;
-    let jf = jump_fou(hurst, mu, sigma, theta, lambda, n, None, Some(t));
+    let jf = jump_fou(
+      hurst,
+      mu,
+      sigma,
+      theta,
+      lambda,
+      n,
+      None,
+      Some(t),
+      Normal::new(0.0, 1.0).unwrap(),
+    );
     assert_eq!(jf.len(), n);
   }
 }
