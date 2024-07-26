@@ -1,49 +1,122 @@
-use std::time::Instant;
-
-use plotly::{common::Line, Plot, Scatter};
-use rand_distr::{Gamma, Normal};
-use stochastic_rs::{
-  jumps::{bates::bates_1996, jump_fou::jump_fou, levy_diffusion::levy_diffusion, merton::merton},
-  processes::{cpoisson::compound_poisson, fbm::Fbm, poisson::poisson},
-  quant::{diffusions::fbm, traits_f::SamplingF},
-  utils::Generator,
+use plotly::{common::Line, Layout, Plot};
+use rand_distr::{Exp, Normal};
+use stochastic_rs::jumps::{
+  bates::{bates_1996, Bates1996},
+  jump_fou::{jump_fou, JumpFou},
+  levy_diffusion::{levy_diffusion, LevyDiffusion},
+  merton::{merton, Merton},
 };
 
 fn main() {
   let mut plot = Plot::new();
-  let fbm = fbm::FBM::new_f32(0.7, 100000, 0.0, 0.0, 1.0);
-  let fbm2 = Fbm::new(0.7, 100000, Some(1.0), Some(10000));
+  plot.set_layout(Layout::new().width(600).height(600));
 
-  for i in 0..1 {
-    // let d = poisson(10.0, Some(50), None);
-    //   )
-    //   .name("Poisson");
-    //plot.add_trace(trace);
+  for _ in 0..1 {
+    // let jump_fou = jump_fou(
+    //   &JumpFou {
+    //     hurst: 0.75,
+    //     mu: 10.0,
+    //     sigma: 9.0,
+    //     theta: 1.0,
+    //     n: 100,
+    //     t: Some(1.0),
+    //     lambda: 0.25,
+    //     ..Default::default()
+    //   },
+    //   Exp::new(1.0).unwrap(),
+    // );
+    // let trace = plotly::Scatter::new(
+    //   (0..jump_fou.len())
+    //     .into_iter()
+    //     .map(|idx| idx)
+    //     .collect::<Vec<_>>(),
+    //   jump_fou.to_vec(),
+    // )
+    // .line(
+    //   Line::new()
+    //     .color("blue")
+    //     .shape(plotly::common::LineShape::Hv),
+    // );
+    // plot.add_trace(trace);
+
+    // let jump_fou = levy_diffusion(
+    //   &LevyDiffusion {
+    //     gamma: 1.0,
+    //     sigma: 0.25,
+    //     n: 100,
+    //     t: Some(10.0),
+    //     lambda: 40.0,
+    //     ..Default::default()
+    //   },
+    //   Normal::new(0.25, 2.0).unwrap(),
+    // );
+    // let trace = plotly::Scatter::new(
+    //   (0..jump_fou.len())
+    //     .into_iter()
+    //     .map(|idx| idx)
+    //     .collect::<Vec<_>>(),
+    //   jump_fou.to_vec(),
+    // )
+    // .line(
+    //   Line::new()
+    //     .color("blue")
+    //     .shape(plotly::common::LineShape::Hv),
+    // );
+    // plot.add_trace(trace);
+
+    // let merton: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = merton(
+    //   &Merton {
+    //     alpha: 0.08,
+    //     sigma: 0.1,
+    //     lambda: 25.0,
+    //     theta: 0.08,
+    //     n: 100,
+    //     x0: Some(40.0),
+    //     t: Some(1.0),
+    //   },
+    //   Normal::new(0.0, 2.0).unwrap(),
+    // );
+    // let trace = plotly::Scatter::new(
+    //   (0..merton.len())
+    //     .into_iter()
+    //     .map(|idx| idx)
+    //     .collect::<Vec<_>>(),
+    //   merton.to_vec(),
+    // )
+    // .line(
+    //   Line::new()
+    //     .color("blue")
+    //     .shape(plotly::common::LineShape::Hv),
+    // );
+    // plot.add_trace(trace);
+
+    let [s, v] = bates_1996(
+      &Bates1996 {
+        mu: 1.0,
+        kappa: 1.0,
+        theta: 1.0,
+        eta: 1.0,
+        rho: 0.03,
+        lambda: 2.0,
+        n: 1000,
+        s0: Some(0.0),
+        v0: Some(0.0),
+        t: Some(1.0),
+        use_sym: Some(false),
+      },
+      Normal::new(0.0, 1.0).unwrap(),
+    );
+    let trace = plotly::Scatter::new(
+      (0..s.len()).into_iter().map(|idx| idx).collect::<Vec<_>>(),
+      s.to_vec(),
+    )
+    .line(
+      Line::new()
+        .color("blue")
+        .shape(plotly::common::LineShape::Hv),
+    );
+    plot.add_trace(trace);
   }
 
   plot.show();
-
-  //   // let trace = Scatter::new((0..d.len()).collect::<Vec<_>>(), d.clone())
-  //   //   .mode(plotly::common::Mode::Lines)
-  //   //   .line(
-  //   //     Line::new().color("blue"), //.shape(plotly::common::LineShape::Hv),
-  //   //   )
-  //   //   .name(format!("Sequence {}", i + 1).as_str());
-  //   // let trace = Scatter::new((0..d2.len()).collect::<Vec<_>>(), d2.clone())
-  //   //   .mode(plotly::common::Mode::Lines)
-  //   //   .line(
-  //   //     Line::new().color("red"), //.shape(plotly::common::LineShape::Hv),
-  //   //   )
-  //   //   .name(format!("Sequence {}", i + 1).as_str());
-  //   // plot.add_trace(trace);
-  // }
-
-  let start = Instant::now();
-  // for i in 0..10000 {
-  //   let d2 = fbm2.sample();
-  // }
-  fbm2.sample_par();
-  println!("{}", start.elapsed().as_secs_f64());
-
-  //plot.show();
 }
