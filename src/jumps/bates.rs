@@ -42,17 +42,17 @@ use crate::prelude::{
 
 #[derive(Default)]
 pub struct Bates1996 {
-  mu: f64,
-  kappa: f64,
-  theta: f64,
-  eta: f64,
-  rho: f64,
-  lambda: f64,
-  n: usize,
-  s0: Option<f64>,
-  v0: Option<f64>,
-  t: Option<f64>,
-  use_sym: Option<bool>,
+  pub mu: f64,
+  pub kappa: f64,
+  pub theta: f64,
+  pub eta: f64,
+  pub rho: f64,
+  pub lambda: f64,
+  pub n: usize,
+  pub s0: Option<f64>,
+  pub v0: Option<f64>,
+  pub t: Option<f64>,
+  pub use_sym: Option<bool>,
 }
 
 pub fn bates_1996(
