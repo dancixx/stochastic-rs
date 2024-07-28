@@ -30,16 +30,16 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// ```
 
 #[derive(Default)]
-pub struct CorrelatedFbms {
+pub struct Cfbms {
   pub hurst1: f64,
-  pub hurst2: f64,
+  pub hurst2: Option<f64>,
   pub rho: f64,
   pub n: usize,
   pub t: Option<f64>,
 }
 
-pub fn correlated_fbms(params: &CorrelatedFbms) -> [Array1<f64>; 2] {
-  let CorrelatedFbms {
+pub fn correlated_fbms(params: &Cfbms) -> [Array1<f64>; 2] {
+  let Cfbms {
     hurst1,
     hurst2,
     rho,
@@ -48,27 +48,30 @@ pub fn correlated_fbms(params: &CorrelatedFbms) -> [Array1<f64>; 2] {
   } = *params;
 
   assert!(
-    hurst1 > 0.0 && hurst1 < 1.0,
+    !(0.0..=1.0).contains(&hurst1),
     "Hurst parameter for the first fBM must be in (0, 1)"
   );
+
+  if let Some(hurst2) = hurst2 {
+    assert!(
+      !(0.0..=1.0).contains(&hurst2),
+      "Hurst parameter for the second fBM must be in (0, 1)"
+    );
+  }
   assert!(
-    hurst2 > 0.0 && hurst2 < 1.0,
-    "Hurst parameter for the second fBM must be in (0, 1)"
-  );
-  assert!(
-    rho >= -1.0 && rho <= 1.0,
+    !(-1.0..=1.0).contains(&rho),
     "Correlation coefficient must be in [-1, 1]"
   );
 
   let mut fbms = Array2::<f64>::zeros((n, 2));
 
   let fgn1 = FgnFft::new(hurst1, n - 1, t, None).sample();
-  let fgn2 = FgnFft::new(hurst2, n - 1, t, None).sample();
+  let fgn2 = FgnFft::new(hurst2.unwrap_or(hurst1), n - 1, t, None).sample();
 
   for i in 1..n {
-    fbms[[i, 0]] = fbms[[i - 1, 0]] + fgn1[i - 1];
-    fbms[[i, 1]] = rho * fgn2[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
+    fbms[[0, i]] = fbms[[0, i - 1]] + fgn1[i - 1];
+    fbms[[1, i]] = fbms[[1, i - 1]] + rho * fgn2[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }
 
-  [fbms.column(0).to_owned(), fbms.column(1).to_owned()]
+  [fbms.row(0).to_owned(), fbms.row(1).to_owned()]
 }

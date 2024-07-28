@@ -39,7 +39,7 @@ impl Fbm {
   /// ```
   ///
   pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
-    if !(0.0..1.0).contains(&hurst) {
+    if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be in (0, 1)")
     }
 

@@ -15,6 +15,7 @@ Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 
 # Stochastic processes
 - [x] Gaussian noise
+- [x] Correlated Gaussian noise
 - [x] Brownian motion
 - [x] Correlated Brownian motion
 - [x] Geometric Brownian motion
@@ -43,6 +44,7 @@ Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 
 # Fractional Stochastic processes
 - [x] Fractional Gaussian noise
+- [x] Correlated Gaussian noise
 - [x] Fractional Brownian motion
 - [x] Correlated Fractional Brownian motion
 - [x] Fractional Geometric Brownian motion

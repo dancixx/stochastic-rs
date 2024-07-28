@@ -39,7 +39,6 @@ pub fn poisson(params: &Poisson) -> Array1<f64> {
   if let Some(n) = n {
     let exponentials = Array1::random(n - 1, Exp::new(1.0 / lambda).unwrap());
     let mut poisson = Array1::<f64>::zeros(n);
-
     for i in 1..n {
       poisson[i] = poisson[i - 1] + exponentials[i - 1];
     }

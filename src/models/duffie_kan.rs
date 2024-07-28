@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::processes::cbms::{correlated_bms, CorrelatedBms};
+use crate::noises::cgns::{cgns, Cgns};
 
 /// Generates paths for the Duffie-Kan multifactor interest rate model.
 ///
@@ -76,7 +76,7 @@ pub fn duffie_kan(params: &DuffieKan) -> [Array1<f64>; 2] {
     t,
   } = *params;
 
-  let correlated_bms = correlated_bms(&CorrelatedBms { rho, n, t });
+  let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
   let mut r = Array1::<f64>::zeros(n);
@@ -88,10 +88,10 @@ pub fn duffie_kan(params: &DuffieKan) -> [Array1<f64>; 2] {
   for i in 1..n {
     r[i] = r[i - 1]
       + (a1 * r[i - 1] + b1 * x[i - 1] + c1) * dt
-      + sigma1 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * correlated_bms[0][i - 1];
+      + sigma1 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * cgn1[i - 1];
     x[i] = x[i - 1]
       + (a2 * r[i - 1] + b2 * x[i - 1] + c2) * dt
-      + sigma2 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * correlated_bms[1][i - 1];
+      + sigma2 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * cgn2[i - 1];
   }
 
   [r, x]
