@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for stochastic processes"
@@ -16,14 +16,14 @@ ndarray = { version = "0.15.6", features = [
     "rayon",
     "matrixmultiply-threading",
 ] }
-num-complex = { version = "0.4.4", features = ["rand"] }
+num-complex = { version = "0.4.6", features = ["rand"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"
-rayon = "1.8.0"
+rayon = "1.10.0"
 indicatif = "0.17.7"
 plotly = "0.8.4"
 ndarray-rand = "0.14.0"
-ndrustfft = "0.4.2"
+ndrustfft = "0.4.5"
 
 [dev-dependencies]
 

@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::prelude::cbms::{correlated_bms, CorrelatedBms};
+use crate::noises::cgns::{cgns, Cgns};
 
 /// Generates a path of the SABR (Stochastic Alpha, Beta, Rho) model.
 ///
@@ -53,7 +53,7 @@ pub fn sabr(params: &Sabr) -> [Array1<f64>; 2] {
   assert!(-1.0 < rho && rho < 1.0, "Rho parameter must be in (-1, 1)");
   assert!(alpha > 0.0, "Alpha parameter must be positive");
 
-  let correlated_bms = correlated_bms(&CorrelatedBms { rho, n, t });
+  let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
 
   let mut f = Array1::<f64>::zeros(n);
   let mut v = Array1::<f64>::zeros(n);
@@ -62,8 +62,8 @@ pub fn sabr(params: &Sabr) -> [Array1<f64>; 2] {
   v[0] = v0.unwrap_or(0.0);
 
   for i in 0..n {
-    f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(beta) * correlated_bms[0][i - 1];
-    v[i] = v[i - 1] + alpha * v[i - 1] * correlated_bms[1][i - 1];
+    f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(beta) * cgn1[i - 1];
+    v[i] = v[i - 1] + alpha * v[i - 1] * cgn2[i - 1];
   }
 
   [f, v]

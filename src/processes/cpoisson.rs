@@ -48,7 +48,6 @@ pub fn compound_poisson(
 
   let p = poisson(&Poisson { lambda, n, t_max });
   let mut jumps = Array1::<f64>::zeros(n.unwrap_or(p.len()));
-
   for i in 1..p.len() {
     jumps[i] = distribution.sample(&mut thread_rng());
   }

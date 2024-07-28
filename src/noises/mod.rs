@@ -8,5 +8,7 @@
 //! - **Gaussian Noise (GN)**
 //!   - Generates Gaussian noise, commonly used in simulations requiring white noise or random perturbations.
 
+pub mod cfgns;
+pub mod cgns;
 pub mod fgn;
 pub mod gn;
