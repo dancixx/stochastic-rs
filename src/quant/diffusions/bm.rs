@@ -10,8 +10,8 @@ impl BM<f64> {
   #[inline(always)]
   pub fn new() -> Self {
     Self {
-      mu: 0_f64,
-      sigma: 1_f64,
+      mu: 0.0,
+      sigma: 1.0,
     }
   }
 }
@@ -32,8 +32,8 @@ impl BM<f32> {
   #[inline(always)]
   pub fn new_f32() -> Self {
     Self {
-      mu: 0_f32,
-      sigma: 1_f32,
+      mu: 0.0,
+      sigma: 1.0,
     }
   }
 }

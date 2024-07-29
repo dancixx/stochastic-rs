@@ -3,6 +3,9 @@ use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
 use ndrustfft::{ndfft_par, FftHandler};
 use num_complex::{Complex, ComplexDistribution};
+use rayon::prelude::*;
+
+use crate::quant::traits_f::SamplingF;
 
 #[derive(Clone)]
 pub struct FGN<T> {
@@ -19,20 +22,19 @@ impl FGN<f64> {
   #[must_use]
   #[inline(always)]
   pub fn new(hurst: f64, n: usize, t: f64) -> Self {
-    if !(0_f64..=1_f64).contains(&hurst) {
+    if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
     let n_ = n.next_power_of_two();
     let offset = n_ - n;
     let n = n_;
-    let mut r = Array1::linspace(0_f64, n as f64, n + 1);
+    let mut r = Array1::linspace(0.0, n as f64, n + 1);
     r.par_mapv_inplace(|x| {
-      if x == 0_f64 {
-        1_f64
+      if x == 0.0 {
+        1.0
       } else {
         0.5
-          * ((x + 1_f64).powf(2_f64 * hurst) - 2_f64 * x.powf(2_f64 * hurst)
-            + (x - 1_f64).powf(2_f64 * hurst))
+          * ((x + 1.0).powf(2.0 * hurst) - 2.0 * x.powf(2.0 * hurst) + (x - 1.0).powf(2.0 * hurst))
       }
     });
     let r = concatenate(
@@ -41,11 +43,11 @@ impl FGN<f64> {
       &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
     )
     .unwrap();
-    let data = r.mapv(|v| Complex::new(v, 0_f64));
+    let data = r.mapv(|v| Complex::new(v, 0.0));
     let r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
     ndfft_par(&data, &mut sqrt_eigenvalues, &r_fft, 0);
-    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2_f64 * n as f64)).sqrt(), x.im));
+    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
     Self {
       hurst,
@@ -57,8 +59,10 @@ impl FGN<f64> {
       fft_fgn: Array1::<Complex<f64>>::zeros(2 * n),
     }
   }
+}
 
-  pub fn sample(&self) -> Array1<f64> {
+impl SamplingF<f64> for FGN<f64> {
+  fn sample(&self) -> Array1<f64> {
     let rnd = Array1::<Complex<f64>>::random(
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
@@ -72,6 +76,29 @@ impl FGN<f64> {
       .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
     fgn
   }
+
+  fn sample_as_vec(&self) -> Vec<f64> {
+    self.sample().to_vec()
+  }
+
+  fn sample_parallel(&self, m: usize) -> Array2<f64> {
+    let mut xs = Array2::<f64>::zeros((m, self.n));
+
+    xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
+      x.assign(&self.sample());
+    });
+
+    xs
+  }
+
+  fn sample_parallel_as_vec(&self, m: usize) -> Vec<Vec<f64>> {
+    self
+      .sample_parallel(m)
+      .axis_iter(Axis(0))
+      .into_par_iter()
+      .map(|x| x.to_vec())
+      .collect()
+  }
 }
 
 #[cfg(feature = "f32")]
@@ -79,20 +106,19 @@ impl FGN<f32> {
   #[must_use]
   #[inline(always)]
   pub fn new_f32(hurst: f32, n: usize, t: f32) -> Self {
-    if !(0_f32..=1_f32).contains(&hurst) {
+    if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
     let n_ = n.next_power_of_two();
     let offset = n_ - n;
     let n = n_;
-    let mut r = Array1::linspace(0_f32, n as f32, n + 1);
+    let mut r = Array1::linspace(0.0, n as f32, n + 1);
     r.par_mapv_inplace(|x| {
-      if x == 0_f32 {
-        1_f32
+      if x == 0.0 {
+        1.0
       } else {
         0.5
-          * ((x + 1_f32).powf(2_f32 * hurst) - 2_f32 * x.powf(2_f32 * hurst)
-            + (x - 1_f32).powf(2_f32 * hurst))
+          * ((x + 1.0).powf(2.0 * hurst) - 2.0 * x.powf(2.0 * hurst) + (x - 1.0).powf(2.0 * hurst))
       }
     });
     let r = concatenate(
@@ -101,11 +127,11 @@ impl FGN<f32> {
       &[r.view(), r.slice(s![..;-1]).slice(s![1..-1]).view()],
     )
     .unwrap();
-    let data = r.mapv(|v| Complex::new(v, 0_f32));
+    let data = r.mapv(|v| Complex::new(v, 0.0));
     let r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f32>>::zeros(r.len());
     ndfft_par(&data, &mut sqrt_eigenvalues, &r_fft, 0);
-    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2_f32 * n as f32)).sqrt(), x.im));
+    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f32)).sqrt(), x.im));
 
     Self {
       hurst,
@@ -117,8 +143,11 @@ impl FGN<f32> {
       fft_fgn: Array1::<Complex<f32>>::zeros(2 * n),
     }
   }
+}
 
-  pub fn sample(&self) -> Array1<f32> {
+#[cfg(feature = "f32")]
+impl SamplingF<f32> for FGN<f32> {
+  fn sample(&self) -> Array1<f32> {
     let rnd = Array1::<Complex<f32>>::random(
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
@@ -131,5 +160,28 @@ impl FGN<f32> {
       .slice(s![1..self.n - self.offset + 1])
       .mapv(|x: Complex<f32>| (x.re * (self.n as f32).powf(-self.hurst)) * self.t.powf(self.hurst));
     fgn
+  }
+
+  fn sample_as_vec(&self) -> Vec<f32> {
+    self.sample().to_vec()
+  }
+
+  fn sample_parallel(&self, m: usize) -> Array2<f32> {
+    let mut xs = Array2::<f32>::zeros((m, self.n));
+
+    xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
+      x.assign(&self.sample());
+    });
+
+    xs
+  }
+
+  fn sample_parallel_as_vec(&self, m: usize) -> Vec<Vec<f32>> {
+    self
+      .sample_parallel(m)
+      .axis_iter(Axis(0))
+      .into_par_iter()
+      .map(|x| x.to_vec())
+      .collect()
   }
 }

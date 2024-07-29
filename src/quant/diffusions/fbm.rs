@@ -16,8 +16,8 @@ impl FBM<f64> {
   #[inline(always)]
   pub fn new(hurst: f64, n: usize, x_0: f64, t_0: f64, t: f64) -> Self {
     Self {
-      mu: 0_f64,
-      sigma: 1_f64,
+      mu: 0.0,
+      sigma: 1.0,
       hurst,
       n,
       x_0,
@@ -56,8 +56,8 @@ impl FBM<f32> {
   #[inline(always)]
   pub fn new_f32(hurst: f32, n: usize, x_0: f32, t_0: f32, t: f32) -> Self {
     Self {
-      mu: 0_f32,
-      sigma: 1_f32,
+      mu: 0.0,
+      sigma: 1.0,
       hurst,
       n,
       x_0,
