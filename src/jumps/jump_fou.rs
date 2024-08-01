@@ -1,9 +1,10 @@
 use ndarray::Array1;
 use rand_distr::Distribution;
 
-use crate::prelude::{
-  cpoisson::{compound_poisson, CompoundPoisson},
-  fou::{fou, Fou},
+use crate::{
+  noises::fgn::FgnFft,
+  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  utils::Generator,
 };
 
 /// Generates a path of the jump fractional Ornstein-Uhlenbeck (FOU) process.
@@ -56,17 +57,9 @@ pub fn jump_fou(params: &JumpFou, jump_distr: impl Distribution<f64> + Copy) -> 
     t,
   } = *params;
   let dt = t.unwrap_or(1.0) / n as f64;
-  let fou = fou(&Fou {
-    hurst,
-    mu,
-    sigma,
-    theta,
-    n,
-    x0,
-    t,
-  });
+  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let mut jump_fou = Array1::<f64>::zeros(n);
-  jump_fou[0] = fou[0];
+  jump_fou[0] = x0.unwrap_or(0.0);
 
   for i in 1..n {
     let [.., jumps] = compound_poisson(
@@ -78,7 +71,8 @@ pub fn jump_fou(params: &JumpFou, jump_distr: impl Distribution<f64> + Copy) -> 
       jump_distr,
     );
 
-    jump_fou[i] = fou[i - 1] + jumps.sum();
+    jump_fou[i] =
+      jump_fou[i - 1] + theta * (mu - jump_fou[i - 1]) * dt + sigma * fgn[i - 1] + jumps.sum();
   }
 
   jump_fou
