@@ -10,6 +10,7 @@ repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
 keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 
+
 [dependencies]
 linreg = "0.2.0"
 ndarray = { version = "0.15.6", features = [
@@ -32,3 +33,6 @@ ndrustfft = "0.4.5"
 name = "stochastic_rs"
 crate-type = ["cdylib", "lib"]
 path = "src/lib.rs"
+
+[features]
+f32 = []

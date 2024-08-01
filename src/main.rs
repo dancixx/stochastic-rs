@@ -5,8 +5,6 @@ use rand_distr::Gamma;
 use stochastic_rs::jumps::jump_fou::{jump_fou, JumpFou};
 
 fn main() {
-  let start = Instant::now();
-
   let mut plot = Plot::new();
 
   let jump_distr = Gamma::new(2.0, 0.07).unwrap();
@@ -36,6 +34,4 @@ fn main() {
   }
 
   plot.show();
-
-  println!("{}", start.elapsed().as_secs_f64());
 }
