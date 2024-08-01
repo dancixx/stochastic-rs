@@ -3,7 +3,7 @@ use rand_distr::Distribution;
 
 use crate::{
   noises::cgns::{cgns, Cgns},
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
 
 /// Generates paths for the Bates (1996) model.

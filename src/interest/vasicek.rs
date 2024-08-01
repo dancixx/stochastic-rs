@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{diffusions::ou::ou, prelude::ou::Ou};
+use crate::{diffusions::ou::ou, diffusions::ou::Ou};
 
 /// Generates a path of the Vasicek model.
 ///
@@ -33,7 +33,7 @@ use crate::{diffusions::ou::ou, prelude::ou::Ou};
 pub struct Vasicek {
   pub mu: f64,
   pub sigma: f64,
-  pub theta: f64,
+  pub theta: Option<f64>,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
@@ -54,7 +54,7 @@ pub fn vasicek(params: &Vasicek) -> Array1<f64> {
   ou(&Ou {
     mu,
     sigma,
-    theta,
+    theta: theta.unwrap_or(1.0),
     n,
     x0,
     t,

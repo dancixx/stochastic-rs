@@ -3,7 +3,7 @@ use rand_distr::Distribution;
 
 use crate::{
   noises::gn::gn,
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
 
 /// Generates a path of the Merton jump diffusion process.

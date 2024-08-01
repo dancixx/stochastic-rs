@@ -1,6 +1,6 @@
 use crate::{
   noises::gn::gn,
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
 use ndarray::Array1;
 use rand_distr::Distribution;

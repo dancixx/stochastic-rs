@@ -53,12 +53,12 @@
 //! - Developed by [dancixx](https://github.com/dancixx).
 //! - Contributions and feedback are welcome!
 
-pub mod prelude;
-
 pub mod diffusions;
+pub mod interest;
 pub mod jumps;
-pub mod models;
 pub mod noises;
+pub mod pricing;
 pub mod processes;
 pub mod statistics;
 pub mod utils;
+pub mod volatility;

@@ -3,7 +3,7 @@ use rand_distr::Distribution;
 
 use crate::{
   noises::fgn::FgnFft,
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
   utils::Generator,
 };
 

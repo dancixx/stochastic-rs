@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{diffusions::fou::fou, prelude::fou::Fou};
+use crate::{diffusions::fou::fou, diffusions::fou::Fou};
 
 /// Generates a path of the fractional Vasicek (fVasicek) model.
 ///
@@ -35,7 +35,7 @@ pub struct Fvasicek {
   pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
-  pub theta: f64,
+  pub theta: Option<f64>,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
@@ -58,7 +58,7 @@ pub fn fvasicek(params: &Fvasicek) -> Array1<f64> {
     hurst,
     mu,
     sigma,
-    theta,
+    theta: theta.unwrap_or(1.0),
     n,
     x0,
     t,
