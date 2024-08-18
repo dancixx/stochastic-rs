@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::noises::cgns::{cgns, Cgns};
@@ -36,7 +37,8 @@ use crate::noises::cgns::{cgns, Cgns};
 /// let (r_path, x_path) = duffie_kan(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1000, Some(0.05), Some(0.02), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct DuffieKan {
   pub alpha: f64,
   pub beta: f64,

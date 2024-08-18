@@ -2,6 +2,7 @@ use crate::{
   noises::gn::gn,
   processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
@@ -28,7 +29,8 @@ use rand_distr::Distribution;
 /// let levy_path = levy_diffusion(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct LevyDiffusion {
   pub gamma: f64,
   pub sigma: f64,

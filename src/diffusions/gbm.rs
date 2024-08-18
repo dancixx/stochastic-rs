@@ -1,4 +1,5 @@
 use crate::noises::gn::gn;
+use derive_builder::Builder;
 use ndarray::Array1;
 
 /// Generates a path of the Geometric Brownian Motion (GBM) process.
@@ -23,7 +24,8 @@ use ndarray::Array1;
 /// let gbm_path = gbm(0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Gbm {
   pub mu: f64,
   pub sigma: f64,

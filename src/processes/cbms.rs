@@ -1,4 +1,5 @@
 use crate::noises::cgns::{cgns, Cgns};
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 /// Generates two correlated Brownian motion (BM) paths.
@@ -37,7 +38,8 @@ use ndarray::{Array1, Array2};
 /// ensures that `rho` is within the valid range of [-1, 1] and panics otherwise. The generated paths are stored in a
 /// 2D array and returned as a tuple of two 1D arrays.
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cbms {
   pub rho: f64,
   pub n: usize,

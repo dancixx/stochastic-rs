@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
@@ -33,7 +34,8 @@ use crate::{
 /// let jump_fou_path = jump_fou(0.1, 0.2, 0.5, 0.3, 0.5, 1000, None, Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct JumpFou {
   pub hurst: f64,
   pub mu: f64,

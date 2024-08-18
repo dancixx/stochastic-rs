@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Axis};
 
 use crate::noises::gn;
@@ -21,7 +22,8 @@ use crate::noises::gn;
 /// let bm_path = bm(1000, Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Bm {
   pub n: usize,
   pub t: Option<f64>,

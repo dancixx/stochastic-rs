@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -29,7 +30,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fgbm_path = fgbm(0.75, 0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fgbm {
   pub hurst: f64,
   pub mu: f64,

@@ -1,9 +1,11 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2, Axis};
 use rayon::prelude::*;
 
 use super::vasicek::{self, Vasicek};
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Mvasicek {
   pub mu: Array1<f64>,
   pub sigma: Array1<f64>,

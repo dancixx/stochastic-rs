@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -34,7 +35,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fgn2 = correlated_fg_paths[1].clone();
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cfgns {
   pub hurst: f64,
   pub rho: f64,

@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::noises::gn;
@@ -31,7 +32,8 @@ use crate::noises::gn;
 /// let gn2 = correlated_gn_paths[1].clone();
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cgns {
   pub rho: f64,
   pub n: usize,

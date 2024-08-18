@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
@@ -61,7 +62,8 @@ use crate::{
 ///
 /// This function will panic if the `correlated_bms` or `compound_poisson` functions return invalid lengths or if there are issues with array indexing.
 
-#[derive(Default, Debug)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Bates1996 {
   pub mu: Option<f64>,
   pub b: Option<f64>,

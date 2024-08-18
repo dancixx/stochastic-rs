@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -32,7 +33,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fjacobi_path = fjacobi(0.75, 0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fjacobi {
   pub hurst: f64,
   pub alpha: f64,

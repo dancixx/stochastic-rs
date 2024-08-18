@@ -1,4 +1,5 @@
 use crate::{noises::fgn::FgnFft, utils::Generator};
+use derive_builder::Builder;
 use ndarray::Array1;
 
 /// Generates a path of the fractional Ornstein-Uhlenbeck (fOU) process.
@@ -29,7 +30,8 @@ use ndarray::Array1;
 /// let fou_path = fou(0.75, 0.0, 0.1, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fou {
   pub hurst: f64,
   pub mu: f64,

@@ -1,4 +1,5 @@
 use crate::noises::gn;
+use derive_builder::Builder;
 use ndarray::Array1;
 use ndarray_rand::rand_distr::Gamma;
 use ndarray_rand::RandomExt;
@@ -26,7 +27,8 @@ use ndarray_rand::RandomExt;
 /// let vg_path = vg(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Vg {
   mu: f64,
   sigma: f64,

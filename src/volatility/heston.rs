@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::noises::cgns::{cgns, Cgns};
@@ -31,7 +32,8 @@ use crate::noises::cgns::{cgns, Cgns};
 /// let volatilities = paths[1];
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Heston {
   pub mu: f64,
   pub kappa: f64,

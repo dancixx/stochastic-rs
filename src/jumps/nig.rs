@@ -1,5 +1,6 @@
 use crate::noises::gn::gn;
 
+use derive_builder::Builder;
 use ndarray::Array1;
 use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 
@@ -26,7 +27,8 @@ use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 /// let nig_path = nig(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Nig {
   theta: f64,
   sigma: f64,

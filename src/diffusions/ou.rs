@@ -1,4 +1,5 @@
 use crate::noises::gn;
+use derive_builder::Builder;
 use ndarray::Array1;
 
 /// Generates a path of the Ornstein-Uhlenbeck (OU) process.
@@ -24,7 +25,8 @@ use ndarray::Array1;
 /// let ou_path = ou(0.0, 0.1, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Ou {
   pub mu: f64,
   pub sigma: f64,

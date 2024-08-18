@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -29,7 +30,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fbm2 = correlated_fbms[1];
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cfbms {
   pub hurst1: f64,
   pub hurst2: Option<f64>,

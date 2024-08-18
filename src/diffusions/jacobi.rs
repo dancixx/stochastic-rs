@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::noises::gn;
@@ -30,7 +31,8 @@ use crate::noises::gn;
 /// let jacobi_path = jacobi(0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Jacobi {
   pub alpha: f64,
   pub beta: f64,

@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{diffusions::fou::fou, diffusions::fou::Fou};
@@ -30,7 +31,8 @@ use crate::{diffusions::fou::fou, diffusions::fou::Fou};
 /// let fvasicek_path = fvasicek(0.75, 0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fvasicek {
   pub hurst: f64,
   pub mu: f64,

@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
@@ -30,7 +31,8 @@ use crate::{
 /// let merton_path = merton(0.1, 0.2, 0.5, 0.05, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Merton {
   pub alpha: f64,
   pub sigma: f64,

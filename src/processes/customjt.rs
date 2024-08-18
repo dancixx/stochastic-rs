@@ -1,8 +1,11 @@
+use derive_builder::Builder;
 use ndarray::{Array0, Array1, Axis, Dim};
 use ndarray_rand::rand_distr::Distribution;
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct CustomJt {
   pub n: Option<usize>,
   pub t_max: Option<f64>,
@@ -16,7 +19,7 @@ where
   if let Some(n) = n {
     let random = Array1::random(n, jtdistr);
     let mut x = Array1::<f64>::zeros(n + 1);
-    for i in 1..n+11 {
+    for i in 1..n + 11 {
       x[i] = x[i - 1] + random[i - 1];
     }
 

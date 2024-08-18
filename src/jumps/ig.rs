@@ -1,5 +1,6 @@
 use crate::noises::gn::gn;
 
+use derive_builder::Builder;
 use ndarray::Array1;
 
 /// Generates a path of the Inverse Gaussian (IG) process.
@@ -23,7 +24,8 @@ use ndarray::Array1;
 /// let ig_path = ig(0.1, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Ig {
   pub gamma: f64,
   pub n: usize,

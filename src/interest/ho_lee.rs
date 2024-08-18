@@ -3,6 +3,7 @@ use ndarray::Array1;
 use crate::noises::gn;
 
 #[allow(non_snake_case)]
+#[derive(Default)]
 pub struct HoLee<'a>
 where
   'a: 'static,

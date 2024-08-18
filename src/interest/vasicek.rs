@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{diffusions::ou::ou, diffusions::ou::Ou};
@@ -29,7 +30,8 @@ use crate::{diffusions::ou::ou, diffusions::ou::Ou};
 /// let vasicek_path = vasicek(0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Vasicek {
   pub mu: f64,
   pub sigma: f64,

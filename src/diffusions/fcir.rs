@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -32,7 +33,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fcir_path = fcir(0.75, 0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fcir {
   pub hurst: f64,
   pub theta: f64,
