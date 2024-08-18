@@ -34,11 +34,11 @@ pub struct Ig {
 pub fn ig(params: &Ig) -> Array1<f64> {
   let Ig { gamma, n, x0, t } = *params;
   let dt = t.unwrap_or(1.0) / n as f64;
-  let gn = gn(n - 1, t);
-  let mut ig = Array1::zeros(n);
+  let gn = gn(n, t);
+  let mut ig = Array1::zeros(n + 1);
   ig[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     ig[i] = ig[i - 1] + gamma * dt + gn[i - 1]
   }
 

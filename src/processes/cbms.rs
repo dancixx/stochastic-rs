@@ -51,10 +51,10 @@ pub fn cbms(params: &Cbms) -> [Array1<f64>; 2] {
     "Correlation coefficient must be in [-1, 1]"
   );
 
-  let mut bms = Array2::<f64>::zeros((2, n));
+  let mut bms = Array2::<f64>::zeros((2, n + 1));
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     bms[[0, i]] = bms[[0, i - 1]] + cgn1[i - 1];
     bms[[1, i]] = bms[[1, i - 1]] + rho * cgn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * cgn2[i - 1];
   }

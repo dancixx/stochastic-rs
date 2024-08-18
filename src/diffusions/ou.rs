@@ -44,13 +44,13 @@ pub fn ou(params: &Ou) -> Array1<f64> {
     t,
   } = *params;
 
-  let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
+  let gn = gn::gn(n, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut ou = Array1::<f64>::zeros(n);
+  let mut ou = Array1::<f64>::zeros(n + 1);
   ou[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     ou[i] = ou[i - 1] + theta * (mu - ou[i - 1]) * dt + sigma * gn[i - 1]
   }
 

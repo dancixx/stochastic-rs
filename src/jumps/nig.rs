@@ -49,12 +49,12 @@ pub fn nig(params: &Nig) -> Array1<f64> {
   let dt = t.unwrap_or(1.0) / n as f64;
   let scale = dt.powf(2.0) / kappa;
   let mean = dt / scale;
-  let ig = Array1::random(n - 1, InverseGaussian::new(mean, scale).unwrap());
-  let gn = gn(n - 1, t);
-  let mut nig = Array1::zeros(n);
+  let ig = Array1::random(n, InverseGaussian::new(mean, scale).unwrap());
+  let gn = gn(n, t);
+  let mut nig = Array1::zeros(n + 1);
   nig[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     nig[i] = nig[i - 1] + theta * ig[i - 1] + sigma * ig[i - 1].sqrt() * gn[i - 1]
   }
 

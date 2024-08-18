@@ -55,13 +55,13 @@ pub fn sabr(params: &Sabr) -> [Array1<f64>; 2] {
 
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
 
-  let mut f = Array1::<f64>::zeros(n);
-  let mut v = Array1::<f64>::zeros(n);
+  let mut f = Array1::<f64>::zeros(n + 1);
+  let mut v = Array1::<f64>::zeros(n + 1);
 
   f[0] = f0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
 
-  for i in 0..n {
+  for i in 1..(n + 1) {
     f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(beta) * cgn1[i - 1];
     v[i] = v[i - 1] + alpha * v[i - 1] * cgn2[i - 1];
   }

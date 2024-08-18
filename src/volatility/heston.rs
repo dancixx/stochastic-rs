@@ -62,13 +62,13 @@ pub fn heston(params: &Heston) -> [Array1<f64>; 2] {
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut s = Array1::<f64>::zeros(n);
-  let mut v = Array1::<f64>::zeros(n);
+  let mut s = Array1::<f64>::zeros(n + 1);
+  let mut v = Array1::<f64>::zeros(n + 1);
 
   s[0] = s0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     s[i] = s[i - 1] + mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
     let random: f64 = match use_sym.unwrap_or(false) {

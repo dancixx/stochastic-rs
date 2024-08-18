@@ -53,12 +53,12 @@ pub fn cfgns(params: &Cfgns) -> [Array1<f64>; 2] {
     "Correlation coefficient must be in [-1, 1]"
   );
 
-  let mut cfgns = Array2::<f64>::zeros((2, n));
-  let fgn = FgnFft::new(hurst, n - 1, t, None);
+  let mut cfgns = Array2::<f64>::zeros((2, n + 1));
+  let fgn = FgnFft::new(hurst, n, t, None);
   let fgn1 = fgn.sample();
   let fgn2 = fgn.sample();
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     cfgns[[0, i]] = fgn1[i - 1];
     cfgns[[1, i]] = rho * fgn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }

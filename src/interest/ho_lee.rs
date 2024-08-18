@@ -27,11 +27,11 @@ pub fn ho_lee(params: &HoLee) -> Array1<f64> {
     "theta or f_T must be provided"
   );
   let dt = *t / *n as f64;
-  let gn = gn::gn(n - 1, Some(*t));
+  let gn = gn::gn(*n, Some(*t));
 
-  let mut r = Array1::<f64>::zeros(*n);
+  let mut r = Array1::<f64>::zeros(*n + 1);
 
-  for i in 1..*n {
+  for i in 1..(*n + 1) {
     let drift = if let Some(r#fn) = f_T {
       (r#fn)(i as f64 * dt) + sigma.powf(2.0)
     } else {

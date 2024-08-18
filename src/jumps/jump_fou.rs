@@ -3,7 +3,7 @@ use rand_distr::Distribution;
 
 use crate::{
   noises::fgn::FgnFft,
-  processes::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoissonBuilder},
   utils::Generator,
 };
 
@@ -39,13 +39,16 @@ pub struct JumpFou {
   pub mu: f64,
   pub sigma: f64,
   pub theta: f64,
-  pub lambda: f64,
+  pub lambda: Option<f64>,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
 }
 
-pub fn jump_fou(params: &JumpFou, jump_distr: impl Distribution<f64> + Copy) -> Array1<f64> {
+pub fn jump_fou<D>(params: &JumpFou, jdistr: D) -> Array1<f64>
+where
+  D: Distribution<f64> + Copy,
+{
   let JumpFou {
     hurst,
     mu,
@@ -55,20 +58,21 @@ pub fn jump_fou(params: &JumpFou, jump_distr: impl Distribution<f64> + Copy) -> 
     n,
     x0,
     t,
-  } = *params;
-  let dt = t.unwrap_or(1.0) / n as f64;
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
-  let mut jump_fou = Array1::<f64>::zeros(n);
+  } = params;
+  let dt = t.unwrap_or(1.0) / *n as f64;
+  let fgn = FgnFft::new(*hurst, *n, *t, None).sample();
+  let mut jump_fou = Array1::<f64>::zeros(*n + 1);
   jump_fou[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(*n + 1) {
     let [.., jumps] = compound_poisson(
-      &CompoundPoisson {
-        lambda,
-        t_max: Some(dt),
-        n: None,
-      },
-      jump_distr,
+      &CompoundPoissonBuilder::default()
+        .lambda(lambda.unwrap())
+        .t_max(dt)
+        .n(*n)
+        .build()
+        .unwrap(),
+      jdistr,
     );
 
     jump_fou[i] =

@@ -56,13 +56,13 @@ pub fn fou(params: &Fou) -> Array1<f64> {
     "Hurst parameter must be in (0, 1)"
   );
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
+  let fgn = FgnFft::new(hurst, n, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fou = Array1::<f64>::zeros(n);
+  let mut fou = Array1::<f64>::zeros(n + 1);
   fou[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     fou[i] = fou[i - 1] + theta * (mu - fou[i - 1]) * dt + sigma * fgn[i - 1]
   }
 

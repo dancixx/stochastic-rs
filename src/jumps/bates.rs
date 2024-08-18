@@ -80,10 +80,10 @@ pub struct Bates1996 {
   pub use_sym: Option<bool>,
 }
 
-pub fn bates_1996(
-  params: &Bates1996,
-  jump_distr: impl Distribution<f64> + Copy,
-) -> [Array1<f64>; 2] {
+pub fn bates_1996<D>(params: &Bates1996, jdistr: D) -> [Array1<f64>; 2]
+where
+  D: Distribution<f64> + Copy,
+{
   let Bates1996 {
     mu,
     b,
@@ -105,8 +105,8 @@ pub fn bates_1996(
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut s = Array1::<f64>::zeros(n);
-  let mut v = Array1::<f64>::zeros(n);
+  let mut s = Array1::<f64>::zeros(n + 1);
+  let mut v = Array1::<f64>::zeros(n + 1);
 
   s[0] = s0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
@@ -117,14 +117,14 @@ pub fn bates_1996(
     _ => mu.unwrap(),
   };
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let [.., jumps] = compound_poisson(
       &CompoundPoisson {
         n: None,
         lambda,
         t_max: Some(dt),
       },
-      jump_distr,
+      jdistr,
     );
 
     let sqrt_v = use_sym

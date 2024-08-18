@@ -37,9 +37,9 @@ pub struct Poisson {
 pub fn poisson(params: &Poisson) -> Array1<f64> {
   let Poisson { lambda, n, t_max } = *params;
   if let Some(n) = n {
-    let exponentials = Array1::random(n - 1, Exp::new(1.0 / lambda).unwrap());
-    let mut poisson = Array1::<f64>::zeros(n);
-    for i in 1..n {
+    let exponentials = Array1::random(n, Exp::new(1.0 / lambda).unwrap());
+    let mut poisson = Array1::<f64>::zeros(n + 1);
+    for i in 1..(n + 1) {
       poisson[i] = poisson[i - 1] + exponentials[i - 1];
     }
 

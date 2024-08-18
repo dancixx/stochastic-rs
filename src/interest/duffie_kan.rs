@@ -79,13 +79,13 @@ pub fn duffie_kan(params: &DuffieKan) -> [Array1<f64>; 2] {
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut r = Array1::<f64>::zeros(n);
-  let mut x = Array1::<f64>::zeros(n);
+  let mut r = Array1::<f64>::zeros(n + 1);
+  let mut x = Array1::<f64>::zeros(n + 1);
 
   r[0] = r0.unwrap_or(0.0);
   x[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     r[i] = r[i - 1]
       + (a1 * r[i - 1] + b1 * x[i - 1] + c1) * dt
       + sigma1 * (alpha * r[i - 1] + beta * x[i - 1] + gamma) * cgn1[i - 1];

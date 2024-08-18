@@ -41,7 +41,10 @@ pub struct Merton {
   pub t: Option<f64>,
 }
 
-pub fn merton(params: &Merton, jump_distr: impl Distribution<f64> + Copy) -> Array1<f64> {
+pub fn merton<D>(params: &Merton, jdistr: D) -> Array1<f64>
+where
+  D: Distribution<f64> + Copy,
+{
   let Merton {
     alpha,
     sigma,
@@ -52,18 +55,18 @@ pub fn merton(params: &Merton, jump_distr: impl Distribution<f64> + Copy) -> Arr
     t,
   } = *params;
   let dt = t.unwrap_or(1.0) / n as f64;
-  let mut merton = Array1::<f64>::zeros(n);
+  let mut merton = Array1::<f64>::zeros(n + 1);
   merton[0] = x0.unwrap_or(0.0);
-  let gn = gn(n - 1, t);
+  let gn = gn(n, t);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let [.., jumps] = compound_poisson(
       &CompoundPoisson {
         lambda,
         t_max: Some(dt),
         n: None,
       },
-      jump_distr,
+      jdistr,
     );
 
     merton[i] = merton[i - 1]

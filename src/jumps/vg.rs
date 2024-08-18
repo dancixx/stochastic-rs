@@ -51,13 +51,13 @@ pub fn vg(params: &Vg) -> Array1<f64> {
   let shape = dt / nu;
   let scale = nu;
 
-  let mut vg = Array1::<f64>::zeros(n);
+  let mut vg = Array1::<f64>::zeros(n + 1);
   vg[0] = x0.unwrap_or(0.0);
 
-  let gn = gn::gn(n - 1, t);
-  let gammas = Array1::random(n - 1, Gamma::new(shape, scale).unwrap());
+  let gn = gn::gn(n, t);
+  let gammas = Array1::random(n, Gamma::new(shape, scale).unwrap());
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     vg[i] = vg[i - 1] + mu * gammas[i - 1] + sigma * gammas[i - 1].sqrt() * gn[i - 1];
   }
 
