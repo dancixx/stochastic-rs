@@ -3,6 +3,8 @@
 //! The `FgnFft` struct provides methods to generate fractional Gaussian noise (FGN)
 //! using the Fast Fourier Transform (FFT) approach.
 
+use std::sync::{Arc, Mutex};
+
 use crate::utils::Generator;
 use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
@@ -17,10 +19,10 @@ pub struct FgnFft {
   n: usize,
   offset: usize,
   t: f64,
-  sqrt_eigenvalues: Array1<Complex<f64>>,
+  sqrt_eigenvalues: Arc<Array1<Complex<f64>>>, // Cache-be tárolva
   m: Option<usize>,
-  fft_handler: FftHandler<f64>,
-  fft_fgn: Array1<Complex<f64>>,
+  fft_handler: Arc<FftHandler<f64>>,         // Cache-be tárolva
+  fft_fgn: Arc<Mutex<Array1<Complex<f64>>>>, // Mutex védelem
 }
 
 impl FgnFft {
@@ -79,10 +81,10 @@ impl FgnFft {
       n,
       offset,
       t: t.unwrap_or(1.0),
-      sqrt_eigenvalues,
+      sqrt_eigenvalues: Arc::new(sqrt_eigenvalues), // Cache-be tárolva
       m,
-      fft_handler: FftHandler::new(2 * n),
-      fft_fgn: Array1::<Complex<f64>>::zeros(2 * n),
+      fft_handler: Arc::new(FftHandler::new(2 * n)), // Cache-be tárolva
+      fft_fgn: Arc::new(Mutex::new(Array1::<Complex<f64>>::zeros(2 * n))), // Mutex védelem
     }
   }
 }
@@ -105,10 +107,9 @@ impl Generator for FgnFft {
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
-    let fgn = &self.sqrt_eigenvalues * &rnd;
-    let fft_handler = self.fft_handler.clone();
-    let mut fgn_fft = self.fft_fgn.clone();
-    ndfft_par(&fgn, &mut fgn_fft, &fft_handler, 0);
+    let fgn = &*self.sqrt_eigenvalues * &rnd;
+    let mut fgn_fft = self.fft_fgn.lock().unwrap().clone();
+    ndfft_par(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
       .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));

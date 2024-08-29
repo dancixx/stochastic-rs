@@ -33,3 +33,6 @@ derive_builder = "0.20.0"
 name = "stochastic_rs"
 crate-type = ["cdylib", "lib"]
 path = "src/lib.rs"
+
+[profile.release]
+debug = true
