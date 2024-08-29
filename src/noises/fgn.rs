@@ -109,9 +109,10 @@ impl Generator for FgnFft {
     let fft_handler = self.fft_handler.clone();
     let mut fgn_fft = self.fft_fgn.clone();
     ndfft_par(&fgn, &mut fgn_fft, &fft_handler, 0);
+    let scale_factor = self.t.powf(self.hurst) * (self.n as f64).powf(-self.hurst);
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
-      .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
+      .mapv(|x: Complex<f64>| x.re * scale_factor);
     fgn
   }
 
