@@ -138,12 +138,38 @@ impl Generator for FgnFft {
       panic!("m must be specified for parallel sampling");
     }
 
-    let mut xs = Array2::zeros((self.m.unwrap(), self.n));
+    let mut xs = Array2::zeros((self.m.unwrap(), self.n - self.offset));
 
     xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
-      x.assign(&self.sample());
+      x.assign(&self.sample().slice(s![..self.n - self.offset]));
     });
 
     xs
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use plotly::{common::Line, Plot, Scatter};
+
+  use super::*;
+
+  #[test]
+  fn plot() {
+    let fgn = FgnFft::new(0.9, 1000, Some(1.0), Some(1));
+    let mut plot = Plot::new();
+    let d = fgn.sample_par();
+    for data in d.axis_iter(Axis(0)) {
+      let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
+        .mode(plotly::common::Mode::Lines)
+        .line(
+          Line::new()
+            .color("orange")
+            .shape(plotly::common::LineShape::Linear),
+        )
+        .name("Fgn");
+      plot.add_trace(trace);
+    }
+    plot.show();
   }
 }
