@@ -3,14 +3,14 @@
 //! The `FgnFft` struct provides methods to generate fractional Gaussian noise (FGN)
 //! using the Fast Fourier Transform (FFT) approach.
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use crate::utils::Generator;
 use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
-use ndrustfft::{ndfft_par, FftHandler};
+use ndrustfft::{ndfft, FftHandler};
 use num_complex::{Complex, ComplexDistribution};
 
 /// Struct for generating Fractional Gaussian Noise (FGN) using FFT.
@@ -19,10 +19,10 @@ pub struct FgnFft {
   n: usize,
   offset: usize,
   t: f64,
-  sqrt_eigenvalues: Arc<Array1<Complex<f64>>>, // Cache-be tárolva
+  sqrt_eigenvalues: Arc<Array1<Complex<f64>>>,
   m: Option<usize>,
-  fft_handler: Arc<FftHandler<f64>>,         // Cache-be tárolva
-  fft_fgn: Arc<Mutex<Array1<Complex<f64>>>>, // Mutex védelem
+  fft_handler: Arc<FftHandler<f64>>,
+  fft_fgn: Arc<RwLock<Array1<Complex<f64>>>>,
 }
 
 impl FgnFft {
@@ -56,7 +56,7 @@ impl FgnFft {
     let offset = n_ - n;
     let n = n_;
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
-    r.par_mapv_inplace(|x| {
+    r.mapv_inplace(|x| {
       if x == 0.0 {
         1.0
       } else {
@@ -73,18 +73,18 @@ impl FgnFft {
     let data = r.mapv(|v| Complex::new(v, 0.0));
     let r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
-    ndfft_par(&data, &mut sqrt_eigenvalues, &r_fft, 0);
-    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
+    ndfft(&data, &mut sqrt_eigenvalues, &r_fft, 0);
+    sqrt_eigenvalues.mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
     Self {
       hurst,
       n,
       offset,
       t: t.unwrap_or(1.0),
-      sqrt_eigenvalues: Arc::new(sqrt_eigenvalues), // Cache-be tárolva
+      sqrt_eigenvalues: Arc::new(sqrt_eigenvalues),
       m,
-      fft_handler: Arc::new(FftHandler::new(2 * n)), // Cache-be tárolva
-      fft_fgn: Arc::new(Mutex::new(Array1::<Complex<f64>>::zeros(2 * n))), // Mutex védelem
+      fft_handler: Arc::new(FftHandler::new(2 * n)),
+      fft_fgn: Arc::new(RwLock::new(Array1::<Complex<f64>>::zeros(2 * n))),
     }
   }
 }
@@ -108,11 +108,12 @@ impl Generator for FgnFft {
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
     let fgn = &*self.sqrt_eigenvalues * &rnd;
-    let mut fgn_fft = self.fft_fgn.lock().unwrap().clone();
-    ndfft_par(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
+    let mut fgn_fft = self.fft_fgn.read().unwrap().clone();
+    ndfft(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
+    let scale = (self.n as f64).powf(-self.hurst) * self.t.powf(self.hurst);
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
-      .mapv(|x: Complex<f64>| (x.re * (self.n as f64).powf(-self.hurst)) * self.t.powf(self.hurst));
+      .mapv(|x: Complex<f64>| x.re * scale);
     fgn
   }
 
