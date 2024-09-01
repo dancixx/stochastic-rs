@@ -3,7 +3,7 @@
 //! The `FgnFft` struct provides methods to generate fractional Gaussian noise (FGN)
 //! using the Fast Fourier Transform (FFT) approach.
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use crate::utils::Generator;
 use ndarray::parallel::prelude::*;
@@ -22,7 +22,6 @@ pub struct FgnFft {
   sqrt_eigenvalues: Arc<Array1<Complex<f64>>>,
   m: Option<usize>,
   fft_handler: Arc<FftHandler<f64>>,
-  fft_fgn: Arc<RwLock<Array1<Complex<f64>>>>,
 }
 
 impl FgnFft {
@@ -84,7 +83,6 @@ impl FgnFft {
       sqrt_eigenvalues: Arc::new(sqrt_eigenvalues),
       m,
       fft_handler: Arc::new(FftHandler::new(2 * n)),
-      fft_fgn: Arc::new(RwLock::new(Array1::<Complex<f64>>::zeros(2 * n))),
     }
   }
 }
@@ -108,7 +106,7 @@ impl Generator for FgnFft {
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
     let fgn = &*self.sqrt_eigenvalues * &rnd;
-    let mut fgn_fft = self.fft_fgn.read().unwrap().clone();
+    let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
     ndfft(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
     let scale = (self.n as f64).powf(-self.hurst) * self.t.powf(self.hurst);
     let fgn = fgn_fft
