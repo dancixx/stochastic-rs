@@ -1,3 +1,4 @@
+![build workflow](https://github.com/dancixx/stochastic-rs/actions/workflows/rust.yml/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)](https://crates.io/crates/stochastic-rs)
 ![Crates.io](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
 
