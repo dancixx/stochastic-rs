@@ -53,8 +53,6 @@
 //! - Developed by [dancixx](https://github.com/dancixx).
 //! - Contributions and feedback are welcome!
 
-#![feature(portable_simd)]
-
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
