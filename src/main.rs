@@ -1,12 +1,24 @@
-use std::time::Instant;
-
 use stochastic_rs::{processes::fbm::Fbm, utils::Generator};
 
 fn main() {
-  let start = Instant::now();
-  let fbm = Fbm::new(0.95, 10000, Some(1.0), None);
-  for _ in 0..10000 {
-    fbm.sample();
+  let fbm = Fbm::new(0.75, 10000, Some(1.0), None);
+  let mut runs = Vec::new();
+
+  for _ in 0..20 {
+    let start = std::time::Instant::now();
+    for _ in 0..1000 {
+      let _ = fbm.sample();
+    }
+
+    let duration = start.elapsed();
+    println!(
+      "Time elapsed in expensive_function() is: {:?}",
+      duration.as_secs_f32()
+    );
+    runs.push(duration.as_secs_f32());
   }
-  println!("{}", start.elapsed().as_secs_f64());
+
+  let sum: f32 = runs.iter().sum();
+  let average = sum / runs.len() as f32;
+  println!("Average time: {}", average);
 }

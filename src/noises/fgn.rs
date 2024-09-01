@@ -3,12 +3,14 @@
 //! The `FgnFft` struct provides methods to generate fractional Gaussian noise (FGN)
 //! using the Fast Fourier Transform (FFT) approach.
 
+use std::sync::Arc;
+
 use crate::utils::Generator;
 use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
-use ndrustfft::{ndfft_par, FftHandler};
+use ndrustfft::{ndfft, FftHandler};
 use num_complex::{Complex, ComplexDistribution};
 
 /// Struct for generating Fractional Gaussian Noise (FGN) using FFT.
@@ -17,10 +19,9 @@ pub struct FgnFft {
   n: usize,
   offset: usize,
   t: f64,
-  sqrt_eigenvalues: Array1<Complex<f64>>,
+  sqrt_eigenvalues: Arc<Array1<Complex<f64>>>,
   m: Option<usize>,
-  fft_handler: FftHandler<f64>,
-  fft_fgn: Array1<Complex<f64>>,
+  fft_handler: Arc<FftHandler<f64>>,
 }
 
 impl FgnFft {
@@ -54,7 +55,7 @@ impl FgnFft {
     let offset = n_ - n;
     let n = n_;
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
-    r.par_mapv_inplace(|x| {
+    r.mapv_inplace(|x| {
       if x == 0.0 {
         1.0
       } else {
@@ -71,18 +72,17 @@ impl FgnFft {
     let data = r.mapv(|v| Complex::new(v, 0.0));
     let r_fft = FftHandler::new(r.len());
     let mut sqrt_eigenvalues = Array1::<Complex<f64>>::zeros(r.len());
-    ndfft_par(&data, &mut sqrt_eigenvalues, &r_fft, 0);
-    sqrt_eigenvalues.par_mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
+    ndfft(&data, &mut sqrt_eigenvalues, &r_fft, 0);
+    sqrt_eigenvalues.mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
     Self {
       hurst,
       n,
       offset,
       t: t.unwrap_or(1.0),
-      sqrt_eigenvalues,
+      sqrt_eigenvalues: Arc::new(sqrt_eigenvalues),
       m,
-      fft_handler: FftHandler::new(2 * n),
-      fft_fgn: Array1::<Complex<f64>>::zeros(2 * n),
+      fft_handler: Arc::new(FftHandler::new(2 * n)),
     }
   }
 }
@@ -105,14 +105,13 @@ impl Generator for FgnFft {
       2 * self.n,
       ComplexDistribution::new(StandardNormal, StandardNormal),
     );
-    let fgn = &self.sqrt_eigenvalues * &rnd;
-    let fft_handler = self.fft_handler.clone();
-    let mut fgn_fft = self.fft_fgn.clone();
-    ndfft_par(&fgn, &mut fgn_fft, &fft_handler, 0);
-    let scale_factor = self.t.powf(self.hurst) * (self.n as f64).powf(-self.hurst);
+    let fgn = &*self.sqrt_eigenvalues * &rnd;
+    let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
+    ndfft(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
+    let scale = (self.n as f64).powf(-self.hurst) * self.t.powf(self.hurst);
     let fgn = fgn_fft
       .slice(s![1..self.n - self.offset + 1])
-      .mapv(|x: Complex<f64>| x.re * scale_factor);
+      .mapv(|x: Complex<f64>| x.re * scale);
     fgn
   }
 
@@ -137,12 +136,38 @@ impl Generator for FgnFft {
       panic!("m must be specified for parallel sampling");
     }
 
-    let mut xs = Array2::zeros((self.m.unwrap(), self.n));
+    let mut xs = Array2::zeros((self.m.unwrap(), self.n - self.offset));
 
     xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
-      x.assign(&self.sample());
+      x.assign(&self.sample().slice(s![..self.n - self.offset]));
     });
 
     xs
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use plotly::{common::Line, Plot, Scatter};
+
+  use super::*;
+
+  #[test]
+  fn plot() {
+    let fgn = FgnFft::new(0.9, 1000, Some(1.0), Some(1));
+    let mut plot = Plot::new();
+    let d = fgn.sample_par();
+    for data in d.axis_iter(Axis(0)) {
+      let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
+        .mode(plotly::common::Mode::Lines)
+        .line(
+          Line::new()
+            .color("orange")
+            .shape(plotly::common::LineShape::Linear),
+        )
+        .name("Fgn");
+      plot.add_trace(trace);
+    }
+    plot.show();
   }
 }
