@@ -1,0 +1,11 @@
+[package]
+name = "stochastic-rs-stats"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+linreg = "0.2.0"
+ndarray = { version = "0.16.1", features = [
+    "rayon",
+    "matrixmultiply-threading",
+] }
