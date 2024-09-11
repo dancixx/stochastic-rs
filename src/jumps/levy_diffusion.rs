@@ -1,7 +1,8 @@
 use crate::{
   noises::gn::gn,
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
@@ -28,7 +29,8 @@ use rand_distr::Distribution;
 /// let levy_path = levy_diffusion(0.1, 0.2, 0.5, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct LevyDiffusion {
   pub gamma: f64,
   pub sigma: f64,
@@ -38,10 +40,10 @@ pub struct LevyDiffusion {
   pub t: Option<f64>,
 }
 
-pub fn levy_diffusion(
-  params: &LevyDiffusion,
-  jumps_distr: impl Distribution<f64> + Copy,
-) -> Array1<f64> {
+pub fn levy_diffusion<D>(params: &LevyDiffusion, jdistr: D) -> Array1<f64>
+where
+  D: Distribution<f64> + Copy,
+{
   let LevyDiffusion {
     gamma,
     sigma,
@@ -52,18 +54,18 @@ pub fn levy_diffusion(
   } = *params;
 
   let dt = t.unwrap_or(1.0) / n as f64;
-  let mut levy = Array1::<f64>::zeros(n);
+  let mut levy = Array1::<f64>::zeros(n + 1);
   levy[0] = x0.unwrap_or(0.0);
-  let gn = gn(n - 1, t);
+  let gn = gn(n, t);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let [.., jumps] = compound_poisson(
       &CompoundPoisson {
         lambda,
         t_max: Some(dt),
         n: None,
       },
-      jumps_distr,
+      jdistr,
     );
 
     levy[i] = levy[i - 1] + gamma * dt + sigma * gn[i - 1] + jumps.sum();

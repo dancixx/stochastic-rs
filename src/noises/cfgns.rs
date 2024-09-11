@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -34,7 +35,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fgn2 = correlated_fg_paths[1].clone();
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cfgns {
   pub hurst: f64,
   pub rho: f64,
@@ -53,12 +55,12 @@ pub fn cfgns(params: &Cfgns) -> [Array1<f64>; 2] {
     "Correlation coefficient must be in [-1, 1]"
   );
 
-  let mut cfgns = Array2::<f64>::zeros((2, n));
-  let fgn = FgnFft::new(hurst, n - 1, t, None);
+  let mut cfgns = Array2::<f64>::zeros((2, n + 1));
+  let fgn = FgnFft::new(hurst, n, t, None);
   let fgn1 = fgn.sample();
   let fgn2 = fgn.sample();
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     cfgns[[0, i]] = fgn1[i - 1];
     cfgns[[1, i]] = rho * fgn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }

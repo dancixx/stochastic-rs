@@ -53,14 +53,22 @@
 //! - Developed by [dancixx](https://github.com/dancixx).
 //! - Contributions and feedback are welcome!
 
-pub mod prelude;
+#[cfg(feature = "mimalloc")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+#[cfg(feature = "jemalloc")]
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 pub mod quant;
 
 pub mod diffusions;
+pub mod interest;
 pub mod jumps;
-pub mod models;
 pub mod noises;
+pub mod pricing;
 pub mod processes;
 pub mod statistics;
 pub mod utils;
+pub mod volatility;

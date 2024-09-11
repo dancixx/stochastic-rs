@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -32,7 +33,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fjacobi_path = fjacobi(0.75, 0.5, 1.0, 0.2, 1000, Some(0.5), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fjacobi {
   pub hurst: f64,
   pub alpha: f64,
@@ -63,13 +65,13 @@ pub fn fjacobi(params: &Fjacobi) -> Array1<f64> {
   assert!(sigma > 0.0, "sigma must be positive");
   assert!(alpha < beta, "alpha must be less than beta");
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
+  let fgn = FgnFft::new(hurst, n, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fjacobi = Array1::<f64>::zeros(n);
+  let mut fjacobi = Array1::<f64>::zeros(n + 1);
   fjacobi[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     fjacobi[i] = match fjacobi[i - 1] {
       _ if fjacobi[i - 1] <= 0.0 && i > 0 => 0.0,
       _ if fjacobi[i - 1] >= 1.0 && i > 0 => 1.0,

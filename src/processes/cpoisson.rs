@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Axis};
 use rand::thread_rng;
 use rand_distr::Distribution;
@@ -31,25 +32,27 @@ use super::poisson::{poisson, Poisson};
 /// let (p, cum_cp, cp) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct CompoundPoisson {
   pub n: Option<usize>,
   pub lambda: f64,
   pub t_max: Option<f64>,
 }
 
-pub fn compound_poisson(
-  params: &CompoundPoisson,
-  distribution: impl Distribution<f64> + Copy,
-) -> [Array1<f64>; 3] {
+pub fn compound_poisson<D>(params: &CompoundPoisson, jdistr: D) -> [Array1<f64>; 3]
+where
+  D: Distribution<f64> + Copy,
+{
   let CompoundPoisson { n, lambda, t_max } = *params;
   if n.is_none() && t_max.is_none() {
     panic!("n or t_max must be provided");
   }
 
   let p = poisson(&Poisson { lambda, n, t_max });
-  let mut jumps = Array1::<f64>::zeros(n.unwrap_or(p.len()));
+  let mut jumps = Array1::<f64>::zeros(p.len());
   for i in 1..p.len() {
-    jumps[i] = distribution.sample(&mut thread_rng());
+    jumps[i] = jdistr.sample(&mut thread_rng());
   }
 
   let mut cum_jupms = jumps.clone();

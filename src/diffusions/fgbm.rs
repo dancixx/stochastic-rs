@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -29,7 +30,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fgbm_path = fgbm(0.75, 0.05, 0.2, 1000, Some(100.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fgbm {
   pub hurst: f64,
   pub mu: f64,
@@ -54,13 +56,13 @@ pub fn fgbm(params: &Fgbm) -> Array1<f64> {
     "Hurst parameter must be in (0, 1)"
   );
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
+  let fgn = FgnFft::new(hurst, n, t, None).sample();
 
-  let mut fgbm = Array1::<f64>::zeros(n);
+  let mut fgbm = Array1::<f64>::zeros(n + 1);
   fgbm[0] = x0.unwrap_or(100.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     fgbm[i] = fgbm[i - 1] + mu * fgbm[i - 1] * dt + sigma * fgbm[i - 1] * fgn[i - 1]
   }
 

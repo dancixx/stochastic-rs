@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -32,7 +33,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fcir_path = fcir(0.75, 0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Fcir {
   pub hurst: f64,
   pub theta: f64,
@@ -62,13 +64,13 @@ pub fn fcir(params: &Fcir) -> Array1<f64> {
   );
   assert!(2.0 * theta * mu < sigma.powi(2), "2 * theta * mu < sigma^2");
 
-  let fgn = FgnFft::new(hurst, n - 1, t, None).sample();
+  let fgn = FgnFft::new(hurst, n, t, None).sample();
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut fcir = Array1::<f64>::zeros(n);
+  let mut fcir = Array1::<f64>::zeros(n + 1);
   fcir[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let random = match use_sym.unwrap_or(false) {
       true => sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1],
       false => sigma * (fcir[i - 1]).max(0.0) * fgn[i - 1],

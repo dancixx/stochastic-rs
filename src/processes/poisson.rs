@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array0, Array1, Axis, Dim};
 use ndarray_rand::rand_distr::{Distribution, Exp};
 use ndarray_rand::RandomExt;
@@ -28,6 +29,8 @@ use rand::thread_rng;
 /// let poisson_path = poisson(1.0, None, Some(100.0));
 /// ```
 
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Poisson {
   pub lambda: f64,
   pub n: Option<usize>,
@@ -37,9 +40,9 @@ pub struct Poisson {
 pub fn poisson(params: &Poisson) -> Array1<f64> {
   let Poisson { lambda, n, t_max } = *params;
   if let Some(n) = n {
-    let exponentials = Array1::random(n - 1, Exp::new(1.0 / lambda).unwrap());
-    let mut poisson = Array1::<f64>::zeros(n);
-    for i in 1..n {
+    let exponentials = Array1::random(n, Exp::new(1.0 / lambda).unwrap());
+    let mut poisson = Array1::<f64>::zeros(n + 1);
+    for i in 1..(n + 1) {
       poisson[i] = poisson[i - 1] + exponentials[i - 1];
     }
 

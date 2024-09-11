@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 
 use crate::noises::cgns::{cgns, Cgns};
@@ -27,7 +28,8 @@ use crate::noises::cgns::{cgns, Cgns};
 /// let (forward_rate_path, volatility_path) = sabr(0.2, 0.5, -0.3, 1000, Some(0.04), Some(0.2), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Sabr {
   pub alpha: f64,
   pub beta: f64,
@@ -55,13 +57,13 @@ pub fn sabr(params: &Sabr) -> [Array1<f64>; 2] {
 
   let [cgn1, cgn2] = cgns(&Cgns { rho, n, t });
 
-  let mut f = Array1::<f64>::zeros(n);
-  let mut v = Array1::<f64>::zeros(n);
+  let mut f = Array1::<f64>::zeros(n + 1);
+  let mut v = Array1::<f64>::zeros(n + 1);
 
   f[0] = f0.unwrap_or(0.0);
   v[0] = v0.unwrap_or(0.0);
 
-  for i in 0..n {
+  for i in 1..(n + 1) {
     f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(beta) * cgn1[i - 1];
     v[i] = v[i - 1] + alpha * v[i - 1] * cgn2[i - 1];
   }

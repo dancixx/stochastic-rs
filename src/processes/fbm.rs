@@ -1,7 +1,7 @@
 //! Fractional Brownian Motion (fBM) generator.
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
-use ndarray::{Array1, Array2, Axis};
+use ndarray::{s, Array1, Array2, Axis};
 use rayon::prelude::*;
 
 /// Struct for generating Fractional Brownian Motion (fBM).
@@ -67,9 +67,15 @@ impl Generator for Fbm {
   /// ```
   fn sample(&self) -> Array1<f64> {
     let fgn = self.fgn.as_ref().unwrap().sample();
-    let mut fbm = Array1::<f64>::from(fgn);
-    fbm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
-    vec![0.0].into_iter().chain(fbm).collect()
+
+    let mut fbm = Array1::<f64>::zeros(self.n);
+    fbm.slice_mut(s![1..]).assign(&fgn);
+
+    for i in 1..self.n {
+      fbm[i] += fbm[i - 1];
+    }
+
+    fbm
   }
 
   /// Generates parallel samples of fractional Brownian motion (fBM).
@@ -100,5 +106,31 @@ impl Generator for Fbm {
     });
 
     xs
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use plotly::{common::Line, Plot, Scatter};
+
+  use super::*;
+
+  #[test]
+  fn plot() {
+    let fbm = Fbm::new(0.45, 1000, Some(1.0), Some(10));
+    let mut plot = Plot::new();
+    let d = fbm.sample_par();
+    for data in d.axis_iter(Axis(0)) {
+      let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
+        .mode(plotly::common::Mode::Lines)
+        .line(
+          Line::new()
+            .color("orange")
+            .shape(plotly::common::LineShape::Linear),
+        )
+        .name("Fbm");
+      plot.add_trace(trace);
+    }
+    plot.show();
   }
 }

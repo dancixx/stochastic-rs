@@ -1,4 +1,5 @@
 use crate::noises::gn;
+use derive_builder::Builder;
 use ndarray::Array1;
 
 /// Generates a path of the Cox-Ingersoll-Ross (CIR) process.
@@ -29,7 +30,8 @@ use ndarray::Array1;
 /// let cir_path = cir(0.5, 0.02, 0.1, 1000, Some(0.01), Some(1.0), Some(false));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cir {
   pub theta: f64,
   pub mu: f64,
@@ -53,13 +55,13 @@ pub fn cir(params: &Cir) -> Array1<f64> {
 
   assert!(2.0 * theta * mu < sigma.powi(2), "2 * theta * mu < sigma^2");
 
-  let gn = gn::gn(n - 1, Some(t.unwrap_or(1.0)));
+  let gn = gn::gn(n, Some(t.unwrap_or(1.0)));
   let dt = t.unwrap_or(1.0) / n as f64;
 
-  let mut cir = Array1::<f64>::zeros(n);
+  let mut cir = Array1::<f64>::zeros(n + 1);
   cir[0] = x0.unwrap_or(0.0);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let random = match use_sym.unwrap_or(false) {
       true => sigma * (cir[i - 1]).abs().sqrt() * gn[i - 1],
       false => sigma * (cir[i - 1]).max(0.0).sqrt() * gn[i - 1],

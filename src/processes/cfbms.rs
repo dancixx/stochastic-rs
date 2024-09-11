@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::{noises::fgn::FgnFft, utils::Generator};
@@ -29,7 +30,8 @@ use crate::{noises::fgn::FgnFft, utils::Generator};
 /// let fbm2 = correlated_fbms[1];
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cfbms {
   pub hurst1: f64,
   pub hurst2: Option<f64>,
@@ -63,12 +65,12 @@ pub fn correlated_fbms(params: &Cfbms) -> [Array1<f64>; 2] {
     "Correlation coefficient must be in [-1, 1]"
   );
 
-  let mut fbms = Array2::<f64>::zeros((n, 2));
+  let mut fbms = Array2::<f64>::zeros((2, n + 1));
 
-  let fgn1 = FgnFft::new(hurst1, n - 1, t, None).sample();
-  let fgn2 = FgnFft::new(hurst2.unwrap_or(hurst1), n - 1, t, None).sample();
+  let fgn1 = FgnFft::new(hurst1, n, t, None).sample();
+  let fgn2 = FgnFft::new(hurst2.unwrap_or(hurst1), n, t, None).sample();
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     fbms[[0, i]] = fbms[[0, i - 1]] + fgn1[i - 1];
     fbms[[1, i]] = fbms[[1, i - 1]] + rho * fgn2[i - 1] + (1.0 - rho.powi(2)).sqrt() * fgn2[i - 1];
   }

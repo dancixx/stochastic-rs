@@ -1,3 +1,4 @@
+use derive_builder::Builder;
 use ndarray::{Array1, Array2};
 
 use crate::noises::gn;
@@ -31,7 +32,8 @@ use crate::noises::gn;
 /// let gn2 = correlated_gn_paths[1].clone();
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Cgns {
   pub rho: f64,
   pub n: usize,
@@ -45,11 +47,11 @@ pub fn cgns(params: &Cgns) -> [Array1<f64>; 2] {
     "Correlation coefficient must be in [-1, 1]"
   );
 
-  let mut cgns = Array2::<f64>::zeros((2, n));
+  let mut cgns = Array2::<f64>::zeros((2, n + 1));
   let gn1 = gn::gn(n, Some(t.unwrap_or(1.0)));
   let gn2 = gn::gn(n, Some(t.unwrap_or(1.0)));
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     cgns[[0, i]] = gn1[i - 1];
     cgns[[1, i]] = rho * gn1[i - 1] + (1.0 - rho.powi(2)).sqrt() * gn2[i - 1];
   }

@@ -1,9 +1,10 @@
+use derive_builder::Builder;
 use ndarray::Array1;
 use rand_distr::Distribution;
 
 use crate::{
   noises::gn::gn,
-  prelude::cpoisson::{compound_poisson, CompoundPoisson},
+  processes::cpoisson::{compound_poisson, CompoundPoisson},
 };
 
 /// Generates a path of the Merton jump diffusion process.
@@ -30,7 +31,8 @@ use crate::{
 /// let merton_path = merton(0.1, 0.2, 0.5, 0.05, 1000, Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default)]
+#[derive(Default, Builder)]
+#[builder(setter(into))]
 pub struct Merton {
   pub alpha: f64,
   pub sigma: f64,
@@ -41,7 +43,10 @@ pub struct Merton {
   pub t: Option<f64>,
 }
 
-pub fn merton(params: &Merton, jump_distr: impl Distribution<f64> + Copy) -> Array1<f64> {
+pub fn merton<D>(params: &Merton, jdistr: D) -> Array1<f64>
+where
+  D: Distribution<f64> + Copy,
+{
   let Merton {
     alpha,
     sigma,
@@ -52,18 +57,18 @@ pub fn merton(params: &Merton, jump_distr: impl Distribution<f64> + Copy) -> Arr
     t,
   } = *params;
   let dt = t.unwrap_or(1.0) / n as f64;
-  let mut merton = Array1::<f64>::zeros(n);
+  let mut merton = Array1::<f64>::zeros(n + 1);
   merton[0] = x0.unwrap_or(0.0);
-  let gn = gn(n - 1, t);
+  let gn = gn(n, t);
 
-  for i in 1..n {
+  for i in 1..(n + 1) {
     let [.., jumps] = compound_poisson(
       &CompoundPoisson {
         lambda,
         t_max: Some(dt),
         n: None,
       },
-      jump_distr,
+      jdistr,
     );
 
     merton[i] = merton[i - 1]

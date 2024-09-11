@@ -29,8 +29,5 @@
 //!
 //! Each process has its own module and functions to generate sample paths.
 
-pub mod duffie_kan;
-pub mod fvasicek;
 pub mod heston;
 pub mod sabr;
-pub mod vasicek;
