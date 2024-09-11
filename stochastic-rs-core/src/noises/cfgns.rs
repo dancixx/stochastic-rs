@@ -17,7 +17,13 @@ pub struct Cfgns {
 impl Cfgns {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+    let fgn = Fgn::new(&Fgn {
+      hurst: params.hurst,
+      n: params.n,
+      t: params.t,
+      m: params.m,
+      ..Default::default()
+    });
 
     Self {
       hurst: params.hurst,

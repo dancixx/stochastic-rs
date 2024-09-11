@@ -1,14 +1,13 @@
 use ndarray::{Array0, Array1, Axis, Dim};
-use ndarray_rand::rand_distr::Distribution;
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
-use crate::Sampling;
+use crate::{ProcessDistribution, Sampling};
 
 #[derive(Default)]
 pub struct CustomJt<D>
 where
-  D: Distribution<f64> + Copy + Send + Sync,
+  D: ProcessDistribution,
 {
   pub n: Option<usize>,
   pub t_max: Option<f64>,
@@ -16,7 +15,7 @@ where
   pub distribution: D,
 }
 
-impl<D: Distribution<f64> + Copy + Send + Sync> CustomJt<D> {
+impl<D: ProcessDistribution> CustomJt<D> {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -28,7 +27,7 @@ impl<D: Distribution<f64> + Copy + Send + Sync> CustomJt<D> {
   }
 }
 
-impl<D: Distribution<f64> + Copy + Send + Sync> Sampling<f64> for CustomJt<D> {
+impl<D: ProcessDistribution> Sampling<f64> for CustomJt<D> {
   fn sample(&self) -> Array1<f64> {
     if let Some(n) = self.n {
       let random = Array1::random(n, self.distribution);

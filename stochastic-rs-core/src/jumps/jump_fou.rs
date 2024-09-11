@@ -1,41 +1,14 @@
-use derive_builder::Builder;
 use ndarray::Array1;
-use rand_distr::Distribution;
 
 use crate::{
-  noises::fgn::FgnFft,
-  processes::cpoisson::{compound_poisson, CompoundPoissonBuilder},
+  noises::fgn::Fgn, processes::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
 };
 
-/// Generates a path of the jump fractional Ornstein-Uhlenbeck (FOU) process.
-///
-/// The jump FOU process incorporates both the fractional Ornstein-Uhlenbeck dynamics and compound Poisson jumps,
-/// which can be useful in various financial and physical modeling contexts.
-///
-/// # Parameters
-///
-/// - `hurst`: The Hurst parameter for the fractional Ornstein-Uhlenbeck process.
-/// - `mu`: The mean reversion level.
-/// - `sigma`: The volatility parameter.
-/// - `theta`: The mean reversion speed.
-/// - `lambda`: The jump intensity of the compound Poisson process.
-/// - `n`: Number of time steps.
-/// - `x0`: Initial value of the process (optional, defaults to 0.0).
-/// - `t`: Total time (optional, defaults to 1.0).
-///
-/// # Returns
-///
-/// A `Array1<f64>` representing the generated jump FOU process path.
-///
-/// # Example
-///
-/// ```
-/// let jump_fou_path = jump_fou(0.1, 0.2, 0.5, 0.3, 0.5, 1000, None, Some(1.0));
-/// ```
-
-#[derive(Default, Builder)]
-#[builder(setter(into))]
-pub struct JumpFou {
+#[derive(Default)]
+pub struct JumpFou<D>
+where
+  D: ProcessDistribution,
+{
   pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
@@ -44,41 +17,78 @@ pub struct JumpFou {
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
+  pub m: Option<usize>,
+  pub jump_distribution: D,
+  fgn: Fgn,
+  cpoisson: CompoundPoisson<D>,
 }
 
-pub fn jump_fou<D>(params: &JumpFou, jdistr: D) -> Array1<f64>
-where
-  D: Distribution<f64> + Copy,
-{
-  let JumpFou {
-    hurst,
-    mu,
-    sigma,
-    theta,
-    lambda,
-    n,
-    x0,
-    t,
-  } = params;
-  let dt = t.unwrap_or(1.0) / *n as f64;
-  let fgn = FgnFft::new(*hurst, *n, *t, None).sample();
-  let mut jump_fou = Array1::<f64>::zeros(*n + 1);
-  jump_fou[0] = x0.unwrap_or(0.0);
+impl<D: ProcessDistribution> JumpFou<D> {
+  #[must_use]
+  pub fn new(params: &JumpFou<D>) -> Self {
+    let fgn = Fgn::new(&Fgn {
+      hurst: params.hurst,
+      n: params.n,
+      t: params.t,
+      m: params.m,
+      ..Default::default()
+    });
 
-  for i in 1..(*n + 1) {
-    let [.., jumps] = compound_poisson(
-      &CompoundPoissonBuilder::default()
-        .lambda(lambda.unwrap())
-        .t_max(dt)
-        .n(*n)
-        .build()
-        .unwrap(),
-      jdistr,
+    let cpoisson = CompoundPoisson::new(&CompoundPoisson {
+      n: None,
+      lambda: params.lambda.unwrap(),
+      t_max: Some(params.t.unwrap_or(1.0) / params.n as f64),
+      distribution: params.jump_distribution,
+      m: params.m,
+      ..Default::default()
+    });
+
+    Self {
+      hurst: params.hurst,
+      mu: params.mu,
+      sigma: params.sigma,
+      theta: params.theta,
+      lambda: params.lambda,
+      n: params.n,
+      x0: params.x0,
+      t: params.t,
+      m: params.m,
+      jump_distribution: params.jump_distribution,
+      fgn,
+      cpoisson,
+    }
+  }
+}
+
+impl<D: ProcessDistribution> Sampling<f64> for JumpFou<D> {
+  fn sample(&self) -> Array1<f64> {
+    assert!(
+      self.hurst > 0.0 && self.hurst < 1.0,
+      "Hurst parameter must be in (0, 1)"
     );
 
-    jump_fou[i] =
-      jump_fou[i - 1] + theta * (mu - jump_fou[i - 1]) * dt + sigma * fgn[i - 1] + jumps.sum();
+    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let fgn = self.fgn.sample();
+    let mut jump_fou = Array1::<f64>::zeros(self.n + 1);
+    jump_fou[0] = self.x0.unwrap_or(0.0);
+
+    for i in 1..(self.n + 1) {
+      let [.., jumps] = self.cpoisson.sample();
+
+      jump_fou[i] = jump_fou[i - 1]
+        + self.theta * (self.mu - jump_fou[i - 1]) * dt
+        + self.sigma * fgn[i - 1]
+        + jumps.sum();
+    }
+
+    jump_fou
   }
 
-  jump_fou
+  fn n(&self) -> usize {
+    self.n
+  }
+
+  fn m(&self) -> Option<usize> {
+    self.m
+  }
 }

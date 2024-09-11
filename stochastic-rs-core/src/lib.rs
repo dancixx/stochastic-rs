@@ -71,6 +71,9 @@ pub mod volatility;
 use ndarray::parallel::prelude::*;
 use ndarray::{Array1, Array2, Axis};
 use ndrustfft::Zero;
+use rand_distr::Distribution;
+
+pub trait ProcessDistribution: Distribution<f64> + Copy + Send + Sync + Default {}
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   fn sample(&self) -> Array1<T>;
