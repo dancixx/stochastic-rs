@@ -1,5 +1,6 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
+use ndarray::parallel::prelude::*;
 use ndarray::{concatenate, prelude::*};
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
@@ -68,11 +69,23 @@ impl Fgn {
 
 impl Sampling<f64> for Fgn {
   fn sample(&self) -> Array1<f64> {
-    let rnd = Array1::<Complex<f64>>::random(
-      2 * self.n,
-      ComplexDistribution::new(StandardNormal, StandardNormal),
-    );
-    let fgn = &*self.sqrt_eigenvalues * &rnd;
+    let num_threads = rayon::current_num_threads();
+    let chunk_size = (2 * self.n) / num_threads;
+    let rnd = Arc::new(Mutex::new(Array1::<Complex<f64>>::zeros(2 * self.n)));
+
+    (0..num_threads).into_par_iter().for_each(|i| {
+      let chunk = Array1::<Complex<f64>>::random(
+        chunk_size,
+        ComplexDistribution::new(StandardNormal, StandardNormal),
+      );
+
+      let mut result_lock = rnd.lock().unwrap();
+      result_lock
+        .slice_mut(s![i * chunk_size..(i + 1) * chunk_size])
+        .assign(&chunk);
+    });
+
+    let fgn = &*self.sqrt_eigenvalues * &*rnd.lock().unwrap();
     let mut fgn_fft = Array1::<Complex<f64>>::zeros(2 * self.n);
     ndfft(&fgn, &mut fgn_fft, &*self.fft_handler, 0);
     let scale = (self.n as f64).powf(-self.hurst) * self.t.unwrap_or(1.0).powf(self.hurst);
