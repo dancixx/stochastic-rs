@@ -4,6 +4,7 @@ use rand_distr::Normal;
 
 use crate::Sampling;
 
+#[derive(Default)]
 pub struct Ou {
   pub mu: f64,
   pub sigma: f64,
@@ -15,6 +16,7 @@ pub struct Ou {
 }
 
 impl Ou {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
       mu: params.mu,

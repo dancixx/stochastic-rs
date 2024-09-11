@@ -4,6 +4,7 @@ use rand_distr::Normal;
 
 use crate::Sampling;
 
+#[derive(Default)]
 pub struct Gbm {
   pub mu: f64,
   pub sigma: f64,
@@ -14,6 +15,7 @@ pub struct Gbm {
 }
 
 impl Gbm {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
       mu: params.mu,
@@ -36,7 +38,7 @@ impl Sampling<f64> for Gbm {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
 
     let mut gbm = Array1::<f64>::zeros(self.n + 1);
-    gbm[0] = self.x0.unwrap_or(100.0);
+    gbm[0] = self.x0.unwrap_or(0.0);
 
     for i in 1..(self.n + 1) {
       gbm[i] = gbm[i - 1] + self.mu * gbm[i - 1] * dt + self.sigma * gbm[i - 1] * gn[i - 1]

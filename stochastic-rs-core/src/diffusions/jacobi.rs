@@ -4,6 +4,7 @@ use rand_distr::Normal;
 
 use crate::Sampling;
 
+#[derive(Default)]
 pub struct Jacobi {
   pub alpha: f64,
   pub beta: f64,
@@ -15,6 +16,7 @@ pub struct Jacobi {
 }
 
 impl Jacobi {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
       alpha: params.alpha,

@@ -1,38 +1,8 @@
-use derive_builder::Builder;
 use ndarray::Array1;
 
-use crate::{diffusions::fou::fou, diffusions::fou::Fou};
+use crate::{diffusions::fou::Fou, Sampling};
 
-/// Generates a path of the fractional Vasicek (fVasicek) model.
-///
-/// The fVasicek model incorporates fractional Brownian motion into the Vasicek model.
-///
-/// # Parameters
-///
-/// - `hurst`: Hurst parameter for fractional Brownian motion, must be in (0, 1).
-/// - `mu`: Long-term mean level, must be non-zero.
-/// - `sigma`: Volatility parameter.
-/// - `theta`: Speed of mean reversion.
-/// - `n`: Number of time steps.
-/// - `x0`: Initial value of the process (optional, defaults to 0.0).
-/// - `t`: Total time (optional, defaults to 1.0).
-///
-/// # Returns
-///
-/// A `Array1<f64>` representing the generated fVasicek process path.
-///
-/// # Panics
-///
-/// Panics if `mu` is zero.
-///
-/// # Example
-///
-/// ```
-/// let fvasicek_path = fvasicek(0.75, 0.1, 0.02, 0.3, 1000, Some(0.0), Some(1.0));
-/// ```
-
-#[derive(Default, Builder)]
-#[builder(setter(into))]
+#[derive(Default)]
 pub struct Fvasicek {
   pub hurst: f64,
   pub mu: f64,
@@ -41,28 +11,49 @@ pub struct Fvasicek {
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
+  pub m: Option<usize>,
+  fou: Fou,
 }
 
-pub fn fvasicek(params: &Fvasicek) -> Array1<f64> {
-  let Fvasicek {
-    hurst,
-    mu,
-    sigma,
-    theta,
-    n,
-    x0,
-    t,
-  } = *params;
+impl Fvasicek {
+  #[must_use]
+  pub fn new(params: &Self) -> Self {
+    let fou = Fou::new(&Fou {
+      hurst: params.hurst,
+      mu: params.mu,
+      sigma: params.sigma,
+      theta: params.theta.unwrap_or(1.0),
+      n: params.n,
+      x0: params.x0,
+      t: params.t,
+      m: params.m,
+      ..Default::default()
+    });
 
-  assert!(mu != 0.0, "mu must be non-zero");
+    Self {
+      hurst: params.hurst,
+      mu: params.mu,
+      sigma: params.sigma,
+      theta: params.theta,
+      n: params.n,
+      x0: params.x0,
+      t: params.t,
+      m: params.m,
+      fou,
+    }
+  }
+}
 
-  fou(&Fou {
-    hurst,
-    mu,
-    sigma,
-    theta: theta.unwrap_or(1.0),
-    n,
-    x0,
-    t,
-  })
+impl Sampling<f64> for Fvasicek {
+  fn sample(&self) -> Array1<f64> {
+    self.fou.sample()
+  }
+
+  fn n(&self) -> usize {
+    self.n
+  }
+
+  fn m(&self) -> Option<usize> {
+    self.m
+  }
 }

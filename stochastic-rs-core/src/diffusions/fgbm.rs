@@ -2,6 +2,7 @@ use ndarray::Array1;
 
 use crate::{noises::fgn::Fgn, Sampling};
 
+#[derive(Default)]
 pub struct Fgbm {
   pub hurst: f64,
   pub mu: f64,
@@ -14,6 +15,7 @@ pub struct Fgbm {
 }
 
 impl Fgbm {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     let fgn = Fgn::new(params.hurst, params.n, params.t, None);
 
@@ -41,7 +43,7 @@ impl Sampling<f64> for Fgbm {
     let fgn = self.fgn.sample();
 
     let mut fgbm = Array1::<f64>::zeros(self.n + 1);
-    fgbm[0] = self.x0.unwrap_or(100.0);
+    fgbm[0] = self.x0.unwrap_or(0.0);
 
     for i in 1..(self.n + 1) {
       fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]

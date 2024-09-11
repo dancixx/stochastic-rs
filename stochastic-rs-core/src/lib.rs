@@ -65,7 +65,6 @@ pub mod diffusions;
 pub mod interest;
 pub mod jumps;
 pub mod noises;
-pub mod pricing;
 pub mod processes;
 pub mod volatility;
 
@@ -74,17 +73,7 @@ use ndarray::{Array1, Array2, Axis};
 use ndrustfft::Zero;
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
-  /// Generates a single sample of the stochastic process.
-  ///
-  /// # Returns
-  ///
-  /// A `Array1<f64>` representing a single sample of the stochastic process.
   fn sample(&self) -> Array1<T>;
-  /// Generates parallel samples of the stochastic process.
-  ///
-  /// # Returns
-  ///
-  /// A `Array2<f64>>` where each inner vector represents a sample of the stochastic process.
   fn sample_par(&self) -> Array2<T> {
     if self.m().is_none() {
       panic!("m must be specified for parallel sampling");
@@ -98,7 +87,24 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
 
     xs
   }
+  fn n(&self) -> usize;
+  fn m(&self) -> Option<usize>;
+}
 
+pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
+  fn sample(&self) -> [Array1<T>; 2];
+  fn sample_par(&self) -> [Array2<T>; 2] {
+    unimplemented!()
+  }
+  fn n(&self) -> usize;
+  fn m(&self) -> Option<usize>;
+}
+
+pub trait Sampling3D<T: Clone + Send + Sync + Zero>: Send + Sync {
+  fn sample(&self) -> [Array1<T>; 3];
+  fn sample_par(&self) -> [Array2<T>; 3] {
+    unimplemented!()
+  }
   fn n(&self) -> usize;
   fn m(&self) -> Option<usize>;
 }

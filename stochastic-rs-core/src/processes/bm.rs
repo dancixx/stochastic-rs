@@ -1,38 +1,48 @@
-use derive_builder::Builder;
-use ndarray::{Array1, Axis};
+use ndarray::{s, Array1};
+use ndarray_rand::RandomExt;
+use rand_distr::Normal;
 
-use crate::noises::gn;
+use crate::Sampling;
 
-/// Generates a path of Brownian Motion (BM).
-///
-/// The BM process is a fundamental continuous-time stochastic process used in various fields such as finance and physics.
-///
-/// # Parameters
-///
-/// - `n`: Number of time steps.
-/// - `t`: Total time (optional, defaults to 1.0).
-///
-/// # Returns
-///
-/// A `Array1<f64>` representing the generated Brownian Motion path.
-///
-/// # Example
-///
-/// ```
-/// let bm_path = bm(1000, Some(1.0));
-/// ```
-
-#[derive(Default, Builder)]
-#[builder(setter(into))]
+#[derive(Default)]
 pub struct Bm {
   pub n: usize,
   pub t: Option<f64>,
+  pub m: Option<usize>,
 }
 
-pub fn bm(params: &Bm) -> Array1<f64> {
-  let Bm { n, t } = *params;
-  let gn = gn::gn(n, Some(t.unwrap_or(1.0)));
-  let mut bm = Array1::<f64>::from(gn);
-  bm.accumulate_axis_inplace(Axis(0), |&x, y| *y += x);
-  vec![0.0].into_iter().chain(bm).collect()
+impl Bm {
+  #[must_use]
+  pub fn new(params: &Self) -> Self {
+    Self {
+      n: params.n,
+      t: params.t,
+      m: params.m,
+    }
+  }
+}
+
+impl Sampling<f64> for Bm {
+  fn sample(&self) -> Array1<f64> {
+    let gn = Array1::random(
+      self.n,
+      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
+    );
+    let mut bm = Array1::<f64>::zeros(self.n);
+    bm.slice_mut(s![1..]).assign(&gn);
+
+    for i in 1..self.n {
+      bm[i] += bm[i - 1];
+    }
+
+    bm
+  }
+
+  fn n(&self) -> usize {
+    self.n
+  }
+
+  fn m(&self) -> Option<usize> {
+    self.m
+  }
 }

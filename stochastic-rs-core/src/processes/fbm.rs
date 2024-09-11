@@ -1,33 +1,37 @@
-use crate::{noises::fgn::Fgn, Sampling};
 use ndarray::{s, Array1};
 
+use crate::{noises::fgn::Fgn, Sampling};
+
+#[derive(Default)]
 pub struct Fbm {
-  #[allow(dead_code)]
-  hurst: f64,
-  #[allow(dead_code)]
-  n: usize,
-  m: Option<usize>,
-  fgn: Option<Fgn>,
+  pub hurst: f64,
+  pub n: usize,
+  pub t: Option<f64>,
+  pub m: Option<usize>,
+  fgn: Fgn,
 }
 
 impl Fbm {
-  pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
-    if !(0.0..=1.0).contains(&hurst) {
+  pub fn new(params: &Self) -> Self {
+    if !(0.0..=1.0).contains(&params.hurst) {
       panic!("Hurst parameter must be in (0, 1)")
     }
 
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+
     Self {
-      hurst,
-      n,
-      m,
-      fgn: Some(Fgn::new(hurst, n - 1, t, None)),
+      hurst: params.hurst,
+      t: params.t,
+      n: params.n,
+      m: params.m,
+      fgn,
     }
   }
 }
 
 impl Sampling<f64> for Fbm {
   fn sample(&self) -> Array1<f64> {
-    let fgn = self.fgn.as_ref().unwrap().sample();
+    let fgn = self.fgn.sample();
 
     let mut fbm = Array1::<f64>::zeros(self.n);
     fbm.slice_mut(s![1..]).assign(&fgn);
@@ -57,7 +61,13 @@ mod tests {
 
   #[test]
   fn plot() {
-    let fbm = Fbm::new(0.45, 1000, Some(1.0), Some(10));
+    let fbm = Fbm::new(&Fbm {
+      hurst: 0.5,
+      n: 1000,
+      t: Some(1.0),
+      m: None,
+      ..Default::default()
+    });
     let mut plot = Plot::new();
     let d = fbm.sample_par();
     for data in d.axis_iter(Axis(0)) {

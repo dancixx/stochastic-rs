@@ -1,30 +1,5 @@
 use linreg::linear_regression;
 
-/// Calculates the fractal dimension of a time series using the Higuchi method.
-///
-/// The Higuchi method is a popular technique for estimating the fractal dimension of a time series,
-/// which can be used to analyze the complexity and self-similarity of the data.
-///
-/// # Parameters
-///
-/// - `x`: A slice of `f64` representing the time series data.
-/// - `kmax`: The maximum value of `k` to be used in the calculation.
-///
-/// # Returns
-///
-/// A `f64` value representing the estimated fractal dimension of the time series.
-///
-/// # Example
-///
-/// ```
-/// let data = vec![1.0, 2.0, 1.5, 3.0, 2.5, 4.0, 3.5, 5.0];
-/// let fd = higuchi_fd(&data, 5);
-/// println!("Fractal Dimension: {}", fd);
-/// ```
-///
-/// # Panics
-///
-/// This function will panic if the input slice `x` is empty.
 pub fn higuchi_fd(x: &[f64], kmax: usize) -> f64 {
   let n_times = x.len();
 

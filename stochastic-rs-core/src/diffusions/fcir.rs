@@ -2,6 +2,7 @@ use ndarray::Array1;
 
 use crate::{noises::fgn::Fgn, Sampling};
 
+#[derive(Default)]
 pub struct Fcir {
   pub hurst: f64,
   pub theta: f64,
@@ -16,6 +17,7 @@ pub struct Fcir {
 }
 
 impl Fcir {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     let fgn = Fgn::new(params.hurst, params.n, params.t, None);
 

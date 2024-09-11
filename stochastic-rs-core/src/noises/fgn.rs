@@ -18,6 +18,12 @@ pub struct Fgn {
   fft_handler: Arc<FftHandler<f64>>,
 }
 
+impl Default for Fgn {
+  fn default() -> Self {
+    Self::new(0.7, 1000, None, None)
+  }
+}
+
 impl Fgn {
   pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
     if !(0.0..=1.0).contains(&hurst) {

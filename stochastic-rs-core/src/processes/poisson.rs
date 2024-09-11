@@ -1,65 +1,64 @@
-use derive_builder::Builder;
 use ndarray::{Array0, Array1, Axis, Dim};
 use ndarray_rand::rand_distr::{Distribution, Exp};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
-/// Generates a Poisson process.
-///
-/// The Poisson process models the occurrence of events over time. It is commonly used in fields such as queuing theory, telecommunications, and finance.
-///
-/// # Parameters
-///
-/// - `lambda`: Rate parameter (average number of events per unit time).
-/// - `n`: Number of events (optional).
-/// - `t_max`: Maximum time (optional).
-///
-/// # Returns
-///
-/// A `Array1<f64>` representing the generated Poisson process path.
-///
-/// # Panics
-///
-/// Panics if neither `n` nor `t_max` is provided.
-///
-/// # Example
-///
-/// ```
-/// let poisson_path = poisson(1.0, Some(1000), None);
-/// let poisson_path = poisson(1.0, None, Some(100.0));
-/// ```
+use crate::Sampling;
 
-#[derive(Default, Builder)]
-#[builder(setter(into))]
+#[derive(Default)]
 pub struct Poisson {
   pub lambda: f64,
   pub n: Option<usize>,
   pub t_max: Option<f64>,
+  pub m: Option<usize>,
 }
 
-pub fn poisson(params: &Poisson) -> Array1<f64> {
-  let Poisson { lambda, n, t_max } = *params;
-  if let Some(n) = n {
-    let exponentials = Array1::random(n, Exp::new(1.0 / lambda).unwrap());
-    let mut poisson = Array1::<f64>::zeros(n + 1);
-    for i in 1..(n + 1) {
-      poisson[i] = poisson[i - 1] + exponentials[i - 1];
+impl Poisson {
+  #[must_use]
+  pub fn new(params: &Self) -> Self {
+    Self {
+      lambda: params.lambda,
+      n: params.n,
+      t_max: params.t_max,
+      m: params.m,
     }
+  }
+}
 
-    poisson
-  } else if let Some(t_max) = t_max {
-    let mut poisson = Array1::from(vec![0.0]);
-    let mut t = 0.0;
+impl Sampling<f64> for Poisson {
+  fn sample(&self) -> Array1<f64> {
+    if let Some(n) = self.n {
+      let exponentials = Array1::random(n, Exp::new(1.0 / self.lambda).unwrap());
+      let mut poisson = Array1::<f64>::zeros(n + 1);
+      for i in 1..(n + 1) {
+        poisson[i] = poisson[i - 1] + exponentials[i - 1];
+      }
 
-    while t < t_max {
-      t += Exp::new(1.0 / lambda).unwrap().sample(&mut thread_rng());
       poisson
-        .push(Axis(0), Array0::from_elem(Dim(()), t).view())
-        .unwrap();
-    }
+    } else if let Some(t_max) = self.t_max {
+      let mut poisson = Array1::from(vec![0.0]);
+      let mut t = 0.0;
 
-    poisson
-  } else {
-    panic!("n or t_max must be provided");
+      while t < t_max {
+        t += Exp::new(1.0 / self.lambda)
+          .unwrap()
+          .sample(&mut thread_rng());
+        poisson
+          .push(Axis(0), Array0::from_elem(Dim(()), t).view())
+          .unwrap();
+      }
+
+      poisson
+    } else {
+      panic!("n or t_max must be provided");
+    }
+  }
+
+  fn n(&self) -> usize {
+    self.n.unwrap_or(0)
+  }
+
+  fn m(&self) -> Option<usize> {
+    self.m
   }
 }

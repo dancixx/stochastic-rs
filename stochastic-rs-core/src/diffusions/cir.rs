@@ -4,6 +4,7 @@ use rand_distr::Normal;
 
 use crate::Sampling;
 
+#[derive(Default)]
 pub struct Cir {
   pub theta: f64,
   pub mu: f64,
@@ -16,6 +17,7 @@ pub struct Cir {
 }
 
 impl Cir {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
       theta: params.theta,

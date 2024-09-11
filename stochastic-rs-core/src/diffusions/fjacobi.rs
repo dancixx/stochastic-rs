@@ -2,6 +2,7 @@ use ndarray::Array1;
 
 use crate::{noises::fgn::Fgn, Sampling};
 
+#[derive(Default)]
 pub struct Fjacobi {
   pub hurst: f64,
   pub alpha: f64,
@@ -15,6 +16,7 @@ pub struct Fjacobi {
 }
 
 impl Fjacobi {
+  #[must_use]
   pub fn new(params: &Self) -> Self {
     let fgn = Fgn::new(params.hurst, params.n, params.t, None);
 
@@ -47,7 +49,7 @@ impl Sampling<f64> for Fjacobi {
     let fgn = self.fgn.sample();
 
     let mut fjacobi = Array1::<f64>::zeros(self.n + 1);
-    fjacobi[0] = self.x0.unwrap_or(100.0);
+    fjacobi[0] = self.x0.unwrap_or(0.0);
 
     for i in 1..(self.n + 1) {
       fjacobi[i] = match fjacobi[i - 1] {

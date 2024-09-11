@@ -1,9 +1,10 @@
-use derive_builder::Builder;
 use ndarray::{Array1, Axis};
 use rand::thread_rng;
 use rand_distr::Distribution;
 
-use super::poisson::{poisson, Poisson};
+use crate::{Sampling, Sampling3D};
+
+use super::poisson::Poisson;
 
 /// Generates a compound Poisson process.
 ///
@@ -32,31 +33,62 @@ use super::poisson::{poisson, Poisson};
 /// let (p, cum_cp, cp) = compound_poisson(1000, 2.0, None, Some(10.0), Some(0.0), Some(1.0));
 /// ```
 
-#[derive(Default, Builder)]
-#[builder(setter(into))]
-pub struct CompoundPoisson {
+pub struct CompoundPoisson<D>
+where
+  D: Distribution<f64> + Copy + Send + Sync,
+{
   pub n: Option<usize>,
   pub lambda: f64,
   pub t_max: Option<f64>,
+  pub m: Option<usize>,
+  pub distribution: D,
+  poisson: Poisson,
 }
 
-pub fn compound_poisson<D>(params: &CompoundPoisson, jdistr: D) -> [Array1<f64>; 3]
-where
-  D: Distribution<f64> + Copy,
-{
-  let CompoundPoisson { n, lambda, t_max } = *params;
-  if n.is_none() && t_max.is_none() {
-    panic!("n or t_max must be provided");
+impl<D: Distribution<f64> + Copy + Send + Sync> CompoundPoisson<D> {
+  #[must_use]
+  pub fn new(params: &Self) -> Self {
+    let poisson = Poisson::new(&Poisson {
+      lambda: params.lambda,
+      n: params.n,
+      t_max: params.t_max,
+      m: params.m,
+    });
+
+    Self {
+      n: params.n,
+      lambda: params.lambda,
+      t_max: params.t_max,
+      m: params.m,
+      distribution: params.distribution,
+      poisson,
+    }
+  }
+}
+
+impl<D: Distribution<f64> + Copy + Send + Sync> Sampling3D<f64> for CompoundPoisson<D> {
+  fn sample(&self) -> [Array1<f64>; 3] {
+    if self.n.is_none() && self.t_max.is_none() {
+      panic!("n or t_max must be provided");
+    }
+
+    let poisson = self.poisson.sample();
+    let mut jumps = Array1::<f64>::zeros(poisson.len());
+    for i in 1..poisson.len() {
+      jumps[i] = self.distribution.sample(&mut thread_rng());
+    }
+
+    let mut cum_jupms = jumps.clone();
+    cum_jupms.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
+
+    [poisson, cum_jupms, jumps]
   }
 
-  let p = poisson(&Poisson { lambda, n, t_max });
-  let mut jumps = Array1::<f64>::zeros(p.len());
-  for i in 1..p.len() {
-    jumps[i] = jdistr.sample(&mut thread_rng());
+  fn n(&self) -> usize {
+    self.n.unwrap_or(0)
   }
 
-  let mut cum_jupms = jumps.clone();
-  cum_jupms.accumulate_axis_inplace(Axis(0), |&prev, curr| *curr += prev);
-
-  [p, cum_jupms, jumps]
+  fn m(&self) -> Option<usize> {
+    self.m
+  }
 }
