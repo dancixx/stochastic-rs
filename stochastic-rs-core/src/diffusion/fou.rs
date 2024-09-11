@@ -1,34 +1,30 @@
 use ndarray::Array1;
 
-use crate::{noises::fgn::Fgn, Sampling};
+use crate::{noise::fgn::Fgn, Sampling};
 
 #[derive(Default)]
-pub struct Fgbm {
+pub struct Fou {
   pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
+  pub theta: f64,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fgn: Fgn,
+  pub fgn: Fgn,
 }
 
-impl Fgbm {
+impl Fou {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
       mu: params.mu,
       sigma: params.sigma,
+      theta: params.theta,
       n: params.n,
       x0: params.x0,
       t: params.t,
@@ -38,7 +34,7 @@ impl Fgbm {
   }
 }
 
-impl Sampling<f64> for Fgbm {
+impl Sampling<f64> for Fou {
   fn sample(&self) -> Array1<f64> {
     assert!(
       self.hurst > 0.0 && self.hurst < 1.0,
@@ -48,14 +44,14 @@ impl Sampling<f64> for Fgbm {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let fgn = self.fgn.sample();
 
-    let mut fgbm = Array1::<f64>::zeros(self.n + 1);
-    fgbm[0] = self.x0.unwrap_or(0.0);
+    let mut fou = Array1::<f64>::zeros(self.n + 1);
+    fou[0] = self.x0.unwrap_or(0.0);
 
     for i in 1..(self.n + 1) {
-      fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]
+      fou[i] = fou[i - 1] + self.theta * (self.mu - fou[i - 1]) * dt + self.sigma * fgn[i - 1]
     }
 
-    fgbm
+    fou
   }
 
   fn n(&self) -> usize {

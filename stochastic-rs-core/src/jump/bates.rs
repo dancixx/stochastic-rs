@@ -1,7 +1,7 @@
 use ndarray::Array1;
 
 use crate::{
-  noises::cgns::Cgns, processes::cpoisson::CompoundPoisson, ProcessDistribution, Sampling2D,
+  noise::cgns::Cgns, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling2D,
   Sampling3D,
 };
 
@@ -27,8 +27,8 @@ where
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
   pub jumps_distribution: D,
-  cgns: Cgns,
-  cpoisson: CompoundPoisson<D>,
+  pub cgns: Cgns,
+  pub cpoisson: CompoundPoisson<D>,
 }
 
 impl<D: ProcessDistribution> Bates1996<D> {

@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{noises::fgn::Fgn, Sampling};
+use crate::{noise::fgn::Fgn, Sampling};
 
 #[derive(Default)]
 pub struct Fcir {
@@ -13,19 +13,13 @@ pub struct Fcir {
   pub t: Option<f64>,
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
-  fgn: Fgn,
+  pub fgn: Fgn,
 }
 
 impl Fcir {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
@@ -49,7 +43,7 @@ impl Sampling<f64> for Fcir {
       "2 * theta * mu < sigma^2"
     );
 
-    let fgn = self.sample();
+    let fgn = self.fgn.sample();
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
 
     let mut fcir = Array1::<f64>::zeros(self.n + 1);

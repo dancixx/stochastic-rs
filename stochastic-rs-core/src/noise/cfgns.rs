@@ -11,19 +11,13 @@ pub struct Cfgns {
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fgn: Fgn,
+  pub fgn: Fgn,
 }
 
 impl Cfgns {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,

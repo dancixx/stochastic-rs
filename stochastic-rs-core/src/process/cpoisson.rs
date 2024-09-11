@@ -15,7 +15,7 @@ where
   pub t_max: Option<f64>,
   pub m: Option<usize>,
   pub distribution: D,
-  poisson: Poisson,
+  pub poisson: Poisson,
 }
 
 impl<D: ProcessDistribution> CompoundPoisson<D> {

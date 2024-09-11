@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{noises::cgns::Cgns, Sampling2D};
+use crate::{noise::cgns::Cgns, Sampling2D};
 
 #[derive(Default)]
 
@@ -22,7 +22,7 @@ pub struct DuffieKan {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  cgns: Cgns,
+  pub cgns: Cgns,
 }
 
 impl DuffieKan {

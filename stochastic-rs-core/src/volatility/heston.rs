@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{noises::cgns::Cgns, Sampling2D};
+use crate::{noise::cgns::Cgns, Sampling2D};
 
 #[derive(Default)]
 
@@ -16,7 +16,7 @@ pub struct Heston {
   pub t: Option<f64>,
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
-  cgns: Cgns,
+  pub cgns: Cgns,
 }
 
 impl Heston {

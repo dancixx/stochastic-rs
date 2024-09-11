@@ -1,4 +1,4 @@
-use stochastic_rs::processes::fbm::Fbm;
+use stochastic_rs::process::fbm::Fbm;
 
 fn main() {
   // let fbm = Fbm::new(0.75, 10000, Some(1.0), None);

@@ -1,7 +1,7 @@
 use ndarray::Array1;
 
 use crate::{
-  noises::fgn::Fgn, processes::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
+  noise::fgn::Fgn, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
 };
 
 #[derive(Default)]
@@ -19,20 +19,14 @@ where
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub jump_distribution: D,
-  fgn: Fgn,
-  cpoisson: CompoundPoisson<D>,
+  pub fgn: Fgn,
+  pub cpoisson: CompoundPoisson<D>,
 }
 
 impl<D: ProcessDistribution> JumpFou<D> {
   #[must_use]
   pub fn new(params: &JumpFou<D>) -> Self {
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     let cpoisson = CompoundPoisson::new(&CompoundPoisson {
       n: None,

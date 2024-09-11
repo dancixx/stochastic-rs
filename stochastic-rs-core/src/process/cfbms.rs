@@ -1,6 +1,6 @@
 use ndarray::{Array1, Array2};
 
-use crate::{noises::cfgns::Cfgns, Sampling2D};
+use crate::{noise::cfgns::Cfgns, Sampling2D};
 
 #[derive(Default)]
 pub struct Cfbms {
@@ -10,7 +10,7 @@ pub struct Cfbms {
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  cfgns: Cfgns,
+  pub cfgns: Cfgns,
 }
 
 impl Cfbms {

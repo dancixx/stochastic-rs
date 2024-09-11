@@ -13,33 +13,25 @@ pub struct Fgn {
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  offset: usize,
-  sqrt_eigenvalues: Arc<Array1<Complex<f64>>>,
-  fft_handler: Arc<FftHandler<f64>>,
+  pub offset: usize,
+  pub sqrt_eigenvalues: Arc<Array1<Complex<f64>>>,
+  pub fft_handler: Arc<FftHandler<f64>>,
 }
 
 impl Default for Fgn {
   fn default() -> Self {
-    Self {
-      hurst: 0.5,
-      n: 1024,
-      t: None,
-      m: None,
-      offset: 0,
-      sqrt_eigenvalues: Arc::new(Array1::zeros(0)),
-      fft_handler: Arc::new(FftHandler::new(0)),
-    }
+    Self::new(0.5, 1024, None, None)
   }
 }
 
 impl Fgn {
   #[must_use]
-  pub fn new(params: &Self) -> Self {
-    if !(0.0..=1.0).contains(&params.hurst) {
+  pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
+    if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
-    let n_ = params.n.next_power_of_two();
-    let offset = n_ - params.n;
+    let n_ = n.next_power_of_two();
+    let offset = n_ - n;
     let n = n_;
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
     r.mapv_inplace(|x| {
@@ -47,8 +39,7 @@ impl Fgn {
         1.0
       } else {
         0.5
-          * ((x + 1.0).powf(2.0 * params.hurst) - 2.0 * x.powf(2.0 * params.hurst)
-            + (x - 1.0).powf(2.0 * params.hurst))
+          * ((x + 1.0).powf(2.0 * hurst) - 2.0 * x.powf(2.0 * hurst) + (x - 1.0).powf(2.0 * hurst))
       }
     });
     let r = concatenate(
@@ -64,12 +55,12 @@ impl Fgn {
     sqrt_eigenvalues.mapv_inplace(|x| Complex::new((x.re / (2.0 * n as f64)).sqrt(), x.im));
 
     Self {
-      hurst: params.hurst,
+      hurst,
       n,
       offset,
-      t: params.t,
+      t,
       sqrt_eigenvalues: Arc::new(sqrt_eigenvalues),
-      m: params.m,
+      m,
       fft_handler: Arc::new(FftHandler::new(2 * n)),
     }
   }
@@ -108,13 +99,7 @@ mod tests {
 
   #[test]
   fn plot() {
-    let fgn = Fgn::new(&Fgn {
-      hurst: 0.7,
-      n: 1000,
-      t: Some(1.0),
-      m: None,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(0.7, 1024, Some(1.0), None);
     let mut plot = Plot::new();
     let d = fgn.sample_par();
     for data in d.axis_iter(Axis(0)) {

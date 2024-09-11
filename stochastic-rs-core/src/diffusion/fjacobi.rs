@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{noises::fgn::Fgn, Sampling};
+use crate::{noise::fgn::Fgn, Sampling};
 
 #[derive(Default)]
 pub struct Fjacobi {
@@ -12,19 +12,13 @@ pub struct Fjacobi {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fgn: Fgn,
+  pub fgn: Fgn,
 }
 
 impl Fjacobi {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,

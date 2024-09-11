@@ -11,39 +11,6 @@
 //! - Calculation of fractal dimensions and other statistical properties of time series data.
 //! - Support for jump processes and compound Poisson processes.
 //!
-//! ## Modules
-//!
-//! - [`prelude`]: Re-exports of common types and traits for easier usage.
-//! - [`diffusions`]: Contains implementations of various diffusion processes.
-//! - [`jumps`]: Contains implementations of jump processes.
-//! - [`models`]: Contains implementations of advanced stochastic models.
-//! - [`noises`]: Contains implementations of noise generation processes.
-//! - [`processes`]: Contains implementations of various stochastic processes.
-//! - [`statistics`]: Contains tools for statistical analysis of time series data.
-//! - [`utils`]: Contains utility functions and helpers.
-//!
-//! ## Examples
-//!
-//! ```rust
-//! use stochastic_rs::prelude::*;
-//! use stochastic_rs::diffusions::bm;
-//!
-//! // Simulate a Brownian motion process
-//! let n = 1000;
-//! let t = 1.0;
-//! let bm_path = bm(n, Some(t));
-//! println!("Brownian Motion Path: {:?}", bm_path);
-//! ```
-//!
-//! ```rust
-//! use stochastic_rs::statistics::higuchi_fd;
-//!
-//! // Calculate the Higuchi Fractal Dimension of a time series
-//! let time_series = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
-//! let fd = higuchi_fd(&time_series, 5);
-//! println!("Higuchi Fractal Dimension: {}", fd);
-//! ```
-//!
 //! ## License
 //!
 //! This project is licensed under the MIT License.
@@ -61,11 +28,11 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-pub mod diffusions;
+pub mod diffusion;
 pub mod interest;
-pub mod jumps;
-pub mod noises;
-pub mod processes;
+pub mod jump;
+pub mod noise;
+pub mod process;
 pub mod volatility;
 
 use ndarray::parallel::prelude::*;

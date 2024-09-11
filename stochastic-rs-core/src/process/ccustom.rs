@@ -1,6 +1,5 @@
 use ndarray::{Array1, Axis};
 use rand::thread_rng;
-use rand_distr::Distribution;
 
 use crate::{ProcessDistribution, Sampling, Sampling3D};
 
@@ -17,7 +16,7 @@ where
   pub m: Option<usize>,
   pub jumps_distribution: D,
   pub jump_times_distribution: E,
-  customjt: CustomJt<E>,
+  pub customjt: CustomJt<E>,
 }
 
 impl<D, E> CompoundCustom<D, E>

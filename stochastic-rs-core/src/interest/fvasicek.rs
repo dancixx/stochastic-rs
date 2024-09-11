@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::{diffusions::fou::Fou, Sampling};
+use crate::{diffusion::fou::Fou, Sampling};
 
 #[derive(Default)]
 pub struct Fvasicek {
@@ -12,7 +12,7 @@ pub struct Fvasicek {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fou: Fou,
+  pub fou: Fou,
 }
 
 impl Fvasicek {

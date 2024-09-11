@@ -1,6 +1,6 @@
 use ndarray::{s, Array1};
 
-use crate::{noises::fgn::Fgn, Sampling};
+use crate::{noise::fgn::Fgn, Sampling};
 
 #[derive(Default)]
 pub struct Fbm {
@@ -8,7 +8,7 @@ pub struct Fbm {
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fgn: Fgn,
+  pub fgn: Fgn,
 }
 
 impl Fbm {
@@ -17,13 +17,7 @@ impl Fbm {
       panic!("Hurst parameter must be in (0, 1)")
     }
 
-    let fgn = Fgn::new(&Fgn {
-      hurst: params.hurst,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      ..Default::default()
-    });
+    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
