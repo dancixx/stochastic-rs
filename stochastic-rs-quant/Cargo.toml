@@ -1,0 +1,26 @@
+[package]
+name = "stochastic-rs-quant"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_builder = "0.20.1"
+mimalloc = { version = "0.1.43", optional = true }
+stochastic-rs = { path = "../stochastic-rs-core" }
+tikv-jemallocator = { version = "0.6.0", optional = true }
+
+[features]
+mimalloc = ["dep:mimalloc"]
+jemalloc = ["dep:tikv-jemallocator"]
+default = ["jemalloc"]
+
+[lib]
+name = "stochastic_rs_quant"
+crate-type = ["cdylib", "lib"]
+path = "src/lib.rs"
+doctest = false
+
+[profile.release]
+debug = false
+codegen-units = 1
+lto = true
