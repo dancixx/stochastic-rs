@@ -1,3 +1,8 @@
 [workspace]
-members = ["stochastic-rs-core", "stochastic-rs-quant", "stochastic-rs-stats"]
+members = [
+    "stochastic-rs-core",
+    "stochastic-rs-ml",
+    "stochastic-rs-quant",
+    "stochastic-rs-stats",
+]
 resolver = "2"
