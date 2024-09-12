@@ -49,7 +49,7 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
       panic!("m must be specified for parallel sampling");
     }
 
-    let mut xs = Array2::zeros((self.m().unwrap(), self.n()));
+    let mut xs = Array2::zeros((self.m().unwrap(), self.n() + 1));
 
     xs.axis_iter_mut(Axis(0)).into_par_iter().for_each(|mut x| {
       x.assign(&self.sample());

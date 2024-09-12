@@ -21,7 +21,7 @@ pub struct Fgn {
 
 impl Default for Fgn {
   fn default() -> Self {
-    Self::new(0.5, 1024, None, None)
+    Self::new(0.7, 1024, None, None)
   }
 }
 
@@ -112,7 +112,7 @@ mod tests {
 
   #[test]
   fn plot() {
-    let fgn = Fgn::new(0.7, 1024, Some(1.0), None);
+    let fgn = Fgn::new(0.7, 1024, Some(1.0), Some(1));
     let mut plot = Plot::new();
     let d = fgn.sample_par();
     for data in d.axis_iter(Axis(0)) {
