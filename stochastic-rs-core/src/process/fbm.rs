@@ -17,7 +17,7 @@ impl Fbm {
       panic!("Hurst parameter must be in (0, 1)")
     }
 
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+    let fgn = Fgn::new(params.hurst, params.n, params.t, None);
 
     Self {
       hurst: params.hurst,
@@ -33,10 +33,10 @@ impl Sampling<f64> for Fbm {
   fn sample(&self) -> Array1<f64> {
     let fgn = self.fgn.sample();
 
-    let mut fbm = Array1::<f64>::zeros(self.n);
+    let mut fbm = Array1::<f64>::zeros(self.n + 1);
     fbm.slice_mut(s![1..]).assign(&fgn);
 
-    for i in 1..self.n {
+    for i in 1..(self.n + 1) {
       fbm[i] += fbm[i - 1];
     }
 
@@ -62,10 +62,10 @@ mod tests {
   #[test]
   fn plot() {
     let fbm = Fbm::new(&Fbm {
-      hurst: 0.5,
+      hurst: 0.9,
       n: 1000,
       t: Some(1.0),
-      m: None,
+      m: Some(1),
       ..Default::default()
     });
     let mut plot = Plot::new();
