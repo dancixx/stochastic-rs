@@ -37,17 +37,13 @@ impl Sampling<f64> for Jacobi {
     assert!(self.sigma > 0.0, "sigma must be positive");
     assert!(self.alpha < self.beta, "alpha must be less than beta");
 
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
-
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut jacobi = Array1::<f64>::zeros(self.n + 1);
     jacobi[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       jacobi[i] = match jacobi[i - 1] {
         _ if jacobi[i - 1] <= 0.0 && i > 0 => 0.0,
         _ if jacobi[i - 1] >= 1.0 && i > 0 => 1.0,

@@ -35,7 +35,7 @@ impl Sampling<f64> for Fbm {
     let mut fbm = Array1::<f64>::zeros(self.n + 1);
     fbm.slice_mut(s![1..]).assign(&fgn);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       fbm[i] += fbm[i - 1];
     }
 

@@ -51,12 +51,9 @@ impl<D: ProcessDistribution> Sampling<f64> for LevyDiffusion<D> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let mut levy = Array1::<f64>::zeros(self.n + 1);
     levy[0] = self.x0.unwrap_or(0.0);
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let [.., jumps] = self.cpoisson.sample();
       levy[i] = levy[i - 1] + self.gamma * dt + self.sigma * gn[i - 1] + jumps.sum();
     }

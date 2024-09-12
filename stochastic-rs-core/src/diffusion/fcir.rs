@@ -49,7 +49,7 @@ impl Sampling<f64> for Fcir {
     let mut fcir = Array1::<f64>::zeros(self.n + 1);
     fcir[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let random = match self.use_sym.unwrap_or(false) {
         true => self.sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1],
         false => self.sigma * (fcir[i - 1]).max(0.0) * fgn[i - 1],

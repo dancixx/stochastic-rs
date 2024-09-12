@@ -66,7 +66,7 @@ impl<D: ProcessDistribution> Sampling<f64> for JumpFou<D> {
     let mut jump_fou = Array1::<f64>::zeros(self.n + 1);
     jump_fou[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let [.., jumps] = self.cpoisson.sample();
 
       jump_fou[i] = jump_fou[i - 1]

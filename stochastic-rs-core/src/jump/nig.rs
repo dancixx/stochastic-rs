@@ -37,14 +37,11 @@ impl Sampling<f64> for Nig {
     let scale = dt.powf(2.0) / self.kappa;
     let mean = dt / scale;
     let ig = Array1::random(self.n, InverseGaussian::new(mean, scale).unwrap());
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
     let mut nig = Array1::zeros(self.n + 1);
     nig[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       nig[i] = nig[i - 1] + self.theta * ig[i - 1] + self.sigma * ig[i - 1].sqrt() * gn[i - 1]
     }
 

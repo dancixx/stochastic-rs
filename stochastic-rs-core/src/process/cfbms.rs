@@ -58,7 +58,7 @@ impl Sampling2D<f64> for Cfbms {
     let mut fbms = Array2::<f64>::zeros((2, self.n + 1));
     let [fgn1, fgn2] = self.cfgns.sample();
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       fbms[[0, i]] = fbms[[0, i - 1]] + fgn1[i - 1];
       fbms[[1, i]] =
         fbms[[1, i - 1]] + self.rho * fgn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * fgn2[i - 1];

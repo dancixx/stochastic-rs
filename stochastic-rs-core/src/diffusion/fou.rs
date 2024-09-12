@@ -47,7 +47,7 @@ impl Sampling<f64> for Fou {
     let mut fou = Array1::<f64>::zeros(self.n + 1);
     fou[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       fou[i] = fou[i - 1] + self.theta * (self.mu - fou[i - 1]) * dt + self.sigma * fgn[i - 1]
     }
 

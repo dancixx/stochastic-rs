@@ -48,7 +48,7 @@ impl<'a> Sampling<f64> for HoLee<'a> {
 
     let mut r = Array1::<f64>::zeros(self.n + 1);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let drift = if let Some(r#fn) = self.f_T.as_ref() {
         (r#fn)(i as f64 * dt) + self.sigma.powf(2.0)
       } else {

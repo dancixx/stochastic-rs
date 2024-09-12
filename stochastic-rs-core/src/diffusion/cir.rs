@@ -39,17 +39,13 @@ impl Sampling<f64> for Cir {
       "2 * theta * mu < sigma^2"
     );
 
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
-
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut cir = Array1::<f64>::zeros(self.n + 1);
     cir[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let random = match self.use_sym.unwrap_or(false) {
         true => self.sigma * (cir[i - 1]).abs().sqrt() * gn[i - 1],
         false => self.sigma * (cir[i - 1]).max(0.0).sqrt() * gn[i - 1],

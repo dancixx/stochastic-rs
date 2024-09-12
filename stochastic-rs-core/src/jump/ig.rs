@@ -30,14 +30,11 @@ impl Ig {
 impl Sampling<f64> for Ig {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
     let mut ig = Array1::zeros(self.n + 1);
     ig[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       ig[i] = ig[i - 1] + self.gamma * dt + gn[i - 1]
     }
 

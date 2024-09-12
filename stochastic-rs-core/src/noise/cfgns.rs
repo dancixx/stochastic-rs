@@ -45,7 +45,7 @@ impl Sampling2D<f64> for Cfgns {
     let fgn1 = self.fgn.sample();
     let fgn2 = self.fgn.sample();
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       cfgns[[0, i]] = fgn1[i - 1];
       cfgns[[1, i]] = self.rho * fgn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * fgn2[i - 1];
     }

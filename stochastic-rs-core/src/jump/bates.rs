@@ -91,7 +91,7 @@ impl<D: ProcessDistribution> Sampling2D<f64> for Bates1996<D> {
       _ => self.mu.unwrap(),
     };
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       let [.., jumps] = self.cpoisson.sample();
 
       let sqrt_v = self

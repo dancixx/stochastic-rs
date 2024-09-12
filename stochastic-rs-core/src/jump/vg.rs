@@ -41,13 +41,10 @@ impl Sampling<f64> for Vg {
     let mut vg = Array1::<f64>::zeros(self.n + 1);
     vg[0] = self.x0.unwrap_or(0.0);
 
-    let gn = Array1::random(
-      self.n,
-      Normal::new(0.0, (self.t.unwrap_or(1.0) / self.n as f64).sqrt()).unwrap(),
-    );
+    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
     let gammas = Array1::random(self.n, Gamma::new(shape, scale).unwrap());
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       vg[i] = vg[i - 1] + self.mu * gammas[i - 1] + self.sigma * gammas[i - 1].sqrt() * gn[i - 1];
     }
 

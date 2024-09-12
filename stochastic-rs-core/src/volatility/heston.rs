@@ -57,7 +57,7 @@ impl Sampling2D<f64> for Heston {
     s[0] = self.s0.unwrap_or(0.0);
     v[0] = self.v0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       s[i] = s[i - 1] + self.mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
       let random: f64 = match self.use_sym.unwrap_or(false) {

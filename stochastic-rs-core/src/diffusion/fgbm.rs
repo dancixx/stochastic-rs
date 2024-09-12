@@ -45,7 +45,7 @@ impl Sampling<f64> for Fgbm {
     let mut fgbm = Array1::<f64>::zeros(self.n + 1);
     fgbm[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]
     }
 

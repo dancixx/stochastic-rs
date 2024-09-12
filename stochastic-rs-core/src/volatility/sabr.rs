@@ -50,7 +50,7 @@ impl Sampling2D<f64> for Sabr {
     f[0] = self.f0.unwrap_or(0.0);
     v[0] = self.v0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(self.beta) * cgn1[i - 1];
       v[i] = v[i - 1] + self.alpha * v[i - 1] * cgn2[i - 1];
     }

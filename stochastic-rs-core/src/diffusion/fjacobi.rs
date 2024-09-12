@@ -51,7 +51,7 @@ impl Sampling<f64> for Fjacobi {
     let mut fjacobi = Array1::<f64>::zeros(self.n + 1);
     fjacobi[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       fjacobi[i] = match fjacobi[i - 1] {
         _ if fjacobi[i - 1] <= 0.0 && i > 0 => 0.0,
         _ if fjacobi[i - 1] >= 1.0 && i > 0 => 1.0,

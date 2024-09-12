@@ -69,7 +69,7 @@ impl Sampling2D<f64> for DuffieKan {
     r[0] = self.r0.unwrap_or(0.0);
     x[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..(self.n + 1) {
+    for i in 1..=self.n {
       r[i] = r[i - 1]
         + (self.a1 * r[i - 1] + self.b1 * x[i - 1] + self.c1) * dt
         + self.sigma1 * (self.alpha * r[i - 1] + self.beta * x[i - 1] + self.gamma) * cgn1[i - 1];
