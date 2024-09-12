@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{s, Array1};
 
 use crate::{noise::fgn::Fgn, Sampling};
 
@@ -51,7 +51,7 @@ impl Sampling<f64> for Fou {
       fou[i] = fou[i - 1] + self.theta * (self.mu - fou[i - 1]) * dt + self.sigma * fgn[i - 1]
     }
 
-    fou
+    fou.slice(s![..self.n()]).to_owned()
   }
 
   fn n(&self) -> usize {

@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2};
+use ndarray::{s, Array1, Array2};
 
 use crate::{Sampling, Sampling2D};
 
@@ -50,7 +50,10 @@ impl Sampling2D<f64> for Cfgns {
       cfgns[[1, i]] = self.rho * fgn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * fgn2[i - 1];
     }
 
-    [cfgns.row(0).into_owned(), cfgns.row(1).into_owned()]
+    [
+      cfgns.row(0).slice(s![..self.n()]).into_owned(),
+      cfgns.row(1).slice(s![..self.n()]).into_owned(),
+    ]
   }
 
   fn n(&self) -> usize {

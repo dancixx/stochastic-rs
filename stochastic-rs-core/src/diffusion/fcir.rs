@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{s, Array1};
 
 use crate::{noise::fgn::Fgn, Sampling};
 
@@ -57,7 +57,7 @@ impl Sampling<f64> for Fcir {
       fcir[i] = fcir[i - 1] + self.theta * (self.mu - fcir[i - 1]) * dt + random
     }
 
-    fcir
+    fcir.slice(s![..self.n()]).to_owned()
   }
 
   fn n(&self) -> usize {

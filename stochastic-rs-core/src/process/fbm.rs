@@ -32,7 +32,6 @@ impl Fbm {
 impl Sampling<f64> for Fbm {
   fn sample(&self) -> Array1<f64> {
     let fgn = self.fgn.sample();
-
     let mut fbm = Array1::<f64>::zeros(self.n + 1);
     fbm.slice_mut(s![1..]).assign(&fgn);
 
@@ -40,7 +39,7 @@ impl Sampling<f64> for Fbm {
       fbm[i] += fbm[i - 1];
     }
 
-    fbm
+    fbm.slice(s![..self.n()]).to_owned()
   }
 
   fn n(&self) -> usize {
@@ -68,6 +67,7 @@ mod tests {
       m: Some(1),
       ..Default::default()
     });
+
     let mut plot = Plot::new();
     let d = fbm.sample_par();
     for data in d.axis_iter(Axis(0)) {

@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{s, Array1};
 
 use crate::{noise::fgn::Fgn, Sampling};
 
@@ -49,7 +49,7 @@ impl Sampling<f64> for Fgbm {
       fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]
     }
 
-    fgbm
+    fgbm.slice(s![..self.n()]).to_owned()
   }
 
   fn n(&self) -> usize {

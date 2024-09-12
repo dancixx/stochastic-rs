@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{s, Array1};
 
 use crate::{
   noise::fgn::Fgn, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
@@ -75,7 +75,7 @@ impl<D: ProcessDistribution> Sampling<f64> for JumpFou<D> {
         + jumps.sum();
     }
 
-    jump_fou
+    jump_fou.slice(s![..self.n()]).to_owned()
   }
 
   fn n(&self) -> usize {

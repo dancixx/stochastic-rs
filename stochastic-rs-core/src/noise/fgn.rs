@@ -31,9 +31,9 @@ impl Fgn {
     if !(0.0..=1.0).contains(&hurst) {
       panic!("Hurst parameter must be between 0 and 1");
     }
-    let n_ = n.next_power_of_two();
-    let offset = n_ - n;
-    let n = n_;
+
+    let offset = n.next_power_of_two() - n;
+    let n = n.next_power_of_two();
     let mut r = Array1::linspace(0.0, n as f64, n + 1);
     r.mapv_inplace(|x| {
       if x == 0.0 {
@@ -96,7 +96,7 @@ impl Sampling<f64> for Fgn {
   }
 
   fn n(&self) -> usize {
-    self.n
+    self.n - self.offset
   }
 
   fn m(&self) -> Option<usize> {
@@ -112,7 +112,7 @@ mod tests {
 
   #[test]
   fn plot() {
-    let fgn = Fgn::new(0.7, 1024, Some(1.0), Some(1));
+    let fgn = Fgn::new(0.7, 1000, Some(1.0), Some(1));
     let mut plot = Plot::new();
     let d = fgn.sample_par();
     for data in d.axis_iter(Axis(0)) {
