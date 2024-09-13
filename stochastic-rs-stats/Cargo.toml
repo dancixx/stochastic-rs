@@ -2,6 +2,13 @@
 name = "stochastic-rs-stats"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A Rust library for the statistical analysis of stochastic processes"
+homepage = "https://github.com/dancixx/stochastic-rs-stats"
+documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs_stats/"
+repository = "https://github.com/dancixx/stochastic-rs"
+readme = "README.md"
+keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 
 [dependencies]
 approx = "0.5.1"
