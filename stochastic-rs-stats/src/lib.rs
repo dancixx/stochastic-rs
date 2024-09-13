@@ -1,1 +1,1 @@
-pub mod fractal_dim;
+pub mod fd;
