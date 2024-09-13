@@ -52,7 +52,7 @@ impl Sampling<f64> for RoughHeston {
     for i in 1..=self.n {
       let t = dt * i as f64;
       yt[i] = self.theta + (yt[i - 1] - self.theta) * (-self.kappa * dt).exp();
-      zt[i] = zt[i - 1] + (-self.kappa * dt).exp() * gn[i - 1];
+      zt[i] = zt[i - 1] * (-self.kappa * dt).exp() + (v2[i - 1].powi(2)).sqrt() * gn[i - 1];
 
       let integral = (0..i)
         .map(|j| {

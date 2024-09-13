@@ -3,8 +3,7 @@ use ndarray::{s, Array1};
 use crate::{noise::cgns::Cgns, Sampling2D};
 
 #[derive(Default)]
-pub struct RoughBergomi {
-  pub hurst: f64,
+pub struct Bergomi {
   pub nu: f64,
   pub v0: Option<f64>,
   pub s0: Option<f64>,
@@ -16,7 +15,7 @@ pub struct RoughBergomi {
   pub cgns: Cgns,
 }
 
-impl RoughBergomi {
+impl Bergomi {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     let cgns = Cgns::new(&Cgns {
@@ -27,7 +26,6 @@ impl RoughBergomi {
     });
 
     Self {
-      hurst: params.hurst,
       nu: params.nu,
       v0: params.v0,
       s0: params.s0,
@@ -41,7 +39,7 @@ impl RoughBergomi {
   }
 }
 
-impl Sampling2D<f64> for RoughBergomi {
+impl Sampling2D<f64> for Bergomi {
   fn sample(&self) -> [Array1<f64>; 2] {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let [cgn1, z] = self.cgns.sample();
@@ -51,15 +49,13 @@ impl Sampling2D<f64> for RoughBergomi {
     s[0] = self.s0.unwrap_or(100.0);
     v2[0] = self.v0.unwrap_or(1.0).powi(2);
 
-    for i in 1..=self.n {
+    for i in 0..=self.n {
       s[i] = s[i - 1] + self.r * s[i - 1] * dt + v2[i - 1].sqrt() * s[i - 1] * cgn1[i - 1];
 
       let sum_z = z.slice(s![..i]).sum();
       let t = i as f64 * dt;
-      v2[i] = self.v0.unwrap_or(1.0).powi(2)
-        * (self.nu * (2.0 * self.hurst).sqrt() * t.powf(self.hurst - 0.5) * sum_z
-          - 0.5 * self.nu.powi(2) * t.powf(2.0 * self.hurst))
-        .exp();
+      v2[i] =
+        self.v0.unwrap_or(1.0).powi(2) * (self.nu * t * sum_z - 0.5 * self.nu.powi(2) * t.powi(2))
     }
 
     [s, v2]
