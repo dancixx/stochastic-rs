@@ -17,4 +17,4 @@ ndarray = { version = "0.16.1", features = [
     "rayon",
     "matrixmultiply-threading",
 ] }
-stochastic-rs = { path = "../stochastic-rs-core" }
+stochastic-rs = { version = "0.8.0", path = "../stochastic-rs-core" }
