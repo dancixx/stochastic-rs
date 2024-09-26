@@ -83,23 +83,12 @@ impl Heston {
   }
 
   /// Calculate the price of a European call option using the Heston model
-  pub fn price(&self) -> (f64, f64) {
+  /// https://quant.stackexchange.com/a/18686
+  pub fn price(&self) -> ValueOrVec<(f64, f64)> {
     if self.tau.is_none() && self.eval.is_none() && self.expiry.is_none() {
       panic!("At least 2 of tau, eval, and expiry must be provided");
     }
 
-    let tau = unsafe {
-      self.tau.clone().unwrap_or_else(|| {
-        let eval = self.eval.as_ref().unwrap();
-        let expiry = self.expiry.as_ref().unwrap();
-        let eval = eval.v.get(0).unwrap();
-        let expiry = expiry.v.get(0).unwrap();
-        ValueOrVec {
-          x: (*expiry - *eval).num_days() as f64,
-        }
-      })
-    };
-    let tau = unsafe { tau.x };
     let lambda = self.lambda.unwrap_or(0.0);
 
     let u = |j: u8| match j {
@@ -125,31 +114,144 @@ impl Heston {
         / (b(j) - self.rho * self.sigma * Complex64::i() * phi - d(j, phi))
     };
 
-    let C = |j: u8, phi: f64| -> Complex64 {
+    let C = |j: u8, phi: f64, tau: f64| -> Complex64 {
       (self.r - self.q) * Complex64::i() * phi * tau
         + (self.kappa * self.theta / self.sigma.powi(2))
           * ((b(j) - self.rho * self.sigma * Complex64::i() * phi + d(j, phi)) * tau
             - 2.0 * ((1.0 - g(j, phi) * (d(j, phi) * tau).exp()) / (1.0 - g(j, phi))).ln())
     };
 
-    let D = |j: u8, phi: f64| -> Complex64 {
+    let D = |j: u8, phi: f64, tau: f64| -> Complex64 {
       ((b(j) - self.rho * self.sigma * Complex64::i() * phi + d(j, phi)) / self.sigma.powi(2))
         * ((1.0 - (d(j, phi) * tau).exp()) / (1.0 - g(j, phi) * (d(j, phi) * tau).exp()))
     };
 
-    let f = |j: u8, phi: f64| -> Complex64 {
-      (C(j, phi) + D(j, phi) * self.v0 + Complex64::i() * phi * self.s0.ln()).exp()
+    let f = |j: u8, phi: f64, tau: f64| -> Complex64 {
+      (C(j, phi, tau) + D(j, phi, tau) * self.v0 + Complex64::i() * phi * self.s0.ln()).exp()
     };
 
-    let re1 = |phi: f64| -> f64 { (f(1, phi) * (-Complex64::i() * phi * self.k.ln()).exp()).re };
-    let re2 = |phi: f64| -> f64 { (f(1, phi) * (-Complex64::i() * phi * self.k.ln()).exp()).re };
+    unsafe {
+      let tau = self.tau.as_ref().unwrap();
 
-    let p1 = 0.5 + FRAC_1_PI * double_exponential::integrate(re1, 0.000001, 50.0, 10e-6).integral;
-    let p2 = 0.5 + FRAC_1_PI * double_exponential::integrate(re2, 0.000001, 50.0, 10e-6).integral;
+      if tau.v.is_empty() {
+        let tau = tau.x;
 
-    let call = self.s0 * (-self.q * tau).exp() * p1 - self.k * (-self.r * tau).exp() * p2;
-    let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
+        let re1 =
+          |phi: f64| -> f64 { (f(1, phi, tau) * (-Complex64::i() * phi * self.k.ln()).exp()).re };
+        let re2 =
+          |phi: f64| -> f64 { (f(1, phi, tau) * (-Complex64::i() * phi * self.k.ln()).exp()).re };
 
-    (call, put)
+        let p1 =
+          0.5 + FRAC_1_PI * double_exponential::integrate(re1, 0.000001, 50.0, 10e-6).integral;
+        let p2 =
+          0.5 + FRAC_1_PI * double_exponential::integrate(re2, 0.000001, 50.0, 10e-6).integral;
+
+        let call = self.s0 * (-self.q * tau).exp() * p1 - self.k * (-self.r * tau).exp() * p2;
+        let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
+
+        ValueOrVec { x: (call, put) }
+      } else {
+        let mut prices = Vec::with_capacity(tau.v.len());
+
+        for tau in tau.v.iter() {
+          let re1 = |phi: f64| -> f64 {
+            (f(1, phi, *tau) * (-Complex64::i() * phi * self.k.ln()).exp()).re
+          };
+          let re2 = |phi: f64| -> f64 {
+            (f(1, phi, *tau) * (-Complex64::i() * phi * self.k.ln()).exp()).re
+          };
+
+          let p1 =
+            0.5 + FRAC_1_PI * double_exponential::integrate(re1, 0.000001, 50.0, 10e-6).integral;
+          let p2 =
+            0.5 + FRAC_1_PI * double_exponential::integrate(re2, 0.000001, 50.0, 10e-6).integral;
+
+          let call = self.s0 * (-self.q * tau).exp() * p1 - self.k * (-self.r * tau).exp() * p2;
+          let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
+
+          prices.push((call, put));
+        }
+
+        ValueOrVec {
+          v: ManuallyDrop::new(prices),
+        }
+      }
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_price_single_tau() {
+    let heston = Heston {
+      s0: 100.0,
+      v0: 0.04,
+      k: 100.0,
+      r: 0.05,
+      q: 0.02,
+      rho: -0.7,
+      kappa: 2.0,
+      theta: 0.04,
+      sigma: 0.3,
+      lambda: Some(0.0),
+      tau: Some(ValueOrVec { x: 1.0 }), // Single f64 tau value
+      eval: None,
+      expiry: None,
+    };
+
+    let price = heston.price();
+
+    unsafe {
+      match price {
+        ValueOrVec { x: (call, put) } => {
+          println!("Call Price: {}, Put Price: {}", call, put);
+          assert!(call > 0.0);
+          assert!(put > 0.0);
+        }
+      }
+    }
+  }
+
+  #[test]
+  fn test_price_vec_tau() {
+    let heston = Heston {
+      s0: 100.0,
+      v0: 0.04,
+      k: 100.0,
+      r: 0.05,
+      q: 0.02,
+      rho: -0.7,
+      kappa: 2.0,
+      theta: 0.04,
+      sigma: 0.3,
+      lambda: Some(0.0),
+      tau: Some(ValueOrVec {
+        v: ManuallyDrop::new(vec![1.0, 2.0, 3.0]),
+      }), // Vec<f64> tau
+      eval: None,
+      expiry: None,
+    };
+
+    let price = heston.price();
+
+    unsafe {
+      match price {
+        ValueOrVec { v } => {
+          for (i, &(call, put)) in v.iter().enumerate() {
+            println!(
+              "Time to maturity {}: Call Price: {}, Put Price: {}",
+              i + 1,
+              call,
+              put
+            );
+            assert!(call > 0.0);
+            assert!(put > 0.0);
+          }
+        }
+      }
+    }
   }
 }
