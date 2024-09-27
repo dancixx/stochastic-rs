@@ -1,6 +1,9 @@
+#![allow(non_snake_case)]
+
 use std::mem::ManuallyDrop;
 
-pub mod calibration;
+pub mod calibrator;
+pub mod heston;
 pub mod pricer;
 
 #[cfg(feature = "mimalloc")]

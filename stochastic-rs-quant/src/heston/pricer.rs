@@ -3,7 +3,7 @@ use std::{f64::consts::FRAC_1_PI, mem::ManuallyDrop};
 use num_complex::Complex64;
 use quadrature::double_exponential;
 
-use crate::ValueOrVec;
+use crate::{pricer::Pricer, ValueOrVec};
 
 #[derive(Default, Clone)]
 pub struct HestonPricer {
@@ -37,6 +37,18 @@ pub struct HestonPricer {
   pub(crate) prices: Option<ValueOrVec<(f64, f64)>>,
   /// Partial derivative of the C function with respect to the parameters
   pub(crate) derivates: Option<ValueOrVec<f64>>,
+}
+
+impl Pricer for HestonPricer {
+  /// Prices.
+  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>> {
+    self.prices.clone()
+  }
+
+  /// Derivatives.
+  fn derivates(&self) -> Option<ValueOrVec<f64>> {
+    self.derivates.clone()
+  }
 }
 
 impl HestonPricer {
