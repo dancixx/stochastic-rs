@@ -6,7 +6,7 @@ use quadrature::double_exponential;
 use crate::ValueOrVec;
 
 #[derive(Default)]
-pub struct Heston {
+pub struct HestonPricer {
   /// Initial stock price
   pub s0: f64,
   /// Initial volatility
@@ -35,7 +35,7 @@ pub struct Heston {
   pub expiry: Option<ValueOrVec<chrono::NaiveDate>>,
 }
 
-impl Heston {
+impl HestonPricer {
   /// Create a new Heston model
   #[must_use]
   pub fn new(params: &Self) -> Self {
@@ -142,6 +142,34 @@ impl Heston {
       }
     }
   }
+
+  /// Partial derivative of the C function with respect to parameters
+  /// https://www.sciencedirect.com/science/article/abs/pii/S0377221717304460
+
+  /// Partial derivative of the C function with respect to the v0 parameter
+  pub(crate) fn dC_dv0(&self) -> f64 {
+    1.0
+  }
+
+  /// Partial derivative of the C function with respect to the theta parameter
+  pub(crate) fn dC_dtheta(&self) -> f64 {
+    1.0
+  }
+
+  /// Partial derivative of the C function with respect to the rho parameter
+  pub(crate) fn dC_drho(&self) -> f64 {
+    1.0
+  }
+
+  /// Partial derivative of the C function with respect to the kappa parameter
+  pub(crate) fn dC_dkappa(&self) -> f64 {
+    1.0
+  }
+
+  /// Partial derivative of the C function with respect to the sigma parameter
+  pub(crate) fn dC_dsigma(&self) -> f64 {
+    1.0
+  }
 }
 
 #[cfg(test)]
@@ -150,7 +178,7 @@ mod tests {
 
   #[test]
   fn test_price_single_tau() {
-    let heston = Heston {
+    let heston = HestonPricer {
       s0: 100.0,
       v0: 0.05,
       k: 100.0,
@@ -179,7 +207,7 @@ mod tests {
 
   #[test]
   fn test_price_vec_tau() {
-    let heston = Heston {
+    let heston = HestonPricer {
       s0: 100.0,
       v0: 0.04,
       k: 100.0,

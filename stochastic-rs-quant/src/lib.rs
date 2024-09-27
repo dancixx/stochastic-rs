@@ -1,7 +1,7 @@
 use std::mem::ManuallyDrop;
 
 pub mod calibration;
-pub mod pricing;
+pub mod pricer;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
