@@ -1,7 +1,10 @@
+#![allow(non_snake_case)]
+
 use std::mem::ManuallyDrop;
 
-pub mod calibration;
-pub mod pricing;
+pub mod calibrator;
+pub mod heston;
+pub mod pricer;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
@@ -22,6 +25,16 @@ where
 
 /// Implement the `Clone` trait for `ValueOrVec<T>`.
 impl Clone for ValueOrVec<f64> {
+  fn clone(&self) -> Self {
+    unsafe {
+      Self {
+        v: ManuallyDrop::new(self.v.clone().to_vec()),
+      }
+    }
+  }
+}
+
+impl Clone for ValueOrVec<(f64, f64)> {
   fn clone(&self) -> Self {
     unsafe {
       Self {
