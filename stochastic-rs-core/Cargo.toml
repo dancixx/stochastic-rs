@@ -15,6 +15,7 @@ keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
 ndarray = { version = "0.16.1", features = [
     "rayon",
     "matrixmultiply-threading",
+    "blas"
 ] }
 num-complex = { version = "0.4.6", features = ["rand"] }
 rand = "0.8.5"

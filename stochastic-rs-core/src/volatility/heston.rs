@@ -8,7 +8,7 @@ pub struct Heston {
   pub mu: f64,
   pub kappa: f64,
   pub theta: f64,
-  pub eta: f64,
+  pub sigma: f64,
   pub rho: f64,
   pub n: usize,
   pub s0: Option<f64>,
@@ -33,7 +33,7 @@ impl Heston {
       mu: params.mu,
       kappa: params.kappa,
       theta: params.theta,
-      eta: params.eta,
+      sigma: params.sigma,
       rho: params.rho,
       n: params.n,
       s0: params.s0,
@@ -61,8 +61,8 @@ impl Sampling2D<f64> for Heston {
       s[i] = s[i - 1] + self.mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
       let random: f64 = match self.use_sym.unwrap_or(false) {
-        true => self.eta * (v[i - 1]).abs().sqrt() * cgn2[i - 1],
-        false => self.eta * (v[i - 1]).max(0.0).sqrt() * cgn2[i - 1],
+        true => self.sigma * (v[i - 1]).abs().sqrt() * cgn2[i - 1],
+        false => self.sigma * (v[i - 1]).max(0.0).sqrt() * cgn2[i - 1],
       };
       v[i] = v[i - 1] + self.kappa * (self.theta - v[i - 1]) * dt + random;
     }
