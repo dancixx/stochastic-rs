@@ -5,17 +5,29 @@ use crate::{noise::cgns::Cgns, Sampling2D};
 #[derive(Default)]
 
 pub struct Heston {
-  pub mu: f64,
-  pub kappa: f64,
-  pub theta: f64,
-  pub sigma: f64,
-  pub rho: f64,
-  pub n: usize,
+  /// Initial stock price
   pub s0: Option<f64>,
+  /// Initial volatility
   pub v0: Option<f64>,
+  /// Mean reversion rate
+  pub kappa: f64,
+  /// Long-run average volatility
+  pub theta: f64,
+  /// Volatility of volatility
+  pub sigma: f64,
+  /// Correlation between the stock price and its volatility
+  pub rho: f64,
+  /// Drift of the stock price
+  pub mu: f64,
+  /// Number of time steps
+  pub n: usize,
+  /// Time to maturity
   pub t: Option<f64>,
+  /// Use the symmetric method for the variance to avoid negative values
   pub use_sym: Option<bool>,
+  /// Number of paths for multithreading
   pub m: Option<usize>,
+  /// Noise generator
   pub cgns: Cgns,
 }
 
@@ -30,14 +42,14 @@ impl Heston {
     });
 
     Self {
-      mu: params.mu,
+      s0: params.s0,
+      v0: params.v0,
       kappa: params.kappa,
       theta: params.theta,
       sigma: params.sigma,
       rho: params.rho,
+      mu: params.mu,
       n: params.n,
-      s0: params.s0,
-      v0: params.v0,
       t: params.t,
       use_sym: params.use_sym,
       m: params.m,

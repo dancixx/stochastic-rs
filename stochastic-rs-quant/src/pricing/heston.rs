@@ -3,6 +3,8 @@ use std::{f64::consts::FRAC_1_PI, mem::ManuallyDrop};
 use num_complex::Complex64;
 use quadrature::double_exponential;
 
+use crate::ValueOrVec;
+
 #[derive(Default)]
 pub struct Heston {
   /// Initial stock price
@@ -31,34 +33,6 @@ pub struct Heston {
   pub eval: Option<ValueOrVec<chrono::NaiveDate>>,
   /// Expiration date
   pub expiry: Option<ValueOrVec<chrono::NaiveDate>>,
-}
-
-pub union ValueOrVec<T>
-where
-  T: Copy,
-{
-  pub x: T,
-  pub v: ManuallyDrop<Vec<T>>,
-}
-
-impl Clone for ValueOrVec<f64> {
-  fn clone(&self) -> Self {
-    unsafe {
-      Self {
-        v: ManuallyDrop::new(self.v.clone().to_vec()),
-      }
-    }
-  }
-}
-
-impl Clone for ValueOrVec<chrono::NaiveDate> {
-  fn clone(&self) -> Self {
-    unsafe {
-      Self {
-        v: ManuallyDrop::new(self.v.clone().to_vec()),
-      }
-    }
-  }
 }
 
 impl Heston {
