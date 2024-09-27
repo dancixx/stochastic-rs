@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.38"
 derive_builder = "0.20.1"
+levenberg-marquardt = "0.14.0"
 mimalloc = { version = "0.1.43", optional = true }
 num-complex = "0.4.6"
 quadrature = "0.1.2"

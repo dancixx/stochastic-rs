@@ -1,5 +1,6 @@
 use std::mem::ManuallyDrop;
 
+pub mod calibration;
 pub mod pricing;
 
 #[cfg(feature = "mimalloc")]
