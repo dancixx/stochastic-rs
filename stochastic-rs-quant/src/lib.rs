@@ -31,6 +31,16 @@ impl Clone for ValueOrVec<f64> {
   }
 }
 
+impl Clone for ValueOrVec<(f64, f64)> {
+  fn clone(&self) -> Self {
+    unsafe {
+      Self {
+        v: ManuallyDrop::new(self.v.clone().to_vec()),
+      }
+    }
+  }
+}
+
 /// Implement the `Clone` trait for `ValueOrVec<T>`.
 impl Clone for ValueOrVec<chrono::NaiveDate> {
   fn clone(&self) -> Self {
