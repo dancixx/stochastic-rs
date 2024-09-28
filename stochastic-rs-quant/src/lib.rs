@@ -5,6 +5,8 @@ use std::mem::ManuallyDrop;
 pub mod calibrator;
 pub mod heston;
 pub mod pricer;
+#[cfg(feature = "yahoo")]
+pub mod yahoo;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]

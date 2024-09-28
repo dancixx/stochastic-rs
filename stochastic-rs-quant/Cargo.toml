@@ -5,20 +5,25 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.38"
-derive_builder = "0.20.1"
+dotenvy = "0.15.7"
 levenberg-marquardt = "0.14.0"
 mimalloc = { version = "0.1.43", optional = true }
 nalgebra = "0.33.0"
 num-complex = "0.4.6"
+polars = { version = "0.43.1", features = ["lazy"] }
 quadrature = "0.1.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 stochastic-rs = { path = "../stochastic-rs-core" }
 tikv-jemallocator = { version = "0.6.0", optional = true }
+time = { version = "0.3.36", features = ["formatting", "parsing"] }
+tokio-test = "0.4.4"
+yahoo_finance_api = "2.2.1"
 
 [features]
 mimalloc = ["dep:mimalloc"]
 jemalloc = ["dep:tikv-jemallocator"]
+yahoo = []
 default = []
 
 [lib]
