@@ -80,8 +80,8 @@ impl Sampling2D<f64> for Heston {
         false => (v[i - 1] + dv).max(0.0),
       }
     }
-    println!("S: {:?}", s);
-
+    //println!("{:?}", s);
+    println!("{:?}", v);
     [s, v]
   }
 

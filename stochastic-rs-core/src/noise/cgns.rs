@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2};
+use ndarray::{s, Array1, Array2};
 use ndarray_rand::RandomExt;
 use rand_distr::Normal;
 
@@ -26,7 +26,6 @@ impl Cgns {
 
 impl Sampling2D<f64> for Cgns {
   fn sample(&self) -> [Array1<f64>; 2] {
-    println!("RHO::: {}", self.rho);
     assert!(
       (-1.0..=1.0).contains(&self.rho),
       "Correlation coefficient must be in [-1, 1]"
@@ -38,12 +37,14 @@ impl Sampling2D<f64> for Cgns {
     let gn2 = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
 
     for i in 1..=self.n {
-      cgns[[0, i]] = cgns[[0, i - 1]] + gn1[i - 1];
-      cgns[[1, i]] =
-        cgns[[1, i - 1]] + self.rho * gn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * gn2[i - 1];
+      cgns[[0, i]] = gn1[i - 1];
+      cgns[[1, i]] = self.rho * gn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * gn2[i - 1];
     }
 
-    [cgns.row(0).into_owned(), cgns.row(1).into_owned()]
+    [
+      cgns.row(0).slice(s![..self.n()]).into_owned(),
+      cgns.row(1).slice(s![..self.n()]).into_owned(),
+    ]
   }
 
   fn n(&self) -> usize {

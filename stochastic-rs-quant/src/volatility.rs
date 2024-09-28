@@ -1,9 +1,19 @@
+pub mod heston;
+
 use levenberg_marquardt::LeastSquaresProblem;
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
 use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
 
-use crate::pricer::Pricer;
+use crate::ValueOrVec;
+
+/// Pricer trait.
+pub(crate) trait Pricer {
+  /// Prices.
+  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>>;
+  /// Derivatives.
+  fn derivates(&self) -> Option<ValueOrVec<f64>>;
+}
 
 /// A calibrator.
 pub(crate) struct Calibrator<'a, P>

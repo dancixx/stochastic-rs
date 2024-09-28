@@ -2,9 +2,7 @@
 
 use std::mem::ManuallyDrop;
 
-pub mod calibrator;
-pub mod heston;
-pub mod pricer;
+pub mod volatility;
 #[cfg(feature = "yahoo")]
 pub mod yahoo;
 
