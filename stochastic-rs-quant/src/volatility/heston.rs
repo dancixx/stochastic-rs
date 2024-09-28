@@ -1,4 +1,4 @@
-use std::{f64::consts::FRAC_1_PI, mem::ManuallyDrop};
+use std::{cell::RefCell, f64::consts::FRAC_1_PI, mem::ManuallyDrop};
 
 use levenberg_marquardt::LevenbergMarquardt;
 use nalgebra::DVector;
@@ -44,43 +44,9 @@ pub struct HestonPricer {
 }
 
 impl Pricer for HestonPricer {
-  /// Prices.
-  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>> {
-    self.prices.clone()
-  }
-
-  /// Derivatives.
-  fn derivates(&self) -> Option<ValueOrVec<f64>> {
-    self.derivates.clone()
-  }
-}
-
-impl HestonPricer {
-  /// Create a new Heston model
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      s0: params.s0,
-      v0: params.v0,
-      k: params.k,
-      r: params.r,
-      q: params.q,
-      rho: params.rho,
-      kappa: params.kappa,
-      theta: params.theta,
-      sigma: params.sigma,
-      lambda: Some(params.lambda.unwrap_or(0.0)),
-      tau: params.tau.clone(),
-      eval: params.eval.clone(),
-      expiry: params.expiry.clone(),
-      prices: None,
-      derivates: None,
-    }
-  }
-
   /// Calculate the price of a European call option using the Heston model
   /// https://quant.stackexchange.com/a/18686
-  pub fn price(&mut self) -> ValueOrVec<(f64, f64)> {
+  fn calculate_price(&mut self) -> ValueOrVec<(f64, f64)> {
     if self.tau.is_none() && self.eval.is_none() && self.expiry.is_none() {
       panic!("At least 2 of tau, eval, and expiry must be provided");
     }
@@ -126,6 +92,49 @@ impl HestonPricer {
           v: ManuallyDrop::new(prices),
         }
       }
+    }
+  }
+
+  /// Update the parameters from the calibration
+  fn update_params(&mut self, params: DVector<f64>) {
+    self.v0 = params[0];
+    self.theta = params[1];
+    self.rho = params[2];
+    self.kappa = params[3];
+    self.sigma = params[4];
+  }
+
+  /// Prices.
+  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>> {
+    self.prices.clone()
+  }
+
+  /// Derivatives.
+  fn derivates(&self) -> Option<ValueOrVec<f64>> {
+    self.derivates.clone()
+  }
+}
+
+impl HestonPricer {
+  /// Create a new Heston model
+  #[must_use]
+  pub fn new(params: &Self) -> Self {
+    Self {
+      s0: params.s0,
+      v0: params.v0,
+      k: params.k,
+      r: params.r,
+      q: params.q,
+      rho: params.rho,
+      kappa: params.kappa,
+      theta: params.theta,
+      sigma: params.sigma,
+      lambda: Some(params.lambda.unwrap_or(0.0)),
+      tau: params.tau.clone(),
+      eval: params.eval.clone(),
+      expiry: params.expiry.clone(),
+      prices: None,
+      derivates: None,
     }
   }
 
@@ -279,50 +288,96 @@ impl HestonPricer {
 /// Heston calibrator
 pub struct HestonCalibrator<'a> {
   /// Yahoo struct
-  pub yahoo: Yahoo<'a>,
+  pub yahoo: Option<Yahoo<'a>>,
   /// Implied volatility vector
   pub v: Option<Vec<f64>>,
-  /// Prices vector
-  pub p: Option<Vec<f64>>,
+  /// Underlying asset prices vector
+  pub s: Option<Vec<f64>>,
+  /// Option prices vector from the market
+  pub c: Option<Vec<f64>>,
   /// Heston pricer
   pricer: HestonPricer,
+  /// Initial guess for the calibration from the NMLE method
+  pub initial_guess: Option<DVector<f64>>,
 }
 
 impl<'a> HestonCalibrator<'a> {
   #[must_use]
   pub fn new(
     pricer: HestonPricer,
-    yahoo: Yahoo<'a>,
-    p: Option<Vec<f64>>,
+    yahoo: Option<Yahoo<'a>>,
     v: Option<Vec<f64>>,
+    s: Option<Vec<f64>>,
+    c: Option<Vec<f64>>,
   ) -> Self {
     Self {
       pricer,
       yahoo,
-      p,
       v,
+      s,
+      c,
+      initial_guess: None,
     }
   }
 
   pub fn calibrate(&mut self) {
-    self.yahoo.get_options_chain();
-    self.pricer.price();
+    if (self.c.is_none() && self.v.is_none()) || self.yahoo.is_none() {
+      panic!("Yahoo struct or s and v must be provided");
+    }
+    self.initial_guess();
+
+    // Overwrite the pricer with the initial guess
+    self.pricer.v0 = self.initial_guess.as_ref().unwrap()[0];
+    self.pricer.theta = self.initial_guess.as_ref().unwrap()[1];
+    self.pricer.rho = self.initial_guess.as_ref().unwrap()[2];
+    self.pricer.kappa = self.initial_guess.as_ref().unwrap()[3];
+    self.pricer.sigma = self.initial_guess.as_ref().unwrap()[4];
+
+    // Print the initial guess
+    println!(
+      "Initial guess: v0: {}, theta: {}, rho: {}, kappa: {}, sigma {}",
+      self.pricer.v0, self.pricer.theta, self.pricer.rho, self.pricer.kappa, self.pricer.sigma
+    );
+
+    // Calculate the price of the options using the initial guess
+    self.pricer.calculate_price();
+
+    // Calibrate the Heston model
+    let pricer = RefCell::new(self.pricer.clone());
     let (result, ..) = LevenbergMarquardt::new().minimize(Calibrator::new(
-      DVector::from_vec(vec![0.05, 0.05, -0.8, 5.0, 0.5]),
-      None,
-      &self.pricer,
+      self.initial_guess.as_ref().unwrap().clone(),
+      Some(DVector::from_vec(self.c.as_ref().unwrap().clone())),
+      &pricer,
     ));
-    println!("{:?}", result.p);
+
+    // Overwrite the pricer with the calibrated parameters
+    self.pricer.v0 = result.params[0];
+    self.pricer.theta = result.params[1];
+    self.pricer.rho = result.params[2];
+    self.pricer.kappa = result.params[3];
+    self.pricer.sigma = result.params[4];
+
+    // Print the calibrated parameters
+    println!(
+      "Calibrated parameters: v0: {}, theta: {}, rho: {}, kappa: {}, sigma {}",
+      self.pricer.v0, self.pricer.theta, self.pricer.rho, self.pricer.kappa, self.pricer.sigma
+    );
+
+    // Calculate the price of the options using the calibrated parameters
+    self.pricer.calculate_price();
   }
 
   /// Initial guess for the calibration
   /// http://scis.scichina.com/en/2018/042202.pdf
-  /// Returns [v0, theta, rho, kappa, sigma]
-  fn initial_guess(&self) -> DVector<f64> {
-    let impl_vol = if let Some(v) = &self.v {
-      v.to_owned()
-    } else {
-      let options = self.yahoo.options.clone().unwrap();
+  ///
+  /// Using NMLE (Normal Maximum Likelihood Estimation) method
+  fn initial_guess(&mut self) {
+    if self.v.is_none() && self.c.is_none() {
+      let yahoo = self.yahoo.as_mut().unwrap();
+      // get options chain from yahoo
+      yahoo.get_options_chain();
+      yahoo.get_price_history();
+      let options = yahoo.options.as_ref().unwrap();
       // get impl_volatities col from options
       let impl_vol = options.select(["impl_volatility"]).unwrap();
       // convert to vec
@@ -333,10 +388,35 @@ impl<'a> HestonCalibrator<'a> {
         .unwrap()
         .into_no_null_iter()
         .collect::<Vec<f64>>();
+      self.v = Some(impl_vol.clone());
 
-      impl_vol
+      let c = options.select(["last_price"]).unwrap();
+      let c = c
+        .select_at_idx(0)
+        .unwrap()
+        .f64()
+        .unwrap()
+        .into_no_null_iter()
+        .collect::<Vec<f64>>();
+      self.c = Some(c);
+
+      let s = yahoo
+        .price_history
+        .as_ref()
+        .unwrap()
+        .select(["close"])
+        .unwrap();
+      let s = s
+        .select_at_idx(0)
+        .unwrap()
+        .f64()
+        .unwrap()
+        .into_no_null_iter()
+        .collect::<Vec<f64>>();
+      self.s = Some(s);
     };
 
+    let impl_vol = self.v.as_ref().unwrap();
     let n = impl_vol.len();
     let delta = 1.0 / n as f64;
     let mut sum = [0.0; 6];
@@ -375,27 +455,11 @@ impl<'a> HestonCalibrator<'a> {
 
     let theta_hat = (P_hat + 0.25 * sigma_hat.powi(2)) / kappa_hat;
 
-    let price = if let Some(p) = &self.p {
-      p.to_owned()
-    } else {
-      let options = self.yahoo.options.clone().unwrap();
-      let prices = options.select(["last_price"]).unwrap();
-      let prices = prices
-        .select_at_idx(0)
-        .unwrap()
-        .f64()
-        .unwrap()
-        .into_no_null_iter()
-        .collect::<Vec<f64>>();
-
-      prices
-    };
-
+    let s = self.s.as_ref().unwrap();
     let mut sum_dw1dw2 = 0.0;
     for i in 1..n {
-      let dw1_i =
-        (price[i].ln() - price[i - 1].ln() - (self.pricer.r - 0.5 * impl_vol[i - 1]) * delta)
-          / impl_vol[i - 1].sqrt();
+      let dw1_i = (s[i].ln() - s[i - 1].ln() - (self.pricer.r - 0.5 * impl_vol[i - 1]) * delta)
+        / impl_vol[i - 1].sqrt();
       let dw2_i =
         (impl_vol[i] - impl_vol[i - 1] - kappa_hat * (theta_hat - impl_vol[i - 1]) * delta)
           / (sigma_hat * impl_vol[i - 1].sqrt());
@@ -405,18 +469,19 @@ impl<'a> HestonCalibrator<'a> {
 
     let rho_hat = sum_dw1dw2 / (n as f64 * delta);
 
-    DVector::from_vec(vec![
+    self.initial_guess = Some(DVector::from_vec(vec![
       self.pricer.v0,
       theta_hat,
       rho_hat,
       kappa_hat,
       sigma_hat,
-    ])
+    ]));
   }
 }
 
 #[cfg(test)]
 mod tests {
+  use rand_distr::{Distribution, Normal};
   use stochastic_rs::{volatility::heston::Heston, Sampling2D};
 
   use super::*;
@@ -434,14 +499,11 @@ mod tests {
       theta: 0.05,
       sigma: 0.5,
       lambda: Some(0.0),
-      tau: Some(ValueOrVec { x: 0.5 }), // Single f64 tau value
-      eval: None,
-      expiry: None,
-      prices: None,
-      derivates: None,
+      tau: Some(ValueOrVec { x: 0.5 }),
+      ..Default::default()
     };
 
-    let price = heston.price();
+    let price = heston.calculate_price();
 
     unsafe {
       match price {
@@ -467,14 +529,11 @@ mod tests {
       lambda: Some(0.0),
       tau: Some(ValueOrVec {
         v: ManuallyDrop::new(vec![1.0, 2.0, 3.0]),
-      }), // Vec<f64> tau
-      eval: None,
-      expiry: None,
-      prices: None,
-      derivates: None,
+      }),
+      ..Default::default()
     };
 
-    let price = heston.price();
+    let price = heston.calculate_price();
 
     unsafe {
       match price {
@@ -494,10 +553,25 @@ mod tests {
 
   #[test]
   fn test_heston_calibrate() {
-    let majurities = (0..=100)
-      .map(|x| 0.5 + 0.1 * x as f64)
-      .collect::<Vec<f64>>();
-    let heston = Heston::new(&Heston {
+    // Calculate the initial guess for the calibration
+    let pricer = HestonPricer::new(&HestonPricer {
+      s0: 100.0,
+      v0: 0.2,
+      k: 100.0,
+      r: 0.05,
+      q: 0.02,
+      lambda: Some(0.0),
+      tau: Some(ValueOrVec {
+        v: ManuallyDrop::new(
+          (0..=100)
+            .map(|x| 0.5 + 0.1 * x as f64)
+            .collect::<Vec<f64>>(),
+        ),
+      }),
+      ..Default::default()
+    });
+    let yahoo = Yahoo::default();
+    let model = Heston::new(&Heston {
       s0: Some(100.0),
       v0: Some(0.2),
       rho: -0.8,
@@ -508,60 +582,22 @@ mod tests {
       n: 1000,
       t: Some(1.0),
       use_sym: Some(true),
-      m: None,
-      cgns: Default::default(),
+      ..Default::default()
     });
-
-    let mut data = vec![0.0, 0.0, 0.0, 0.0, 0.0];
-    let m = 500;
-    for _ in 0..m {
-      let heston = heston.sample();
-      let calibrator = HestonCalibrator::new(
-        HestonPricer {
-          s0: 100.0,
-          v0: 0.2,
-          k: 100.0,
-          r: 0.05,
-          q: 0.02,
-          rho: -0.8,
-          kappa: 1.0,
-          theta: 0.25,
-          sigma: 0.5,
-          lambda: Some(0.0),
-          tau: Some(ValueOrVec {
-            v: ManuallyDrop::new(majurities.clone()),
-          }), // Single f64 tau value
-          eval: None,
-          expiry: None,
-          prices: None,
-          derivates: None,
-        },
-        Yahoo::default(),
-        Some(heston[0].to_vec()),
-        Some(heston[1].to_vec()),
-      );
-      let guess = calibrator.initial_guess();
-      // [v0, theta, rho, kappa, sigma]
-      // println!(
-      //   "v0: {}, theta: {}, rho: {}, kappa: {}, sigma: {}",
-      //   guess[0], guess[1], guess[2], guess[3], guess[4]
-      // );
-
-      data[0] += guess[0];
-      data[1] += guess[1];
-      data[2] += guess[2];
-      data[3] += guess[3];
-      data[4] += guess[4];
-    }
-
-    println!(
-      "v0: {}, theta: {}, rho: {}, kappa: {}, sigma: {}",
-      data[0] / m as f64,
-      data[1] / m as f64,
-      data[2] / m as f64,
-      data[3] / m as f64,
-      data[4] / m as f64
+    let [s, v] = model.sample();
+    let mut calibrator = HestonCalibrator::new(
+      pricer,
+      Some(yahoo),
+      Some(v.to_vec()),
+      Some(s.to_vec()),
+      Some(
+        Normal::new(25.0, 12.0)
+          .unwrap()
+          .sample_iter(rand::thread_rng())
+          .take(1000)
+          .collect::<Vec<f64>>(),
+      ),
     );
-    //calibrator.calibrate();
+    calibrator.calibrate();
   }
 }
