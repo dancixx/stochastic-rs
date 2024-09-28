@@ -9,11 +9,6 @@ A Rust library for stochastic processes and models. The main goal to provide a s
 Documentation is available at [stochastic-rs](https://docs.rs/stochastic-rs/).
 
 
-# Implementations
-
-- [Rust](https://github.com/dancixx/stochastic-rs)
-- [Typescript](https://github.com/dancixx/stochastic-js)
-
 # Stochastic processes
 - [x] Gaussian noise
 - [x] Correlated Gaussian noise
