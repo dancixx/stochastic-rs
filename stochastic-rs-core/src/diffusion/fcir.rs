@@ -50,11 +50,13 @@ impl Sampling<f64> for Fcir {
     fcir[0] = self.x0.unwrap_or(0.0);
 
     for i in 1..=self.n {
-      let random = match self.use_sym.unwrap_or(false) {
-        true => self.sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1],
-        false => self.sigma * (fcir[i - 1]).max(0.0) * fgn[i - 1],
+      let dfcir = self.theta * (self.mu - fcir[i - 1]) * dt
+        + self.sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1];
+
+      fcir[i] = match self.use_sym.unwrap_or(false) {
+        true => (fcir[i - 1] + dfcir).abs(),
+        false => (fcir[i - 1] + dfcir).max(0.0),
       };
-      fcir[i] = fcir[i - 1] + self.theta * (self.mu - fcir[i - 1]) * dt + random
     }
 
     fcir.slice(s![..self.n()]).to_owned()

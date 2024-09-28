@@ -34,7 +34,7 @@ impl Cbms {
 impl Sampling2D<f64> for Cbms {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
-      !(-1.0..=1.0).contains(&self.rho),
+      (-1.0..=1.0).contains(&self.rho),
       "Correlation coefficient must be in [-1, 1]"
     );
 

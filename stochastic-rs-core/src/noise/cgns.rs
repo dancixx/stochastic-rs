@@ -26,8 +26,9 @@ impl Cgns {
 
 impl Sampling2D<f64> for Cgns {
   fn sample(&self) -> [Array1<f64>; 2] {
+    println!("RHO::: {}", self.rho);
     assert!(
-      !(-1.0..=1.0).contains(&self.rho),
+      (-1.0..=1.0).contains(&self.rho),
       "Correlation coefficient must be in [-1, 1]"
     );
 

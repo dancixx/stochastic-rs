@@ -72,12 +72,15 @@ impl Sampling2D<f64> for Heston {
     for i in 1..=self.n {
       s[i] = s[i - 1] + self.mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
-      let random: f64 = match self.use_sym.unwrap_or(false) {
-        true => self.sigma * (v[i - 1]).abs().sqrt() * cgn2[i - 1],
-        false => self.sigma * (v[i - 1]).max(0.0).sqrt() * cgn2[i - 1],
-      };
-      v[i] = v[i - 1] + self.kappa * (self.theta - v[i - 1]) * dt + random;
+      let dv =
+        self.kappa * (self.theta - v[i - 1]) * dt + self.sigma * v[i - 1].sqrt() * cgn2[i - 1];
+
+      v[i] = match self.use_sym.unwrap_or(false) {
+        true => (v[i - 1] + dv).abs(),
+        false => (v[i - 1] + dv).max(0.0),
+      }
     }
+    println!("S: {:?}", s);
 
     [s, v]
   }

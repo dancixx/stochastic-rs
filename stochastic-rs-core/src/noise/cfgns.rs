@@ -33,11 +33,11 @@ impl Cfgns {
 impl Sampling2D<f64> for Cfgns {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
-      !(0.0..=1.0).contains(&self.hurst),
+      (0.0..=1.0).contains(&self.hurst),
       "Hurst parameter must be in (0, 1)"
     );
     assert!(
-      !(-1.0..=1.0).contains(&self.rho),
+      (-1.0..=1.0).contains(&self.rho),
       "Correlation coefficient must be in [-1, 1]"
     );
 

@@ -94,20 +94,17 @@ impl<D: ProcessDistribution> Sampling2D<f64> for Bates1996<D> {
     for i in 1..=self.n {
       let [.., jumps] = self.cpoisson.sample();
 
-      let sqrt_v = self
-        .use_sym
-        .unwrap_or(false)
-        .then(|| v[i - 1].abs())
-        .unwrap_or(v[i - 1].max(0.0))
-        .sqrt();
-
       s[i] = s[i - 1]
         + (drift - self.lambda * self.k) * s[i - 1] * dt
-        + s[i - 1] * sqrt_v * cgn1[i - 1]
+        + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1]
         + jumps.sum();
 
-      v[i] =
-        v[i - 1] + (self.alpha - self.beta * v[i - 1]) * dt + self.sigma * v[i - 1] * cgn2[i - 1];
+      let dv = (self.alpha - self.beta * v[i - 1]) * dt + self.sigma * v[i - 1] * cgn2[i - 1];
+
+      v[i] = match self.use_sym.unwrap_or(false) {
+        true => (v[i - 1] + dv).abs(),
+        false => (v[i - 1] + dv).max(0.0),
+      }
     }
 
     [s, v]

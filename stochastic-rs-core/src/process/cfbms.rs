@@ -40,18 +40,18 @@ impl Cfbms {
 impl Sampling2D<f64> for Cfbms {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
-      !(0.0..=1.0).contains(&self.hurst1),
+      (0.0..=1.0).contains(&self.hurst1),
       "Hurst parameter for the first fBM must be in (0, 1)"
     );
 
     if let Some(hurst2) = self.hurst2 {
       assert!(
-        !(0.0..=1.0).contains(&hurst2),
+        (0.0..=1.0).contains(&hurst2),
         "Hurst parameter for the second fBM must be in (0, 1)"
       );
     }
     assert!(
-      !(-1.0..=1.0).contains(&self.rho),
+      (-1.0..=1.0).contains(&self.rho),
       "Correlation coefficient must be in [-1, 1]"
     );
 
