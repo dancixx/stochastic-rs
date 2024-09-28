@@ -338,7 +338,7 @@ impl<'a> HestonCalibrator<'a> {
     };
 
     let n = impl_vol.len();
-    let delta = 10.0 / n as f64;
+    let delta = 1.0 / n as f64;
     let mut sum = [0.0; 6];
 
     for i in 1..n {
@@ -360,7 +360,7 @@ impl<'a> HestonCalibrator<'a> {
       // sum of sqrt(V_{i-1})
       sum[5] += impl_vol[i - 1].sqrt();
     }
-    println!("{:?}", sum);
+
     let P_hat = ((1.0 / n as f64) * sum[0] - (1.0 / n as f64).powi(2) * sum[1] * sum[3])
       / ((delta / 2.0) - (delta / 2.0) * (1.0 / n as f64).powi(2) * (1.0 / sum[3]) * sum[3]);
 
@@ -390,8 +390,8 @@ impl<'a> HestonCalibrator<'a> {
 
       prices
     };
-    let mut sum_dw1dw2 = 0.0;
 
+    let mut sum_dw1dw2 = 0.0;
     for i in 1..n {
       let dw1_i =
         (price[i].ln() - price[i - 1].ln() - (self.pricer.r - 0.5 * impl_vol[i - 1]) * delta)
@@ -506,41 +506,61 @@ mod tests {
       sigma: 0.5,
       mu: 2.0,
       n: 1000,
-      t: Some(10.0),
+      t: Some(1.0),
       use_sym: Some(true),
       m: None,
       cgns: Default::default(),
     });
-    let data = heston.sample();
-    let calibrator = HestonCalibrator::new(
-      HestonPricer {
-        s0: 100.0,
-        v0: 0.2,
-        k: 100.0,
-        r: 0.005,
-        q: 0.02,
-        rho: 0.005,
-        kappa: 1.0,
-        theta: 0.25,
-        sigma: 0.5,
-        lambda: Some(0.0),
-        tau: Some(ValueOrVec {
-          v: ManuallyDrop::new(majurities.clone()),
-        }), // Single f64 tau value
-        eval: None,
-        expiry: None,
-        prices: None,
-        derivates: None,
-      },
-      Yahoo::default(),
-      Some(data[0].to_vec()),
-      Some(data[1].to_vec()),
-    );
-    let guess = calibrator.initial_guess();
-    // [v0, theta, rho, kappa, sigma]
+
+    let mut data = vec![0.0, 0.0, 0.0, 0.0, 0.0];
+    let m = 500;
+    for _ in 0..m {
+      let heston = heston.sample();
+      let calibrator = HestonCalibrator::new(
+        HestonPricer {
+          s0: 100.0,
+          v0: 0.2,
+          k: 100.0,
+          r: 0.05,
+          q: 0.02,
+          rho: -0.8,
+          kappa: 1.0,
+          theta: 0.25,
+          sigma: 0.5,
+          lambda: Some(0.0),
+          tau: Some(ValueOrVec {
+            v: ManuallyDrop::new(majurities.clone()),
+          }), // Single f64 tau value
+          eval: None,
+          expiry: None,
+          prices: None,
+          derivates: None,
+        },
+        Yahoo::default(),
+        Some(heston[0].to_vec()),
+        Some(heston[1].to_vec()),
+      );
+      let guess = calibrator.initial_guess();
+      // [v0, theta, rho, kappa, sigma]
+      // println!(
+      //   "v0: {}, theta: {}, rho: {}, kappa: {}, sigma: {}",
+      //   guess[0], guess[1], guess[2], guess[3], guess[4]
+      // );
+
+      data[0] += guess[0];
+      data[1] += guess[1];
+      data[2] += guess[2];
+      data[3] += guess[3];
+      data[4] += guess[4];
+    }
+
     println!(
       "v0: {}, theta: {}, rho: {}, kappa: {}, sigma: {}",
-      guess[0], guess[1], guess[2], guess[3], guess[4]
+      data[0] / m as f64,
+      data[1] / m as f64,
+      data[2] / m as f64,
+      data[3] / m as f64,
+      data[4] / m as f64
     );
     //calibrator.calibrate();
   }

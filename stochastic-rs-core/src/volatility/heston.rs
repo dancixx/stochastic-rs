@@ -80,8 +80,7 @@ impl Sampling2D<f64> for Heston {
         false => (v[i - 1] + dv).max(0.0),
       }
     }
-    //println!("{:?}", s);
-    println!("{:?}", v);
+
     [s, v]
   }
 
@@ -91,5 +90,51 @@ impl Sampling2D<f64> for Heston {
 
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use plotly::{common::Line, Plot, Scatter};
+
+  use super::*;
+
+  #[test]
+  fn plot() {
+    let heston = Heston::new(&Heston {
+      s0: Some(0.05),
+      v0: Some(0.04),
+      kappa: 2.0,
+      theta: 0.04,
+      sigma: 0.1,
+      rho: -0.7,
+      mu: 0.05,
+      n: 1000,
+      t: Some(1.0),
+      use_sym: Some(true),
+      m: Some(1),
+      cgns: Cgns::default(),
+    });
+    let mut plot = Plot::new();
+    let [s, v] = heston.sample();
+    let price = Scatter::new((0..s.len()).collect::<Vec<_>>(), s.to_vec())
+      .mode(plotly::common::Mode::Lines)
+      .line(
+        Line::new()
+          .color("blue")
+          .shape(plotly::common::LineShape::Linear),
+      )
+      .name("Heston");
+    plot.add_trace(price);
+    let vol = Scatter::new((0..v.len()).collect::<Vec<_>>(), v.to_vec())
+      .mode(plotly::common::Mode::Lines)
+      .line(
+        Line::new()
+          .color("orange")
+          .shape(plotly::common::LineShape::Linear),
+      )
+      .name("Heston");
+    plot.add_trace(vol);
+    plot.show();
   }
 }
