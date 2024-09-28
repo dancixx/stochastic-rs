@@ -81,13 +81,13 @@ impl<'a> Yahoo<'a> {
 
     let history = res.quotes().unwrap();
     let df = df!(
-        "timestamp" => Series::new("timestamp".into(), &history.iter().map(|r| r.timestamp / 86_400).collect::<Vec<_>>()).cast(&DataType::Date).unwrap(),
-        "volume" => &history.iter().map(|r| r.volume).collect::<Vec<_>>(),
-        "open" => &history.iter().map(|r| r.open).collect::<Vec<_>>(),
-        "high" => &history.iter().map(|r| r.high).collect::<Vec<_>>(),
-        "low" => &history.iter().map(|r| r.low).collect::<Vec<_>>(),
-        "close" => &history.iter().map(|r| r.close).collect::<Vec<_>>(),
-        "adjclose" => &history.iter().map(|r| r.adjclose).collect::<Vec<_>>(),
+        "timestamp" => Series::new("timestamp".into(), &history.iter().map(|h| h.timestamp / 86_400).collect::<Vec<_>>()).cast(&DataType::Date).unwrap(),
+        "volume" => &history.iter().map(|h| h.volume).collect::<Vec<_>>(),
+        "open" => &history.iter().map(|h| h.open).collect::<Vec<_>>(),
+        "high" => &history.iter().map(|h| h.high).collect::<Vec<_>>(),
+        "low" => &history.iter().map(|h| h.low).collect::<Vec<_>>(),
+        "close" => &history.iter().map(|h| h.close).collect::<Vec<_>>(),
+        "adjclose" => &history.iter().map(|h| h.adjclose).collect::<Vec<_>>(),
     )
     .unwrap();
 
