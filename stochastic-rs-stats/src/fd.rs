@@ -33,9 +33,7 @@ impl FractalDim {
     let v1 = vp(sum1, 1, self.x.len());
     let v2 = vp(sum2, 2, self.x.len());
 
-    let d_vp = 2.0 - (1.0 / p) * ((v2.ln() - v1.ln()) / LN_2);
-
-    d_vp
+    2.0 - (1.0 / p) * ((v2.ln() - v1.ln()) / LN_2)
   }
 
   pub fn higuchi_fd(&self, kmax: usize) -> f64 {

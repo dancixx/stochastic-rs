@@ -57,7 +57,7 @@ impl<'a> Default for Yahoo<'a> {
 impl<'a> Yahoo<'a> {
   /// Set symbol
   pub fn set_symbol(&mut self, symbol: &'a str) {
-    self.symbol = Some(Cow::Borrowed(&symbol));
+    self.symbol = Some(Cow::Borrowed(symbol));
   }
 
   /// Set start date

@@ -24,7 +24,7 @@ yahoo_finance_api = "2.2.1"
 mimalloc = ["dep:mimalloc"]
 jemalloc = ["dep:tikv-jemallocator"]
 yahoo = []
-default = []
+default = ["yahoo"]
 
 [lib]
 name = "stochastic_rs_quant"
