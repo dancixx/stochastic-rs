@@ -1,11 +1,12 @@
-use std::{cell::RefCell, f64::consts::FRAC_1_PI, mem::ManuallyDrop};
+use std::{cell::RefCell, f64::consts::FRAC_1_PI};
 
+use either::Either;
 use levenberg_marquardt::LevenbergMarquardt;
 use nalgebra::DVector;
 use num_complex::Complex64;
 use quadrature::double_exponential;
 
-use crate::{volatility::Calibrator, yahoo::Yahoo, ValueOrVec};
+use crate::{volatility::Calibrator, yahoo::Yahoo};
 
 use super::Pricer;
 
@@ -32,66 +33,53 @@ pub struct HestonPricer {
   /// Market price of volatility risk
   pub lambda: Option<f64>,
   /// Time to maturity
-  pub tau: Option<ValueOrVec<f64>>,
+  pub tau: Option<Either<f64, Vec<f64>>>,
   /// Evaluation date
-  pub eval: Option<ValueOrVec<chrono::NaiveDate>>,
+  pub eval: Option<Either<chrono::NaiveDate, Vec<chrono::NaiveDate>>>,
   /// Expiration date
-  pub expiry: Option<ValueOrVec<chrono::NaiveDate>>,
+  pub expiry: Option<Either<chrono::NaiveDate, Vec<chrono::NaiveDate>>>,
   /// Prices of European call and put options
-  pub(crate) prices: Option<ValueOrVec<(f64, f64)>>,
+  pub(crate) prices: Option<Either<(f64, f64), Vec<(f64, f64)>>>,
   /// Partial derivative of the C function with respect to the parameters
-  pub(crate) derivates: Option<ValueOrVec<f64>>,
+  pub(crate) derivates: Option<Either<Vec<f64>, Vec<Vec<f64>>>>,
 }
 
 impl Pricer for HestonPricer {
   /// Calculate the price of a European call option using the Heston model
   /// https://quant.stackexchange.com/a/18686
-  fn calculate_price(&mut self) -> ValueOrVec<(f64, f64)> {
+  fn calculate_price(&mut self) -> Either<(f64, f64), Vec<(f64, f64)>> {
     if self.tau.is_none() && self.eval.is_none() && self.expiry.is_none() {
       panic!("At least 2 of tau, eval, and expiry must be provided");
     }
 
-    unsafe {
-      let tau = self.tau.as_ref().unwrap();
+    let tau = self.tau.as_ref().unwrap();
+    if tau.as_ref().right().is_none() {
+      let tau = tau.as_ref().left().unwrap();
 
-      if tau.v.is_empty() {
-        let tau = tau.x;
+      let call = self.s0 * (-self.q * tau).exp() * self.p(1, *tau)
+        - self.k * (-self.r * tau).exp() * self.p(2, *tau);
+      let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
 
-        let call = self.s0 * (-self.q * tau).exp() * self.p(1, tau)
-          - self.k * (-self.r * tau).exp() * self.p(2, tau);
+      self.prices = Some(Either::Left((call, put)));
+      self.derivates = Some(Either::Left(self.derivates(*tau)));
+      Either::Left((call, put))
+    } else {
+      let tau = tau.as_ref().right().unwrap();
+      let mut prices = Vec::with_capacity(tau.len());
+      let mut derivatives = Vec::with_capacity(tau.len());
+
+      for tau in tau.iter() {
+        let call = self.s0 * (-self.q * tau).exp() * self.p(1, *tau)
+          - self.k * (-self.r * tau).exp() * self.p(2, *tau);
         let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
 
-        self.prices = Some(ValueOrVec { x: (call, put) });
-        self.derivates = Some(ValueOrVec {
-          v: ManuallyDrop::new(self.derivates(tau)),
-        });
-        ValueOrVec { x: (call, put) }
-      } else {
-        let mut prices = Vec::with_capacity(tau.v.len());
-        let mut derivatives = Vec::with_capacity(tau.v.len());
-
-        for tau in tau.v.iter() {
-          let call = self.s0 * (-self.q * tau).exp() * self.p(1, *tau)
-            - self.k * (-self.r * tau).exp() * self.p(2, *tau);
-          let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
-
-          prices.push((call, put));
-          derivatives.push(self.derivates(*tau));
-        }
-
-        self.prices = Some(ValueOrVec {
-          v: ManuallyDrop::new(prices.clone()),
-        });
-
-        // Flatten the derivatives vector
-        self.derivates = Some(ValueOrVec {
-          v: ManuallyDrop::new(derivatives.into_iter().flatten().collect::<Vec<f64>>()),
-        });
-
-        ValueOrVec {
-          v: ManuallyDrop::new(prices),
-        }
+        prices.push((call, put));
+        derivatives.push(self.derivates(*tau));
       }
+
+      self.prices = Some(Either::Right(prices.clone()));
+      self.derivates = Some(Either::Right(derivatives));
+      Either::Right(prices)
     }
   }
 
@@ -105,12 +93,12 @@ impl Pricer for HestonPricer {
   }
 
   /// Prices.
-  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>> {
+  fn prices(&self) -> Option<Either<(f64, f64), Vec<(f64, f64)>>> {
     self.prices.clone()
   }
 
   /// Derivatives.
-  fn derivates(&self) -> Option<ValueOrVec<f64>> {
+  fn derivates(&self) -> Option<Either<Vec<f64>, Vec<Vec<f64>>>> {
     self.derivates.clone()
   }
 }
@@ -499,18 +487,17 @@ mod tests {
       theta: 0.05,
       sigma: 0.5,
       lambda: Some(0.0),
-      tau: Some(ValueOrVec { x: 0.5 }),
+      tau: Some(Either::Left(0.5)),
       ..Default::default()
     };
 
     let price = heston.calculate_price();
 
-    unsafe {
-      match price {
-        ValueOrVec { x: (call, put) } => {
-          println!("Call Price: {}, Put Price: {}", call, put);
-        }
+    match price {
+      Either::Left((call, put)) => {
+        println!("Call Price: {}, Put Price: {}", call, put);
       }
+      _ => panic!("Expected a single price"),
     }
   }
 
@@ -518,36 +505,33 @@ mod tests {
   fn test_heston_multi_price() {
     let mut heston = HestonPricer {
       s0: 100.0,
-      v0: 0.04,
+      v0: 0.05,
       k: 100.0,
-      r: 0.05,
+      r: 0.03,
       q: 0.02,
-      rho: -0.7,
-      kappa: 2.0,
-      theta: 0.04,
-      sigma: 0.3,
+      rho: -0.8,
+      kappa: 5.0,
+      theta: 0.05,
+      sigma: 0.5,
       lambda: Some(0.0),
-      tau: Some(ValueOrVec {
-        v: ManuallyDrop::new(vec![1.0, 2.0, 3.0]),
-      }),
+      tau: Some(Either::Right(vec![0.5, 1.0, 2.0, 3.0])),
       ..Default::default()
     };
 
     let price = heston.calculate_price();
 
-    unsafe {
-      match price {
-        ValueOrVec { v } => {
-          for (i, &(call, put)) in v.iter().enumerate() {
-            println!(
-              "Time to maturity {}: Call Price: {}, Put Price: {}",
-              i + 1,
-              call,
-              put
-            );
-          }
+    match price {
+      Either::Right(v) => {
+        for (i, &(call, put)) in v.iter().enumerate() {
+          println!(
+            "Time to maturity {}: Call Price: {}, Put Price: {}",
+            i + 1,
+            call,
+            put
+          );
         }
       }
+      _ => panic!("Expected multiple prices"),
     }
   }
 
@@ -561,13 +545,11 @@ mod tests {
       r: 0.05,
       q: 0.02,
       lambda: Some(0.0),
-      tau: Some(ValueOrVec {
-        v: ManuallyDrop::new(
-          (0..=100)
-            .map(|x| 0.5 + 0.1 * x as f64)
-            .collect::<Vec<f64>>(),
-        ),
-      }),
+      tau: Some(Either::Right(
+        (0..=100)
+          .map(|x| 0.5 + 0.1 * x as f64)
+          .collect::<Vec<f64>>(),
+      )),
       ..Default::default()
     });
     let yahoo = Yahoo::default();

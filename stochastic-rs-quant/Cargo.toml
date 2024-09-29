@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.38"
 dotenvy = "0.15.7"
+either = "1.13.0"
 levenberg-marquardt = "0.14.0"
 mimalloc = { version = "0.1.43", optional = true }
 nalgebra = "0.33.0"

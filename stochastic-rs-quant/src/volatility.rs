@@ -2,21 +2,20 @@ pub mod heston;
 
 use std::cell::RefCell;
 
+use either::Either;
 use levenberg_marquardt::LeastSquaresProblem;
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
-
-use crate::ValueOrVec;
 
 /// Pricer trait.
 pub(crate) trait Pricer {
   /// Calculate the price of an option.
-  fn calculate_price(&mut self) -> ValueOrVec<(f64, f64)>;
+  fn calculate_price(&mut self) -> Either<(f64, f64), Vec<(f64, f64)>>;
   /// Update the parameters.
   fn update_params(&mut self, params: DVector<f64>);
   /// Prices.
-  fn prices(&self) -> Option<ValueOrVec<(f64, f64)>>;
+  fn prices(&self) -> Option<Either<(f64, f64), Vec<(f64, f64)>>>;
   /// Derivatives.
-  fn derivates(&self) -> Option<ValueOrVec<f64>>;
+  fn derivates(&self) -> Option<Either<Vec<f64>, Vec<Vec<f64>>>>;
 }
 
 /// A calibrator.
@@ -62,7 +61,13 @@ where
   fn residuals(&self) -> Option<DVector<f64>> {
     self.pricer.borrow_mut().calculate_price();
     let options = self.pricer.borrow().prices().unwrap();
-    let calls = unsafe { options.v.clone().iter().map(|x| x.0).collect::<Vec<f64>>() };
+    let calls = options
+      .as_ref()
+      .right()
+      .unwrap()
+      .iter()
+      .map(|x| x.0)
+      .collect::<Vec<f64>>();
 
     let residuals = calls
       .iter()
@@ -75,7 +80,14 @@ where
 
   fn jacobian(&self) -> Option<DMatrix<f64>> {
     let derivates = self.pricer.borrow().derivates().unwrap();
-    let derivates = unsafe { derivates.v.clone().to_vec() };
+    let derivates = derivates
+      .as_ref()
+      .right()
+      .unwrap()
+      .iter()
+      .flatten()
+      .cloned()
+      .collect::<Vec<f64>>();
 
     // The Jacobian matrix is a matrix of partial derivatives
     // of the residuals with respect to the parameters.
