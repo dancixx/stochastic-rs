@@ -1,16 +1,12 @@
 use std::{cell::RefCell, f64::consts::FRAC_1_PI};
 
-use either::Either;
 use levenberg_marquardt::LevenbergMarquardt;
 use nalgebra::DVector;
 use num_complex::Complex64;
 use quadrature::double_exponential;
-use stochastic_rs_stats::mle::mle_heston;
+use stochastic_rs_stats::mle::nmle_heston;
 
-use crate::{
-  volatility::Calibrator,
-  yahoo::{OptionType, Yahoo},
-};
+use crate::{volatility::Calibrator, yahoo::OptionType};
 
 use super::Pricer;
 
@@ -37,54 +33,27 @@ pub struct HestonPricer {
   /// Market price of volatility risk
   pub lambda: Option<f64>,
   /// Time to maturity
-  pub tau: Option<Either<f64, Vec<f64>>>,
+  pub tau: f64,
   /// Evaluation date
-  pub eval: Option<Either<chrono::NaiveDate, Vec<chrono::NaiveDate>>>,
+  pub eval: Option<chrono::NaiveDate>,
   /// Expiration date
-  pub expiry: Option<Either<chrono::NaiveDate, Vec<chrono::NaiveDate>>>,
+  pub expiry: Option<chrono::NaiveDate>,
   /// Prices of European call and put options
-  pub(crate) prices: Option<Either<(f64, f64), Vec<(f64, f64)>>>,
+  pub(crate) prices: Option<(f64, f64)>,
   /// Partial derivative of the C function with respect to the parameters
-  pub(crate) derivates: Option<Either<Vec<f64>, Vec<Vec<f64>>>>,
+  pub(crate) derivates: Option<Vec<f64>>,
 }
 
 impl Pricer for HestonPricer {
   /// Calculate the price of a European call option using the Heston model
   /// https://quant.stackexchange.com/a/18686
-  fn calculate_price(&mut self) -> Either<(f64, f64), Vec<(f64, f64)>> {
-    if self.tau.is_none() && self.eval.is_none() && self.expiry.is_none() {
-      panic!("At least 2 of tau, eval, and expiry must be provided");
-    }
+  fn calculate_price(&mut self) {
+    let call = self.s0 * (-self.q * self.tau).exp() * self.p(1, self.tau)
+      - self.k * (-self.r * self.tau).exp() * self.p(2, self.tau);
+    let put = call + self.k * (-self.r * self.tau).exp() - self.s0 * (-self.q * self.tau).exp();
 
-    let tau = self.tau.as_ref().unwrap();
-    if tau.as_ref().right().is_none() {
-      let tau = tau.as_ref().left().unwrap();
-
-      let call = self.s0 * (-self.q * tau).exp() * self.p(1, *tau)
-        - self.k * (-self.r * tau).exp() * self.p(2, *tau);
-      let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
-
-      self.prices = Some(Either::Left((call, put)));
-      self.derivates = Some(Either::Left(self.derivates(*tau)));
-      Either::Left((call, put))
-    } else {
-      let tau = tau.as_ref().right().unwrap();
-      let mut prices = Vec::with_capacity(tau.len());
-      let mut derivatives = Vec::with_capacity(tau.len());
-
-      for tau in tau.iter() {
-        let call = self.s0 * (-self.q * tau).exp() * self.p(1, *tau)
-          - self.k * (-self.r * tau).exp() * self.p(2, *tau);
-        let put = call + self.k * (-self.r * tau).exp() - self.s0 * (-self.q * tau).exp();
-
-        prices.push((call, put));
-        derivatives.push(self.derivates(*tau));
-      }
-
-      self.prices = Some(Either::Right(prices.clone()));
-      self.derivates = Some(Either::Right(derivatives));
-      Either::Right(prices)
-    }
+    self.prices = Some((call, put));
+    self.derivates = Some(self.derivates(self.tau));
   }
 
   /// Update the parameters from the calibration
@@ -96,14 +65,19 @@ impl Pricer for HestonPricer {
     self.sigma = params[4];
   }
 
+  /// Update the strike price
+  fn update_strike(&mut self, k: f64) {
+    self.k = k;
+  }
+
   /// Prices.
-  fn prices(&self) -> Option<Either<(f64, f64), Vec<(f64, f64)>>> {
-    self.prices.clone()
+  fn prices(&self) -> (f64, f64) {
+    self.prices.unwrap()
   }
 
   /// Derivatives.
-  fn derivates(&self) -> Option<Either<Vec<f64>, Vec<Vec<f64>>>> {
-    self.derivates.clone()
+  fn derivates(&self) -> Vec<f64> {
+    self.derivates.clone().unwrap()
   }
 }
 
@@ -278,53 +252,66 @@ impl HestonPricer {
 }
 
 /// Heston calibrator
-pub struct HestonCalibrator<'a> {
-  /// Yahoo struct
-  pub yahoo: Option<Yahoo<'a>>,
+pub struct HestonCalibrator {
   /// Implied volatility vector
-  pub v: Option<Vec<f64>>,
-  /// Underlying asset prices vector
-  pub s: Option<Vec<f64>>,
+  pub v0: f64,
+  /// The un
+  pub s0: f64,
+  /// Strike price vector
+  pub k: Vec<f64>,
+  /// Risk-free rate
+  pub r: f64,
+  /// Dividend yield
+  pub q: Option<f64>,
   /// Option prices vector from the market
-  pub c: Option<Vec<f64>>,
+  pub c_market: Vec<f64>,
+  /// Option type
+  pub option_type: OptionType,
   /// Heston pricer
   pricer: HestonPricer,
   /// Initial guess for the calibration from the NMLE method
-  pub initial_guess: Option<DVector<f64>>,
-  /// Option type
-  pub option_type: Option<OptionType>,
+  initial_guess: Option<DVector<f64>>,
 }
 
-impl<'a> HestonCalibrator<'a> {
+impl HestonCalibrator {
   #[must_use]
   pub fn new(
+    v0: f64,
+    s0: f64,
+    k: Vec<f64>,
+    r: f64,
+    q: Option<f64>,
+    c_market: Vec<f64>,
     pricer: HestonPricer,
-    yahoo: Option<Yahoo<'a>>,
-    v: Option<Vec<f64>>,
-    s: Option<Vec<f64>>,
-    c: Option<Vec<f64>>,
-    option_type: Option<OptionType>,
+    option_type: OptionType,
   ) -> Self {
     Self {
-      pricer,
-      yahoo,
-      v,
-      s,
-      c,
+      v0,
+      s0,
+      k,
+      r,
+      q,
+      c_market,
       option_type,
+      pricer,
       initial_guess: None,
     }
   }
 
   pub fn calibrate(&mut self) {
-    self.initial_guess();
-
     // Overwrite the pricer with the initial guess
-    self.pricer.v0 = self.initial_guess.as_ref().unwrap()[0];
-    self.pricer.theta = self.initial_guess.as_ref().unwrap()[1];
-    self.pricer.rho = self.initial_guess.as_ref().unwrap()[2];
-    self.pricer.kappa = self.initial_guess.as_ref().unwrap()[3];
-    self.pricer.sigma = self.initial_guess.as_ref().unwrap()[4];
+    self.pricer.s0 = self.s0;
+    self.pricer.r = self.r;
+    self.pricer.q = self.q.unwrap_or(0.0);
+    self.pricer.k = self.k[0];
+
+    if self.initial_guess.is_some() {
+      self.pricer.v0 = self.initial_guess.as_ref().unwrap()[0];
+      self.pricer.theta = self.initial_guess.as_ref().unwrap()[1];
+      self.pricer.rho = self.initial_guess.as_ref().unwrap()[2];
+      self.pricer.kappa = self.initial_guess.as_ref().unwrap()[3];
+      self.pricer.sigma = self.initial_guess.as_ref().unwrap()[4];
+    }
 
     // Print the initial guess
     println!(
@@ -339,7 +326,9 @@ impl<'a> HestonCalibrator<'a> {
     let pricer = RefCell::new(self.pricer.clone());
     let (result, report) = LevenbergMarquardt::new().minimize(Calibrator::new(
       self.initial_guess.as_ref().unwrap().clone(),
-      Some(DVector::from_vec(self.c.as_ref().unwrap().clone())),
+      self.c_market.clone(),
+      self.k.clone(),
+      &self.option_type,
       &pricer,
     ));
 
@@ -358,88 +347,38 @@ impl<'a> HestonCalibrator<'a> {
       "Calibrated parameters: v0: {}, theta: {}, rho: {}, kappa: {}, sigma {}",
       self.pricer.v0, self.pricer.theta, self.pricer.rho, self.pricer.kappa, self.pricer.sigma
     );
+  }
 
-    // Calculate the price of the options using the calibrated parameters
-    self.pricer.calculate_price();
+  /// Returns the calibrated Heston pricer
+  pub fn pricer(&self) -> HestonPricer {
+    self.pricer.clone()
+  }
+
+  /// Returns the calibrated parameters
+  /// v0, theta, rho, kappa, sigma
+  pub fn params(&self) -> DVector<f64> {
+    DVector::from_vec(vec![
+      self.pricer.v0,
+      self.pricer.theta,
+      self.pricer.rho,
+      self.pricer.kappa,
+      self.pricer.sigma,
+    ])
   }
 
   /// Initial guess for the calibration
   /// http://scis.scichina.com/en/2018/042202.pdf
   ///
   /// Using NMLE (Normal Maximum Likelihood Estimation) method
-  fn initial_guess(&mut self) {
-    if self.v.is_none() && self.c.is_none() {
-      let yahoo = self.yahoo.as_mut().unwrap();
-      // get options chain from yahoo
-      yahoo.get_options_chain(self.option_type.as_ref().unwrap_or(&OptionType::Call));
-      yahoo.get_price_history();
-      let options = yahoo.options.as_ref().unwrap();
-      // get impl_volatities col from options
-      let v = options.select(["implied_volatility"]).unwrap();
-      // convert to vec
-      let v = v
-        .select_at_idx(0)
-        .unwrap()
-        .f64()
-        .unwrap()
-        .into_no_null_iter()
-        .collect::<Vec<f64>>();
-      self.v = Some(v.clone());
-
-      // set tau based on the options chain
-      let tau = options
-        .select(["expiration"])
-        .unwrap()
-        .select_at_idx(0)
-        .unwrap()
-        .u64()
-        .unwrap()
-        .into_no_null_iter()
-        .collect::<Vec<u64>>();
-      // convert to years the epoch time
-      let tau = tau
-        .iter()
-        .map(|x| (*x as f64 - chrono::Local::now().timestamp() as f64) / 31536000.0)
-        .collect::<Vec<f64>>();
-      self.pricer.tau = Some(Either::Right(tau));
-
-      let c = options.select(["last_price"]).unwrap();
-      let c = c
-        .select_at_idx(0)
-        .unwrap()
-        .f64()
-        .unwrap()
-        .into_no_null_iter()
-        .collect::<Vec<f64>>();
-      self.c = Some(c);
-
-      let s = yahoo
-        .price_history
-        .as_ref()
-        .unwrap()
-        .select(["close"])
-        .unwrap();
-      let s = s
-        .select_at_idx(0)
-        .unwrap()
-        .f64()
-        .unwrap()
-        .into_no_null_iter()
-        .collect::<Vec<f64>>();
-      self.s = Some(s);
-    };
-
-    let params = mle_heston(
-      self.s.as_ref().unwrap().clone(),
-      self.v.as_ref().unwrap().clone(),
-      self.pricer.r,
-    );
-    self.initial_guess = Some(DVector::from_vec(params));
+  pub fn initial_guess(&mut self, s: Vec<f64>, v: Vec<f64>, r: f64) {
+    self.initial_guess = Some(DVector::from_vec(nmle_heston(s, v, r)));
   }
 }
 
 #[cfg(test)]
 mod tests {
+  use crate::yahoo::Yahoo;
+
   use super::*;
 
   #[test]
@@ -455,73 +394,113 @@ mod tests {
       theta: 0.05,
       sigma: 0.5,
       lambda: Some(0.0),
-      tau: Some(Either::Left(0.5)),
+      tau: 0.5,
       ..Default::default()
     };
 
-    let price = heston.calculate_price();
-
-    match price {
-      Either::Left((call, put)) => {
-        println!("Call Price: {}, Put Price: {}", call, put);
-      }
-      _ => panic!("Expected a single price"),
-    }
+    heston.calculate_price();
+    let (call, put) = heston.prices();
+    println!("Call Price: {}, Put Price: {}", call, put);
   }
 
   #[test]
   fn test_heston_multi_price() {
-    let mut heston = HestonPricer {
-      s0: 100.0,
-      v0: 0.05,
-      k: 100.0,
-      r: 0.03,
-      q: 0.02,
-      rho: -0.8,
-      kappa: 5.0,
-      theta: 0.05,
-      sigma: 0.5,
-      lambda: Some(0.0),
-      tau: Some(Either::Right(vec![0.5, 1.0, 2.0, 3.0])),
-      ..Default::default()
-    };
+    let taus = vec![0.5, 1.0, 2.0, 3.0];
 
-    let price = heston.calculate_price();
+    for tau in taus {
+      let mut heston = HestonPricer {
+        s0: 100.0,
+        v0: 0.05,
+        k: 100.0,
+        r: 0.03,
+        q: 0.02,
+        rho: -0.8,
+        kappa: 5.0,
+        theta: 0.05,
+        sigma: 0.5,
+        lambda: Some(0.0),
+        tau,
+        ..Default::default()
+      };
 
-    match price {
-      Either::Right(v) => {
-        for (i, &(call, put)) in v.iter().enumerate() {
-          println!(
-            "Time to maturity {}: Call Price: {}, Put Price: {}",
-            i + 1,
-            call,
-            put
-          );
-        }
-      }
-      _ => panic!("Expected multiple prices"),
+      heston.calculate_price();
+      let (call, put) = heston.prices();
+      println!(
+        "Time to maturity {}: Call Price: {}, Put Price: {}",
+        tau, call, put
+      );
     }
   }
 
   #[test]
   fn test_heston_calibrate() {
-    let pricer = HestonPricer::new(&HestonPricer {
-      s0: 100.0,
-      v0: 0.2,
-      k: 100.0,
-      r: 0.05,
-      q: 0.02,
-      lambda: Some(0.0),
-      tau: Some(Either::Right(
-        (0..=100)
-          .map(|x| 0.5 + 0.1 * x as f64)
-          .collect::<Vec<f64>>(),
-      )),
-      ..Default::default()
-    });
     let mut yahoo = Yahoo::default();
     yahoo.set_symbol("GOOG");
-    let mut calibrator = HestonCalibrator::new(pricer, Some(yahoo), None, None, None, None);
+    yahoo.get_options_chain(&OptionType::Call);
+    yahoo.get_price_history();
+    let options = yahoo.options.as_ref().unwrap();
+
+    // Implied volatility
+    let v = options.select(["implied_volatility"]).unwrap();
+    let v = v
+      .select_at_idx(0)
+      .unwrap()
+      .f64()
+      .unwrap()
+      .into_no_null_iter()
+      .collect::<Vec<f64>>();
+
+    // Get Price history
+    let price_history = yahoo.price_history.as_ref().unwrap();
+    let s = price_history.select(["close"]).unwrap();
+    let s = s
+      .select_at_idx(0)
+      .unwrap()
+      .f64()
+      .unwrap()
+      .into_no_null_iter()
+      .collect::<Vec<f64>>();
+
+    // convert to years the epoch time
+    let tau = (yahoo.options_chain.as_ref().unwrap().option_chain.result[0].options[0]
+      .expiration_date as f64
+      - chrono::Local::now().timestamp() as f64)
+      / 31536000.0;
+    let s0 = yahoo.options_chain.as_ref().unwrap().option_chain.result[0]
+      .quote
+      .regular_market_price;
+
+    let c_market = options.select(["last_price"]).unwrap();
+    let c_market = c_market
+      .select_at_idx(0)
+      .unwrap()
+      .f64()
+      .unwrap()
+      .into_no_null_iter()
+      .collect::<Vec<f64>>();
+
+    let k = options.select(["strike"]).unwrap();
+    let k = k
+      .select_at_idx(0)
+      .unwrap()
+      .f64()
+      .unwrap()
+      .into_no_null_iter()
+      .collect::<Vec<f64>>();
+
+    let r = 0.05;
+    let pricer = HestonPricer::new(&HestonPricer {
+      r,
+      q: 0.02,
+      tau,
+      s0,
+      lambda: Some(0.0),
+      ..Default::default()
+    });
+
+    let mut calibrator =
+      HestonCalibrator::new(v[0], s0, k, 0.05, None, c_market, pricer, OptionType::Call);
+    calibrator.initial_guess(s, v, r);
     calibrator.calibrate();
   }
 }

@@ -2,20 +2,23 @@ pub mod heston;
 
 use std::cell::RefCell;
 
-use either::Either;
 use levenberg_marquardt::LeastSquaresProblem;
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
+
+use crate::yahoo::OptionType;
 
 /// Pricer trait.
 pub(crate) trait Pricer {
   /// Calculate the price of an option.
-  fn calculate_price(&mut self) -> Either<(f64, f64), Vec<(f64, f64)>>;
+  fn calculate_price(&mut self);
   /// Update the parameters.
   fn update_params(&mut self, params: DVector<f64>);
+  /// Update strike price.
+  fn update_strike(&mut self, k: f64);
   /// Prices.
-  fn prices(&self) -> Option<Either<(f64, f64), Vec<(f64, f64)>>>;
+  fn prices(&self) -> (f64, f64);
   /// Derivatives.
-  fn derivates(&self) -> Option<Either<Vec<f64>, Vec<Vec<f64>>>>;
+  fn derivates(&self) -> Vec<f64>;
 }
 
 /// A calibrator.
@@ -26,9 +29,15 @@ where
   /// Params to calibrate.
   pub params: DVector<f64>,
   /// Option prices from the market.
-  pub c: Option<DVector<f64>>,
+  pub c_market: DVector<f64>,
+  /// Strike price vector.
+  pub k: DVector<f64>,
+  /// Option type
+  pub option_type: &'a OptionType,
   /// Pricer backend.
   pricer: &'a RefCell<P>,
+  /// Derivate matrix.
+  derivates: RefCell<Vec<Vec<f64>>>,
 }
 
 impl<'a, P> Calibrator<'a, P>
@@ -36,8 +45,21 @@ where
   P: Pricer,
 {
   #[must_use]
-  pub(crate) fn new(params: DVector<f64>, c: Option<DVector<f64>>, pricer: &'a RefCell<P>) -> Self {
-    Self { params, c, pricer }
+  pub(crate) fn new(
+    params: DVector<f64>,
+    c_market: Vec<f64>,
+    k: Vec<f64>,
+    option_type: &'a OptionType,
+    pricer: &'a RefCell<P>,
+  ) -> Self {
+    Self {
+      params,
+      c_market: DVector::from_vec(c_market),
+      k: DVector::from_vec(k),
+      option_type,
+      pricer,
+      derivates: RefCell::new(Vec::new()),
+    }
   }
 }
 
@@ -60,38 +82,39 @@ where
 
   fn residuals(&self) -> Option<DVector<f64>> {
     self.pricer.borrow_mut().calculate_price();
-    let options = self.pricer.borrow().prices().unwrap();
-    let calls = options
-      .as_ref()
-      .right()
-      .unwrap()
-      .iter()
-      .map(|x| x.0)
-      .collect::<Vec<f64>>();
+    let mut c_model = DVector::zeros(self.c_market.len());
+    let mut derivates = Vec::new();
 
-    let residuals = calls
-      .iter()
-      .zip(self.c.as_ref().unwrap().iter())
-      .map(|(x, y)| x - y)
-      .collect::<Vec<f64>>();
+    for i in 0..c_model.len() {
+      self.pricer.borrow_mut().update_strike(self.k[i]);
+      self.pricer.borrow_mut().calculate_price();
+      let (c, p) = self.pricer.borrow().prices();
 
-    Some(DVector::from_vec(residuals))
+      if self.option_type == &OptionType::Call {
+        c_model[i] = c;
+      } else {
+        c_model[i] = p;
+      }
+
+      derivates.push(self.pricer.borrow().derivates());
+    }
+
+    self.derivates.replace(derivates);
+    Some(c_model - self.c_market.clone())
   }
 
   fn jacobian(&self) -> Option<DMatrix<f64>> {
-    let derivates = self.pricer.borrow().derivates().unwrap();
-    let derivates = derivates
-      .as_ref()
-      .right()
-      .unwrap()
-      .iter()
-      .flatten()
-      .cloned()
-      .collect::<Vec<f64>>();
+    let derivates = self.derivates.borrow();
+    let derivates = derivates.iter().flatten().cloned().collect::<Vec<f64>>();
+    println!("{:?}", derivates.len());
 
     // The Jacobian matrix is a matrix of partial derivatives
     // of the residuals with respect to the parameters.
-    let jacobian = DMatrix::from_vec(derivates.len() / self.params.len(), 5, derivates);
+    let jacobian = DMatrix::from_vec(
+      derivates.len() / self.params.len(),
+      self.params.len(),
+      derivates,
+    );
     Some(jacobian)
   }
 }

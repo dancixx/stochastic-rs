@@ -3,7 +3,7 @@ use std::{borrow::Cow, fmt::Display};
 use polars::prelude::*;
 use time::OffsetDateTime;
 use tokio_test;
-use yahoo_finance_api::YahooConnector;
+use yahoo_finance_api::{YOptionChain, YahooConnector};
 
 /// Yahoo struct
 pub struct Yahoo<'a> {
@@ -17,6 +17,8 @@ pub struct Yahoo<'a> {
   pub(crate) end_date: Option<OffsetDateTime>,
   /// Options
   pub options: Option<DataFrame>,
+  /// Yahoo options chain response
+  pub options_chain: Option<YOptionChain>,
   /// Price history
   pub price_history: Option<DataFrame>,
   /// Returns
@@ -29,6 +31,7 @@ pub enum ReturnType {
   Absolute,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum OptionType {
   Call,
   Put,
@@ -53,6 +56,7 @@ impl<'a> Default for Yahoo<'a> {
       start_date: Some(OffsetDateTime::UNIX_EPOCH),
       end_date: Some(OffsetDateTime::now_utc()),
       options: None,
+      options_chain: None,
       price_history: None,
       returns: None,
     }
@@ -107,9 +111,10 @@ impl<'a> Yahoo<'a> {
         .search_options(self.symbol.as_deref().unwrap()),
     )
     .unwrap();
+    let options = &res.option_chain.result[0].options[0];
     let options = match option_type {
-      OptionType::Call => res.calls,
-      OptionType::Put => res.puts,
+      OptionType::Call => &options.calls,
+      OptionType::Put => &options.puts,
     };
 
     let df = df!(
@@ -131,6 +136,7 @@ impl<'a> Yahoo<'a> {
     )
     .unwrap();
 
+    self.options_chain = Some(res);
     self.options = Some(df);
   }
 

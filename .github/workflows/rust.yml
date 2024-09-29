@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y gcc gobjc
+      run: sudo apt-get update && sudo apt-get install -y gcc gobjc libobjc-12-dev
 
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
@@ -28,7 +28,7 @@ jobs:
         override: true
 
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --release
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test
