@@ -1,6 +1,6 @@
 [package]
 name = "stochastic-rs-stats"
-version = "0.1.2"
+version = "0.1.4"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for the statistical analysis of stochastic processes"
