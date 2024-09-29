@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::too_many_arguments)]
 
 pub mod volatility;
 #[cfg(feature = "yahoo")]
