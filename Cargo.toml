@@ -1,5 +1,6 @@
 [workspace]
-members = [ "stochastic-rs-ai",
+members = [ 
+    #"stochastic-rs-ai",
     "stochastic-rs-core",
     "stochastic-rs-quant",
     "stochastic-rs-stats",
