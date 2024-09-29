@@ -5,8 +5,12 @@ use levenberg_marquardt::LevenbergMarquardt;
 use nalgebra::DVector;
 use num_complex::Complex64;
 use quadrature::double_exponential;
+use stochastic_rs_stats::mle::mle_heston;
 
-use crate::{volatility::Calibrator, yahoo::Yahoo};
+use crate::{
+  volatility::Calibrator,
+  yahoo::{OptionType, Yahoo},
+};
 
 use super::Pricer;
 
@@ -287,6 +291,8 @@ pub struct HestonCalibrator<'a> {
   pricer: HestonPricer,
   /// Initial guess for the calibration from the NMLE method
   pub initial_guess: Option<DVector<f64>>,
+  /// Option type
+  pub option_type: Option<OptionType>,
 }
 
 impl<'a> HestonCalibrator<'a> {
@@ -297,6 +303,7 @@ impl<'a> HestonCalibrator<'a> {
     v: Option<Vec<f64>>,
     s: Option<Vec<f64>>,
     c: Option<Vec<f64>>,
+    option_type: Option<OptionType>,
   ) -> Self {
     Self {
       pricer,
@@ -304,14 +311,12 @@ impl<'a> HestonCalibrator<'a> {
       v,
       s,
       c,
+      option_type,
       initial_guess: None,
     }
   }
 
   pub fn calibrate(&mut self) {
-    if (self.c.is_none() && self.v.is_none()) || self.yahoo.is_none() {
-      panic!("Yahoo struct or s and v must be provided");
-    }
     self.initial_guess();
 
     // Overwrite the pricer with the initial guess
@@ -332,11 +337,14 @@ impl<'a> HestonCalibrator<'a> {
 
     // Calibrate the Heston model
     let pricer = RefCell::new(self.pricer.clone());
-    let (result, ..) = LevenbergMarquardt::new().minimize(Calibrator::new(
+    let (result, report) = LevenbergMarquardt::new().minimize(Calibrator::new(
       self.initial_guess.as_ref().unwrap().clone(),
       Some(DVector::from_vec(self.c.as_ref().unwrap().clone())),
       &pricer,
     ));
+
+    // Print the result of the calibration
+    println!("Calibration report: {:?}", report);
 
     // Overwrite the pricer with the calibrated parameters
     self.pricer.v0 = result.params[0];
@@ -363,20 +371,37 @@ impl<'a> HestonCalibrator<'a> {
     if self.v.is_none() && self.c.is_none() {
       let yahoo = self.yahoo.as_mut().unwrap();
       // get options chain from yahoo
-      yahoo.get_options_chain();
+      yahoo.get_options_chain(self.option_type.as_ref().unwrap_or(&OptionType::Call));
       yahoo.get_price_history();
       let options = yahoo.options.as_ref().unwrap();
       // get impl_volatities col from options
-      let impl_vol = options.select(["impl_volatility"]).unwrap();
+      let v = options.select(["implied_volatility"]).unwrap();
       // convert to vec
-      let impl_vol = impl_vol
+      let v = v
         .select_at_idx(0)
         .unwrap()
         .f64()
         .unwrap()
         .into_no_null_iter()
         .collect::<Vec<f64>>();
-      self.v = Some(impl_vol.clone());
+      self.v = Some(v.clone());
+
+      // set tau based on the options chain
+      let tau = options
+        .select(["expiration"])
+        .unwrap()
+        .select_at_idx(0)
+        .unwrap()
+        .u64()
+        .unwrap()
+        .into_no_null_iter()
+        .collect::<Vec<u64>>();
+      // convert to years the epoch time
+      let tau = tau
+        .iter()
+        .map(|x| (*x as f64 - chrono::Local::now().timestamp() as f64) / 31536000.0)
+        .collect::<Vec<f64>>();
+      self.pricer.tau = Some(Either::Right(tau));
 
       let c = options.select(["last_price"]).unwrap();
       let c = c
@@ -404,74 +429,17 @@ impl<'a> HestonCalibrator<'a> {
       self.s = Some(s);
     };
 
-    let impl_vol = self.v.as_ref().unwrap();
-    let n = impl_vol.len();
-    let delta = 1.0 / n as f64;
-    let mut sum = [0.0; 6];
-
-    for i in 1..n {
-      // sum of sqrt(V_i * V_{i-1})
-      sum[0] += (impl_vol[i] * impl_vol[i - 1]).sqrt();
-
-      // sum of sqrt(V_i / V_{i-1})
-      sum[1] += (impl_vol[i] / impl_vol[i - 1]).sqrt();
-
-      // sum of V_i
-      sum[2] += impl_vol[i];
-
-      // sum of V_{i-1}
-      sum[3] += impl_vol[i - 1];
-
-      // sum of sqrt(V_i)
-      sum[4] += impl_vol[i].sqrt();
-
-      // sum of sqrt(V_{i-1})
-      sum[5] += impl_vol[i - 1].sqrt();
-    }
-
-    let P_hat = ((1.0 / n as f64) * sum[0] - (1.0 / n as f64).powi(2) * sum[1] * sum[3])
-      / ((delta / 2.0) - (delta / 2.0) * (1.0 / n as f64).powi(2) * (1.0 / sum[3]) * sum[3]);
-
-    let kappa_hat = (2.0 / delta)
-      * (1.0 + (P_hat * delta / 2.0) * (1.0 / n as f64) * (1.0 / sum[3])
-        - (1.0 / n as f64) * sum[1]);
-
-    let sigma_hat = ((4.0 / delta)
-      * (1.0 / n as f64)
-      * (sum[4] - sum[5] - (delta / (2.0 * sum[5])) * (P_hat - kappa_hat * sum[3])).powi(2))
-    .sqrt();
-
-    let theta_hat = (P_hat + 0.25 * sigma_hat.powi(2)) / kappa_hat;
-
-    let s = self.s.as_ref().unwrap();
-    let mut sum_dw1dw2 = 0.0;
-    for i in 1..n {
-      let dw1_i = (s[i].ln() - s[i - 1].ln() - (self.pricer.r - 0.5 * impl_vol[i - 1]) * delta)
-        / impl_vol[i - 1].sqrt();
-      let dw2_i =
-        (impl_vol[i] - impl_vol[i - 1] - kappa_hat * (theta_hat - impl_vol[i - 1]) * delta)
-          / (sigma_hat * impl_vol[i - 1].sqrt());
-
-      sum_dw1dw2 += dw1_i * dw2_i;
-    }
-
-    let rho_hat = sum_dw1dw2 / (n as f64 * delta);
-
-    self.initial_guess = Some(DVector::from_vec(vec![
-      self.pricer.v0,
-      theta_hat,
-      rho_hat,
-      kappa_hat,
-      sigma_hat,
-    ]));
+    let params = mle_heston(
+      self.s.as_ref().unwrap().clone(),
+      self.v.as_ref().unwrap().clone(),
+      self.pricer.r,
+    );
+    self.initial_guess = Some(DVector::from_vec(params));
   }
 }
 
 #[cfg(test)]
 mod tests {
-  use rand_distr::{Distribution, Normal};
-  use stochastic_rs::{volatility::heston::Heston, Sampling2D};
-
   use super::*;
 
   #[test]
@@ -537,7 +505,6 @@ mod tests {
 
   #[test]
   fn test_heston_calibrate() {
-    // Calculate the initial guess for the calibration
     let pricer = HestonPricer::new(&HestonPricer {
       s0: 100.0,
       v0: 0.2,
@@ -552,34 +519,9 @@ mod tests {
       )),
       ..Default::default()
     });
-    let yahoo = Yahoo::default();
-    let model = Heston::new(&Heston {
-      s0: Some(100.0),
-      v0: Some(0.2),
-      rho: -0.8,
-      kappa: 1.0,
-      theta: 0.25,
-      sigma: 0.5,
-      mu: 2.0,
-      n: 1000,
-      t: Some(1.0),
-      use_sym: Some(true),
-      ..Default::default()
-    });
-    let [s, v] = model.sample();
-    let mut calibrator = HestonCalibrator::new(
-      pricer,
-      Some(yahoo),
-      Some(v.to_vec()),
-      Some(s.to_vec()),
-      Some(
-        Normal::new(25.0, 12.0)
-          .unwrap()
-          .sample_iter(rand::thread_rng())
-          .take(1000)
-          .collect::<Vec<f64>>(),
-      ),
-    );
+    let mut yahoo = Yahoo::default();
+    yahoo.set_symbol("GOOG");
+    let mut calibrator = HestonCalibrator::new(pricer, Some(yahoo), None, None, None, None);
     calibrator.calibrate();
   }
 }

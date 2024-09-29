@@ -29,6 +29,11 @@ pub enum ReturnType {
   Absolute,
 }
 
+pub enum OptionType {
+  Call,
+  Put,
+}
+
 impl Display for ReturnType {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
@@ -95,27 +100,36 @@ impl<'a> Yahoo<'a> {
   }
 
   /// Get options for symbol
-  pub fn get_options_chain(&mut self) {
+  pub fn get_options_chain(&mut self, option_type: &OptionType) {
     let res = tokio_test::block_on(
       self
         .provider
         .search_options(self.symbol.as_deref().unwrap()),
     )
     .unwrap();
+    let options = match option_type {
+      OptionType::Call => res.calls,
+      OptionType::Put => res.puts,
+    };
 
     let df = df!(
-        "name" => &res.options.iter().map(|o| o.name.clone()).collect::<Vec<_>>(),
-        "strike" => &res.options.iter().map(|o| o.strike).collect::<Vec<_>>(),
-        "last_trade_date" => &res.options.iter().map(|o| o.last_trade_date.clone()).collect::<Vec<_>>(),
-        "last_price" => &res.options.iter().map(|o| o.last_price).collect::<Vec<_>>(),
-        "bid" => &res.options.iter().map(|o| o.bid).collect::<Vec<_>>(),
-        "ask" => &res.options.iter().map(|o| o.ask).collect::<Vec<_>>(),
-        "change" => &res.options.iter().map(|o| o.change).collect::<Vec<_>>(),
-        "change_pct" => &res.options.iter().map(|o| o.change_pct).collect::<Vec<_>>(),
-        "volume" => &res.options.iter().map(|o| o.volume as u64).collect::<Vec<_>>(),
-        "open_interest" => &res.options.iter().map(|o| o.open_interest as u64).collect::<Vec<_>>(),
-        "impl_volatility" => &res.options.iter().map(|o| o.impl_volatility).collect::<Vec<_>>(),
-    ).unwrap();
+        "contract_symbol" => &options.iter().map(|o| o.contract_symbol.clone()).collect::<Vec<_>>(),
+        "strike" => &options.iter().map(|o| o.strike).collect::<Vec<_>>(),
+        "currency" => &options.iter().map(|o| o.currency.clone()).collect::<Vec<_>>(),
+        "last_price" => &options.iter().map(|o| o.last_price).collect::<Vec<_>>(),
+        "change" => &options.iter().map(|o| o.change).collect::<Vec<_>>(),
+        "percent_change" => &options.iter().map(|o| o.percent_change).collect::<Vec<_>>(),
+        "volume" => &options.iter().map(|o| o.volume).collect::<Vec<_>>(),
+        "open_interest" => &options.iter().map(|o| o.open_interest).collect::<Vec<_>>(),
+        "bid" => &options.iter().map(|o| o.bid).collect::<Vec<_>>(),
+        "ask" => &options.iter().map(|o| o.ask).collect::<Vec<_>>(),
+        "contract_size" => &options.iter().map(|o| o.contract_size.clone()).collect::<Vec<_>>(),
+        "expiration" => &options.iter().map(|o| o.expiration).collect::<Vec<_>>(),
+        "last_trade_date" => &options.iter().map(|o| o.last_trade_date).collect::<Vec<_>>(),
+        "implied_volatility" => &options.iter().map(|o| o.implied_volatility).collect::<Vec<_>>(),
+        "in_the_money" => &options.iter().map(|o| o.in_the_money).collect::<Vec<_>>()
+    )
+    .unwrap();
 
     self.options = Some(df);
   }
@@ -209,7 +223,7 @@ mod tests {
   fn test_yahoo_get_options_chain() {
     let mut yahoo = Yahoo::default();
     yahoo.set_symbol("AAPL");
-    yahoo.get_options_chain();
+    yahoo.get_options_chain(&OptionType::Call);
     println!("{:?}", yahoo.options);
     assert!(yahoo.options.is_some());
   }

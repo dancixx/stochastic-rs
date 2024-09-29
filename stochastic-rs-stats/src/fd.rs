@@ -3,6 +3,7 @@ use std::f64::consts::LN_2;
 use linreg::linear_regression;
 use ndarray::Array1;
 
+/// Fractal dimension.
 pub struct FractalDim {
   pub x: Array1<f64>,
 }
@@ -13,6 +14,7 @@ impl FractalDim {
     Self { x }
   }
 
+  /// Calculate the variogram of the path.
   pub fn variogram(&self, p: Option<f64>) -> f64 {
     if self.x.len() < 3 {
       panic!("A path hossza legalább 3 kell, hogy legyen.");
@@ -36,6 +38,7 @@ impl FractalDim {
     2.0 - (1.0 / p) * ((v2.ln() - v1.ln()) / LN_2)
   }
 
+  /// Calculate the Higuchi fractal dimension of the path.
   pub fn higuchi_fd(&self, kmax: usize) -> f64 {
     let n_times = self.x.len();
 
