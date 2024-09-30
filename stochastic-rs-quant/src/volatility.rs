@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use levenberg_marquardt::LeastSquaresProblem;
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
 
-use crate::yahoo::OptionType;
+use crate::OptionType;
 
 /// Pricer trait.
 pub(crate) trait Pricer {

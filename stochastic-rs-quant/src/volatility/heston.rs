@@ -6,7 +6,7 @@ use num_complex::Complex64;
 use quadrature::double_exponential;
 use stochastic_rs_stats::mle::nmle_heston;
 
-use crate::{volatility::Calibrator, yahoo::OptionType};
+use crate::{volatility::Calibrator, OptionType};
 
 use super::Pricer;
 

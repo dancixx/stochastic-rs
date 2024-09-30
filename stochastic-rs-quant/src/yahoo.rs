@@ -5,6 +5,8 @@ use time::OffsetDateTime;
 use tokio_test;
 use yahoo_finance_api::{YOptionChain, YahooConnector};
 
+use crate::OptionType;
+
 /// Yahoo struct
 pub struct Yahoo<'a> {
   /// YahooConnector
@@ -29,12 +31,6 @@ pub enum ReturnType {
   Arithmetic,
   Logarithmic,
   Absolute,
-}
-
-#[derive(PartialEq, Eq)]
-pub enum OptionType {
-  Call,
-  Put,
 }
 
 impl Display for ReturnType {
