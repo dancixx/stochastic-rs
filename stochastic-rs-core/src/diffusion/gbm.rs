@@ -17,7 +17,7 @@ pub struct Gbm {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub(self) distribution: Option<LogNormal>,
+  pub distribution: Option<LogNormal>,
 }
 
 impl Gbm {
@@ -58,15 +58,15 @@ impl Sampling<f64> for Gbm {
     self.m
   }
 
+  #[must_use]
   fn distribution(&mut self) {
     let mu = self.x0.unwrap() * (self.mu * self.t.unwrap()).exp();
     let sigma = (self.x0.unwrap().powi(2)
       * (2.0 * self.mu * self.t.unwrap()).exp()
       * ((self.sigma.powi(2) * self.t.unwrap()).exp() - 1.0))
       .sqrt();
-    let lognormal = LogNormal::new(mu, sigma).unwrap();
 
-    self.distribution = Some(lognormal);
+    self.distribution = Some(LogNormal::new(mu, sigma).unwrap());
   }
 }
 
