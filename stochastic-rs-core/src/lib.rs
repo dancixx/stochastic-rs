@@ -40,9 +40,10 @@ use std::sync::{Arc, Mutex};
 use ndarray::parallel::prelude::*;
 use ndarray::{Array1, Array2, Axis};
 use ndrustfft::Zero;
-use rand_distr::Distribution;
+use num_complex::Complex64;
+use rand_distr::Distribution as RandDistribution;
 
-pub trait ProcessDistribution: Distribution<f64> + Copy + Send + Sync + Default {}
+pub trait ProcessDistribution: RandDistribution<f64> + Copy + Send + Sync + Default {}
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   fn sample(&self) -> Array1<T>;
@@ -61,6 +62,7 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   }
   fn n(&self) -> usize;
   fn m(&self) -> Option<usize>;
+  fn distribution(&mut self) {}
 }
 
 pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
@@ -95,4 +97,66 @@ pub trait Sampling3D<T: Clone + Send + Sync + Zero>: Send + Sync {
   }
   fn n(&self) -> usize;
   fn m(&self) -> Option<usize>;
+}
+
+pub trait Distribution {
+  /// Characteristic function of the distribution
+  fn characteristic_function(&self, _t: f64) -> Complex64 {
+    Complex64::new(0.0, 0.0)
+  }
+
+  /// Probability density function of the distribution
+  fn pdf(&self, _x: f64) -> f64 {
+    0.0
+  }
+
+  /// Cumulative distribution function of the distribution
+  fn cdf(&self, _x: f64) -> f64 {
+    0.0
+  }
+
+  /// Inverse cumulative distribution function of the distribution
+  fn inv_cdf(&self, _p: f64) -> f64 {
+    0.0
+  }
+
+  /// Mean of the distribution
+  fn mean(&self) -> f64 {
+    0.0
+  }
+
+  /// Median of the distribution
+  fn median(&self) -> f64 {
+    0.0
+  }
+
+  /// Mode of the distribution
+  fn mode(&self) -> f64 {
+    0.0
+  }
+
+  /// Variance of the distribution
+  fn variance(&self) -> f64 {
+    0.0
+  }
+
+  /// Skewness of the distribution
+  fn skewness(&self) -> f64 {
+    0.0
+  }
+
+  /// Kurtosis of the distribution
+  fn kurtosis(&self) -> f64 {
+    0.0
+  }
+
+  /// Entropy of the distribution
+  fn entropy(&self) -> f64 {
+    0.0
+  }
+
+  /// Moment generating function of the distribution
+  fn moment_generating_function(&self, _t: f64) -> f64 {
+    0.0
+  }
 }

@@ -1,8 +1,13 @@
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
+use num_complex::Complex64;
 use rand_distr::Normal;
+use statrs::{
+  distribution::{Continuous, ContinuousCDF, LogNormal},
+  statistics::{Distribution as StatDistribution, Median, Mode},
+};
 
-use crate::Sampling;
+use crate::{Distribution, Sampling};
 
 #[derive(Default)]
 pub struct Gbm {
@@ -12,6 +17,7 @@ pub struct Gbm {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
+  pub(self) distribution: Option<LogNormal>,
 }
 
 impl Gbm {
@@ -24,6 +30,7 @@ impl Gbm {
       x0: params.x0,
       t: params.t,
       m: params.m,
+      distribution: None,
     }
   }
 }
@@ -49,5 +56,103 @@ impl Sampling<f64> for Gbm {
 
   fn m(&self) -> Option<usize> {
     self.m
+  }
+
+  fn distribution(&mut self) {
+    let mu = self.x0.unwrap() * (self.mu * self.t.unwrap()).exp();
+    let sigma = (self.x0.unwrap().powi(2)
+      * (2.0 * self.mu * self.t.unwrap()).exp()
+      * ((self.sigma.powi(2) * self.t.unwrap()).exp() - 1.0))
+      .sqrt();
+    let lognormal = LogNormal::new(mu, sigma).unwrap();
+
+    self.distribution = Some(lognormal);
+  }
+}
+
+impl Distribution for Gbm {
+  /// Characteristic function of the distribution
+  fn characteristic_function(&self, _t: f64) -> Complex64 {
+    unimplemented!()
+  }
+
+  /// Probability density function of the distribution
+  fn pdf(&self, x: f64) -> f64 {
+    self.distribution.as_ref().unwrap().pdf(x)
+  }
+
+  /// Cumulative distribution function of the distribution
+  fn cdf(&self, x: f64) -> f64 {
+    self.distribution.as_ref().unwrap().cdf(x)
+  }
+
+  /// Inverse cumulative distribution function of the distribution
+  fn inv_cdf(&self, p: f64) -> f64 {
+    self.distribution.as_ref().unwrap().inverse_cdf(p)
+  }
+
+  /// Mean of the distribution
+  fn mean(&self) -> f64 {
+    self
+      .distribution
+      .as_ref()
+      .unwrap()
+      .mean()
+      .expect("Mean not found")
+  }
+
+  /// Mode of the distribution
+  fn mode(&self) -> f64 {
+    self
+      .distribution
+      .as_ref()
+      .unwrap()
+      .mode()
+      .expect("Mode not found")
+  }
+
+  /// Median of the distribution
+  fn median(&self) -> f64 {
+    self.distribution.as_ref().unwrap().median()
+  }
+
+  /// Variance of the distribution
+  fn variance(&self) -> f64 {
+    self
+      .distribution
+      .as_ref()
+      .unwrap()
+      .variance()
+      .expect("Variance not found")
+  }
+
+  /// Skewness of the distribution
+  fn skewness(&self) -> f64 {
+    self
+      .distribution
+      .as_ref()
+      .unwrap()
+      .skewness()
+      .expect("Skewness not found")
+  }
+
+  /// Kurtosis of the distribution
+  fn kurtosis(&self) -> f64 {
+    unimplemented!()
+  }
+
+  /// Entropy of the distribution
+  fn entropy(&self) -> f64 {
+    self
+      .distribution
+      .as_ref()
+      .unwrap()
+      .entropy()
+      .expect("Entropy not found")
+  }
+
+  /// Moment generating function of the distribution
+  fn moment_generating_function(&self, _t: f64) -> f64 {
+    unimplemented!()
   }
 }
