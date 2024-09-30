@@ -145,7 +145,7 @@ For any questions, suggestions, or discussions, feel free to open an issue or st
 
 ## Acknowledgments
 
-We would like to thank all the contributors and the open-source community for their invaluable support.
+I would like to thank all the contributors and the open-source community for their invaluable support.
 
 ---
 
