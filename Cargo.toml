@@ -1,15 +1,15 @@
 
 [package]
 name = "stochastic-rs"
-version = "0.8.2"
+version = "0.9.0"
 edition = "2021"
 license = "MIT"
-description = "A Rust library for stochastic processes"
+description = "A Rust library for stochastic financial and scientific simulations."
 homepage = "https://github.com/dancixx/stochastic-rs"
 documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs/"
 repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
-keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
+keywords = ["stochastic processes", "finance", "simulation", "statistics", "mathematics"]
 
 
 [dependencies]
