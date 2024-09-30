@@ -1,8 +1,67 @@
-[workspace]
-members = [ 
-    #"stochastic-rs-ai",
-    "stochastic-rs-core",
-    "stochastic-rs-quant",
-    "stochastic-rs-stats",
-]
-resolver = "2"
+
+[package]
+name = "stochastic-rs"
+version = "0.8.2"
+edition = "2021"
+license = "MIT"
+description = "A Rust library for stochastic processes"
+homepage = "https://github.com/dancixx/stochastic-rs"
+documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs/"
+repository = "https://github.com/dancixx/stochastic-rs"
+readme = "README.md"
+keywords = ["stochastic", "process", "random", "simulation", "monte-carlo"]
+
+
+[dependencies]
+anyhow = "1.0.89"
+approx = "0.5.1"
+candle-core = "0.7.2"
+candle-datasets = "0.7.2"
+candle-nn = "0.7.2"
+chrono = "0.4.38"
+indicatif = "0.17.8"
+levenberg-marquardt = "0.14.0"
+linreg = "0.2.0"
+mimalloc = { version = "0.1.43", optional = true }
+nalgebra = "0.33.0"
+ndarray = { version = "0.16.1", features = [
+    "rayon",
+    "matrixmultiply-threading",
+    "blas",
+] }
+ndarray-rand = "0.15.0"
+ndrustfft = "0.5.0"
+num-complex = { version = "0.4.6", features = ["rand"] }
+plotly = "0.9.0"
+polars = { version = "0.43.1", features = ["lazy"] }
+quadrature = "0.1.2"
+rand = "0.8.5"
+rand_distr = "0.4.3"
+rayon = "1.10.0"
+statrs = "0.17.1"
+tikv-jemallocator = { version = "0.6.0", optional = true }
+time = { version = "0.3.36", features = [
+    "formatting",
+    "parsing",
+], optional = true }
+tokio-test = "0.4.4"
+yahoo_finance_api = { version = "*", git = "https://github.com/dancixx/yahoo_finance_api.git", rev = "476ebdc", optional = true }
+
+[dev-dependencies]
+
+[features]
+default = ["jemalloc", "yahoo"]
+mimalloc = ["dep:mimalloc"]
+jemalloc = ["dep:tikv-jemallocator"]
+yahoo = ["dep:time", "dep:yahoo_finance_api"]
+
+[lib]
+name = "stochastic_rs"
+crate-type = ["cdylib", "lib"]
+path = "src/lib.rs"
+doctest = false
+
+[profile.release]
+debug = false
+codegen-units = 1
+lto = true
