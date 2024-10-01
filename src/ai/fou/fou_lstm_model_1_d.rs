@@ -8,7 +8,7 @@ use candle_nn::{
 };
 use polars::prelude::*;
 
-use super::datasets::test_vasicek_1_d;
+use super::fou_lstm_datasets::test_vasicek_1_d;
 
 pub struct Model {
   is_train: bool,
