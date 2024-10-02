@@ -1,3 +1,5 @@
+use chrono::{Datelike, Utc};
+
 use crate::quant::r#trait::Price;
 
 /// Hull-White model for zero-coupon bond pricing
@@ -22,8 +24,25 @@ pub struct HullWhite {
 }
 
 impl Price for HullWhite {
+  /// Calculate the price of the zero-coupon bond (unstable)
   fn price(&self) -> f64 {
-    0.0
+    let tau = self.calculate_tau_in_years();
+    let today = Utc::now().year() as f64;
+    let S = self.eval.unwrap().year() as f64 - today;
+    let T = self.expiration.unwrap().year() as f64 - today;
+    let p0t = (-self.r_t * T).exp();
+    let p0s = (-self.r_t * S).exp();
+
+    let B = (1.0 - (-self.alpha * tau).exp()) / self.alpha;
+    let A = p0t / p0s
+      * (-B * self.r_t
+        - (self.sigma.powi(2)
+          * ((-self.alpha * T).exp() - (-self.alpha * S).exp()).powi(2)
+          * ((2.0 * self.alpha * S) - 1.0))
+          / (4.0 * self.alpha.powi(3)))
+      .exp();
+
+    A * (-B * self.r_t).exp()
   }
 
   fn tau(&self) -> Option<f64> {

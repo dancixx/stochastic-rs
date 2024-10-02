@@ -1,6 +1,7 @@
 pub mod diffusion;
 pub mod interest;
 pub mod jump;
+pub mod malliavin;
 pub mod noise;
 pub mod process;
 pub mod volatility;

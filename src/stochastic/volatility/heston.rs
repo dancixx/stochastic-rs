@@ -2,6 +2,8 @@ use ndarray::Array1;
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
+use super::HestonPow;
+
 #[derive(Default)]
 
 pub struct Heston {
@@ -23,6 +25,10 @@ pub struct Heston {
   pub n: usize,
   /// Time to maturity
   pub t: Option<f64>,
+  /// Power of the variance
+  /// If 0.5 then it is the original Heston model
+  /// If 1.5 then it is the 3/2 model
+  pub pow: HestonPow,
   /// Use the symmetric method for the variance to avoid negative values
   pub use_sym: Option<bool>,
   /// Number of paths for multithreading
@@ -51,6 +57,7 @@ impl Heston {
       mu: params.mu,
       n: params.n,
       t: params.t,
+      pow: params.pow,
       use_sym: params.use_sym,
       m: params.m,
       cgns,
@@ -72,8 +79,13 @@ impl Sampling2D<f64> for Heston {
     for i in 1..=self.n {
       s[i] = s[i - 1] + self.mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
-      let dv =
-        self.kappa * (self.theta - v[i - 1]) * dt + self.sigma * v[i - 1].sqrt() * cgn2[i - 1];
+      let dv = self.kappa * (self.theta - v[i - 1]) * dt
+        + self.sigma
+          * v[i - 1].powf(match self.pow {
+            HestonPow::Sqrt => 0.5,
+            HestonPow::ThreeHalves => 1.5,
+          })
+          * cgn2[i - 1];
 
       v[i] = match self.use_sym.unwrap_or(false) {
         true => (v[i - 1] + dv).abs(),
@@ -111,6 +123,7 @@ mod tests {
       mu: 0.05,
       n: 1000,
       t: Some(1.0),
+      pow: HestonPow::default(),
       use_sym: Some(true),
       m: Some(1),
       cgns: CGNS::default(),

@@ -9,7 +9,13 @@ homepage = "https://github.com/dancixx/stochastic-rs"
 documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs/"
 repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
-keywords = ["stochastic processes", "finance", "simulation", "statistics", "mathematics"]
+keywords = [
+    "stochastic processes",
+    "finance",
+    "simulation",
+    "statistics",
+    "mathematics",
+]
 
 
 [dependencies]
@@ -47,7 +53,7 @@ time = { version = "0.3.36", features = [
 ], optional = true }
 tokio-test = "0.4.4"
 tracing = "0.1.40"
-yahoo_finance_api = { version = "*", git = "https://github.com/dancixx/yahoo_finance_api.git", rev = "476ebdc", optional = true }
+yahoo_finance_api = { version = "2.3.0", optional = true }
 
 [dev-dependencies]
 
