@@ -5,7 +5,7 @@ use crate::quant::r#trait::Price;
 /// where R(t) is the short rate.
 #[derive(Default, Debug)]
 pub struct CIR {
-  /// Initial short rate
+  /// Short rate
   pub r_t: f64,
   /// Long-term mean of the short rate
   pub theta: f64,
@@ -23,7 +23,16 @@ pub struct CIR {
 
 impl Price for CIR {
   fn price(&self) -> f64 {
-    todo!()
+    let tau = self.calculate_tau_in_days();
+
+    let h = (self.theta.powi(2) + 2.0 * self.sigma.powi(2)).sqrt();
+    let A = ((2.0 * h * ((self.theta + h) * (tau / 2.0)).exp())
+      / (2.0 * h + (self.theta + h) * ((h * tau).exp() - 1.0)))
+      .powf((2.0 * self.theta * self.mu) / (self.sigma.powi(2)));
+    let B =
+      (2.0 * ((h * tau).exp() - 1.0)) / (2.0 * h + (self.theta + h) * ((h * tau).exp() - 1.0));
+
+    A * (self.r_t * B).exp()
   }
 
   fn tau(&self) -> Option<f64> {

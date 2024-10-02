@@ -23,9 +23,13 @@ pub struct Vasicek {
 
 impl Price for Vasicek {
   fn price(&self) -> f64 {
-    // Itt definiálhatod a Vasicek modell árképzési képletét
-    // Placeholder érték visszaadása
-    0.0
+    let tau = self.calculate_tau_in_days();
+
+    let B = (1.0 - (-self.theta * tau).exp()) / self.theta;
+    let A = (self.mu - (self.sigma.powi(2) / (2.0 * self.theta.powi(2)))) * (B - tau)
+      - (self.sigma.powi(2) / (4.0 * self.theta)) * B.powi(2);
+
+    (A - B * self.r_t).exp()
   }
 
   fn tau(&self) -> Option<f64> {
