@@ -1,4 +1,3 @@
-use nalgebra::Complex;
 use num_complex::Complex64;
 use rand::{thread_rng, Rng};
 use rand_distr::StandardNormal;
