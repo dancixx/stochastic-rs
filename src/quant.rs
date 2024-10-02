@@ -1,4 +1,6 @@
+pub mod bonds;
 pub mod options;
+pub mod r#trait;
 pub mod volatility;
 pub mod yahoo;
 

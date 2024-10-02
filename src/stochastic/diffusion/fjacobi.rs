@@ -1,9 +1,9 @@
 use ndarray::{s, Array1};
 
-use crate::stochastic::{noise::fgn::Fgn, Sampling};
+use crate::stochastic::{noise::fgn::FGN, Sampling};
 
 #[derive(Default)]
-pub struct Fjacobi {
+pub struct FJacobi {
   pub hurst: f64,
   pub alpha: f64,
   pub beta: f64,
@@ -12,13 +12,13 @@ pub struct Fjacobi {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub fgn: Fgn,
+  pub fgn: FGN,
 }
 
-impl Fjacobi {
+impl FJacobi {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
@@ -34,7 +34,7 @@ impl Fjacobi {
   }
 }
 
-impl Sampling<f64> for Fjacobi {
+impl Sampling<f64> for FJacobi {
   fn sample(&self) -> Array1<f64> {
     assert!(
       self.hurst > 0.0 && self.hurst < 1.0,

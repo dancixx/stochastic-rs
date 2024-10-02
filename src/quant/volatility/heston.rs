@@ -6,11 +6,9 @@ use num_complex::Complex64;
 use quadrature::double_exponential;
 
 use crate::{
-  quant::{volatility::Calibrator, OptionType},
+  quant::{r#trait::Pricer, volatility::Calibrator, OptionType},
   stats::mle::nmle_heston,
 };
-
-use super::Pricer;
 
 #[derive(Default, Clone)]
 pub struct HestonPricer {

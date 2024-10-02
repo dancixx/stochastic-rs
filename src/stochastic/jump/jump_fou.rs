@@ -1,11 +1,11 @@
 use ndarray::{s, Array1};
 
 use crate::stochastic::{
-  noise::fgn::Fgn, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
+  noise::fgn::FGN, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
 };
 
 #[derive(Default)]
-pub struct JumpFou<D>
+pub struct JumpFOU<D>
 where
   D: ProcessDistribution,
 {
@@ -19,14 +19,14 @@ where
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub jump_distribution: D,
-  pub fgn: Fgn,
+  pub fgn: FGN,
   pub cpoisson: CompoundPoisson<D>,
 }
 
-impl<D: ProcessDistribution> JumpFou<D> {
+impl<D: ProcessDistribution> JumpFOU<D> {
   #[must_use]
-  pub fn new(params: &JumpFou<D>) -> Self {
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+  pub fn new(params: &JumpFOU<D>) -> Self {
+    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
 
     let cpoisson = CompoundPoisson::new(&CompoundPoisson {
       n: None,
@@ -54,7 +54,7 @@ impl<D: ProcessDistribution> JumpFou<D> {
   }
 }
 
-impl<D: ProcessDistribution> Sampling<f64> for JumpFou<D> {
+impl<D: ProcessDistribution> Sampling<f64> for JumpFOU<D> {
   fn sample(&self) -> Array1<f64> {
     assert!(
       self.hurst > 0.0 && self.hurst < 1.0,

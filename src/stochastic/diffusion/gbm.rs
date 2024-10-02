@@ -10,7 +10,7 @@ use statrs::{
 use crate::stochastic::{Distribution, Sampling};
 
 #[derive(Default)]
-pub struct Gbm {
+pub struct GBM {
   pub mu: f64,
   pub sigma: f64,
   pub n: usize,
@@ -20,7 +20,7 @@ pub struct Gbm {
   pub distribution: Option<LogNormal>,
 }
 
-impl Gbm {
+impl GBM {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -35,7 +35,7 @@ impl Gbm {
   }
 }
 
-impl Sampling<f64> for Gbm {
+impl Sampling<f64> for GBM {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
@@ -69,7 +69,7 @@ impl Sampling<f64> for Gbm {
   }
 }
 
-impl Distribution for Gbm {
+impl Distribution for GBM {
   /// Characteristic function of the distribution
   fn characteristic_function(&self, _t: f64) -> Complex64 {
     unimplemented!()

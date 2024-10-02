@@ -9,7 +9,7 @@ use num_complex::{Complex, ComplexDistribution};
 
 use crate::stochastic::Sampling;
 
-pub struct Fgn {
+pub struct FGN {
   pub hurst: f64,
   pub n: usize,
   pub t: Option<f64>,
@@ -19,13 +19,13 @@ pub struct Fgn {
   pub fft_handler: Arc<FftHandler<f64>>,
 }
 
-impl Default for Fgn {
+impl Default for FGN {
   fn default() -> Self {
     Self::new(0.7, 1024, None, None)
   }
 }
 
-impl Fgn {
+impl FGN {
   #[must_use]
   pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
     if !(0.0..=1.0).contains(&hurst) {
@@ -67,7 +67,7 @@ impl Fgn {
   }
 }
 
-impl Sampling<f64> for Fgn {
+impl Sampling<f64> for FGN {
   fn sample(&self) -> Array1<f64> {
     let num_threads = rayon::current_num_threads();
     let chunk_size = (2 * self.n) / num_threads;
@@ -112,7 +112,7 @@ mod tests {
 
   #[test]
   fn plot() {
-    let fgn = Fgn::new(0.7, 1000, Some(1.0), Some(1));
+    let fgn = FGN::new(0.7, 1000, Some(1.0), Some(1));
     let mut plot = Plot::new();
     let d = fgn.sample_par();
     for data in d.axis_iter(Axis(0)) {

@@ -1,7 +1,7 @@
 use ndarray::Array1;
 
 use crate::stochastic::{
-  noise::cgns::Cgns, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling2D,
+  noise::cgns::CGNS, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling2D,
   Sampling3D,
 };
 
@@ -27,14 +27,14 @@ where
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
   pub jumps_distribution: D,
-  pub cgns: Cgns,
+  pub cgns: CGNS,
   pub cpoisson: CompoundPoisson<D>,
 }
 
 impl<D: ProcessDistribution> Bates1996<D> {
   #[must_use]
   pub fn new(params: &Bates1996<D>) -> Self {
-    let cgns = Cgns::new(&Cgns {
+    let cgns = CGNS::new(&CGNS {
       rho: params.rho,
       n: params.n,
       t: params.t,

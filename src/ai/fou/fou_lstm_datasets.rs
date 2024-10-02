@@ -8,7 +8,7 @@ use ndarray::{s, Array1};
 use ndarray_rand::RandomExt;
 use rand_distr::Uniform;
 
-use crate::stochastic::{diffusion::fou::Fou, Sampling};
+use crate::stochastic::{diffusion::fou::FOU, Sampling};
 
 pub fn test_vasicek_1_d(
   epoch_size: usize,
@@ -34,7 +34,7 @@ pub fn test_vasicek_1_d(
   for idx in 0..epoch_size {
     let hurst = hursts[idx];
     let theta = thetas[idx];
-    let fou = Fou::new(&Fou {
+    let fou = FOU::new(&FOU {
       hurst,
       mu,
       sigma,
@@ -88,7 +88,7 @@ pub fn test_vasicek_2_d(
   for idx in 0..epoch_size {
     let hurst = hursts[idx];
     let theta = thetas[idx];
-    let fou = Fou::new(&Fou {
+    let fou = FOU::new(&FOU {
       hurst,
       mu,
       sigma,

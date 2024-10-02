@@ -6,7 +6,7 @@ use crate::stochastic::Sampling;
 
 #[derive(Default)]
 
-pub struct Nig {
+pub struct NIG {
   pub theta: f64,
   pub sigma: f64,
   pub kappa: f64,
@@ -16,7 +16,7 @@ pub struct Nig {
   pub m: Option<usize>,
 }
 
-impl Nig {
+impl NIG {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -31,7 +31,7 @@ impl Nig {
   }
 }
 
-impl Sampling<f64> for Nig {
+impl Sampling<f64> for NIG {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let scale = dt.powf(2.0) / self.kappa;

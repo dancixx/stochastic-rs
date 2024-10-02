@@ -5,21 +5,7 @@ use std::cell::RefCell;
 use levenberg_marquardt::LeastSquaresProblem;
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
 
-use super::OptionType;
-
-/// Pricer trait.
-pub(crate) trait Pricer {
-  /// Calculate the price of an option.
-  fn calculate_price(&mut self);
-  /// Update the parameters.
-  fn update_params(&mut self, params: DVector<f64>);
-  /// Update strike price.
-  fn update_strike(&mut self, k: f64);
-  /// Prices.
-  fn prices(&self) -> (f64, f64);
-  /// Derivatives.
-  fn derivates(&self) -> Vec<f64>;
-}
+use super::{r#trait::Pricer, OptionType};
 
 /// A calibrator.
 pub(crate) struct Calibrator<'a, P>

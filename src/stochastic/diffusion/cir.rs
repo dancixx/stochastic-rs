@@ -4,8 +4,11 @@ use rand_distr::Normal;
 
 use crate::stochastic::Sampling;
 
+/// Cox-Ingersoll-Ross (CIR) process.
+/// dX(t) = theta(mu - X(t))dt + sigma * sqrt(X(t))dW(t)
+/// where X(t) is the CIR process.
 #[derive(Default)]
-pub struct Cir {
+pub struct CIR {
   pub theta: f64,
   pub mu: f64,
   pub sigma: f64,
@@ -16,7 +19,7 @@ pub struct Cir {
   pub m: Option<usize>,
 }
 
-impl Cir {
+impl CIR {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -32,7 +35,7 @@ impl Cir {
   }
 }
 
-impl Sampling<f64> for Cir {
+impl Sampling<f64> for CIR {
   fn sample(&self) -> Array1<f64> {
     assert!(
       2.0 * self.theta * self.mu < self.sigma.powi(2),

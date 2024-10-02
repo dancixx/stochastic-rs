@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::stochastic::{noise::cgns::Cgns, Sampling2D};
+use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
 #[derive(Default)]
 
@@ -28,13 +28,13 @@ pub struct Heston {
   /// Number of paths for multithreading
   pub m: Option<usize>,
   /// Noise generator
-  pub cgns: Cgns,
+  pub cgns: CGNS,
 }
 
 impl Heston {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let cgns = Cgns::new(&Cgns {
+    let cgns = CGNS::new(&CGNS {
       rho: params.rho,
       n: params.n,
       t: params.t,
@@ -113,7 +113,7 @@ mod tests {
       t: Some(1.0),
       use_sym: Some(true),
       m: Some(1),
-      cgns: Cgns::default(),
+      cgns: CGNS::default(),
     });
     let mut plot = Plot::new();
     let [s, v] = heston.sample();

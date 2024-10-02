@@ -1,6 +1,6 @@
 use ndarray::{Array1, Array2};
 
-use crate::stochastic::{noise::cfgns::Cfgns, Sampling2D};
+use crate::stochastic::{noise::cfgns::CFGNS, Sampling2D};
 
 #[derive(Default)]
 pub struct Cfbms {
@@ -10,13 +10,13 @@ pub struct Cfbms {
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub cfgns: Cfgns,
+  pub cfgns: CFGNS,
 }
 
 impl Cfbms {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let cfgns = Cfgns::new(&Cfgns {
+    let cfgns = CFGNS::new(&CFGNS {
       hurst: params.hurst1,
       rho: params.rho,
       n: params.n,

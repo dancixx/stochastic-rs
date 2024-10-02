@@ -5,7 +5,7 @@ use rand_distr::Normal;
 use crate::stochastic::Sampling;
 
 #[derive(Default)]
-pub struct Ou {
+pub struct OU {
   pub mu: f64,
   pub sigma: f64,
   pub theta: f64,
@@ -15,7 +15,7 @@ pub struct Ou {
   pub m: Option<usize>,
 }
 
-impl Ou {
+impl OU {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -30,7 +30,7 @@ impl Ou {
   }
 }
 
-impl Sampling<f64> for Ou {
+impl Sampling<f64> for OU {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());

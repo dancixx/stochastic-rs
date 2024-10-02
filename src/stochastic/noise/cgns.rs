@@ -5,14 +5,14 @@ use rand_distr::Normal;
 use crate::stochastic::Sampling2D;
 
 #[derive(Default)]
-pub struct Cgns {
+pub struct CGNS {
   pub rho: f64,
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
 }
 
-impl Cgns {
+impl CGNS {
   #[must_use]
   pub fn new(params: &Self) -> Self {
     Self {
@@ -24,7 +24,7 @@ impl Cgns {
   }
 }
 
-impl Sampling2D<f64> for Cgns {
+impl Sampling2D<f64> for CGNS {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
       (-1.0..=1.0).contains(&self.rho),

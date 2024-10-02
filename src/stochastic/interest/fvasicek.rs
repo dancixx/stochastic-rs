@@ -1,9 +1,9 @@
 use ndarray::Array1;
 
-use crate::stochastic::{diffusion::fou::Fou, Sampling};
+use crate::stochastic::{diffusion::fou::FOU, Sampling};
 
 #[derive(Default)]
-pub struct Fvasicek {
+pub struct FVasicek {
   pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
@@ -12,13 +12,13 @@ pub struct Fvasicek {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub fou: Fou,
+  pub fou: FOU,
 }
 
-impl Fvasicek {
+impl FVasicek {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fou = Fou::new(&Fou {
+    let fou = FOU::new(&FOU {
       hurst: params.hurst,
       mu: params.mu,
       sigma: params.sigma,
@@ -44,7 +44,7 @@ impl Fvasicek {
   }
 }
 
-impl Sampling<f64> for Fvasicek {
+impl Sampling<f64> for FVasicek {
   fn sample(&self) -> Array1<f64> {
     self.fou.sample()
   }

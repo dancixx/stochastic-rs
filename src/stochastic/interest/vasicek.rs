@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::stochastic::{diffusion::ou::Ou, Sampling};
+use crate::stochastic::{diffusion::ou::OU, Sampling};
 
 #[derive(Default)]
 pub struct Vasicek {
@@ -11,13 +11,13 @@ pub struct Vasicek {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub ou: Ou,
+  pub ou: OU,
 }
 
 impl Vasicek {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let ou = Ou::new(&Ou {
+    let ou = OU::new(&OU {
       mu: params.mu,
       sigma: params.sigma,
       theta: params.theta.unwrap_or(1.0),

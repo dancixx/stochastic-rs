@@ -1,9 +1,9 @@
 use ndarray::{s, Array1};
 
-use crate::stochastic::{noise::fgn::Fgn, Sampling};
+use crate::stochastic::{noise::fgn::FGN, Sampling};
 
 #[derive(Default)]
-pub struct Fcir {
+pub struct FCIR {
   pub hurst: f64,
   pub theta: f64,
   pub mu: f64,
@@ -13,13 +13,13 @@ pub struct Fcir {
   pub t: Option<f64>,
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
-  pub fgn: Fgn,
+  pub fgn: FGN,
 }
 
-impl Fcir {
+impl FCIR {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
@@ -36,7 +36,7 @@ impl Fcir {
   }
 }
 
-impl Sampling<f64> for Fcir {
+impl Sampling<f64> for FCIR {
   fn sample(&self) -> Array1<f64> {
     assert!(
       2.0 * self.theta * self.mu < self.sigma.powi(2),

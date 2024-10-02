@@ -2,22 +2,22 @@ use ndarray::{s, Array1, Array2};
 
 use crate::stochastic::{Sampling, Sampling2D};
 
-use super::fgn::Fgn;
+use super::fgn::FGN;
 
 #[derive(Default)]
-pub struct Cfgns {
+pub struct CFGNS {
   pub hurst: f64,
   pub rho: f64,
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub fgn: Fgn,
+  pub fgn: FGN,
 }
 
-impl Cfgns {
+impl CFGNS {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let fgn = Fgn::new(params.hurst, params.n, params.t, params.m);
+    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
 
     Self {
       hurst: params.hurst,
@@ -30,7 +30,7 @@ impl Cfgns {
   }
 }
 
-impl Sampling2D<f64> for Cfgns {
+impl Sampling2D<f64> for CFGNS {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
       (0.0..=1.0).contains(&self.hurst),

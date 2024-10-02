@@ -6,7 +6,7 @@ use rand_distr::Normal;
 use crate::stochastic::Sampling;
 
 #[derive(Default)]
-pub struct Vg {
+pub struct VG {
   pub mu: f64,
   pub sigma: f64,
   pub nu: f64,
@@ -16,9 +16,9 @@ pub struct Vg {
   pub m: Option<usize>,
 }
 
-impl Vg {
+impl VG {
   #[must_use]
-  pub fn new(params: &Vg) -> Self {
+  pub fn new(params: &VG) -> Self {
     Self {
       mu: params.mu,
       sigma: params.sigma,
@@ -31,7 +31,7 @@ impl Vg {
   }
 }
 
-impl Sampling<f64> for Vg {
+impl Sampling<f64> for VG {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
 

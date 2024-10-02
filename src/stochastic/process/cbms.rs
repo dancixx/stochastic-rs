@@ -1,20 +1,20 @@
 use ndarray::{Array1, Array2};
 
-use crate::stochastic::{noise::cgns::Cgns, Sampling2D};
+use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
 #[derive(Default)]
-pub struct Cbms {
+pub struct CBMS {
   pub rho: f64,
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub cgns: Cgns,
+  pub cgns: CGNS,
 }
 
-impl Cbms {
+impl CBMS {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let cgns = Cgns::new(&Cgns {
+    let cgns = CGNS::new(&CGNS {
       rho: params.rho,
       n: params.n,
       t: params.t,
@@ -31,7 +31,7 @@ impl Cbms {
   }
 }
 
-impl Sampling2D<f64> for Cbms {
+impl Sampling2D<f64> for CBMS {
   fn sample(&self) -> [Array1<f64>; 2] {
     assert!(
       (-1.0..=1.0).contains(&self.rho),

@@ -1,9 +1,9 @@
 use statrs::distribution::{Continuous, ContinuousCDF, Normal};
 
-use crate::quant::OptionType;
+use crate::quant::{r#trait::Price, OptionType};
 
 #[derive(Default, Debug, Clone, Copy)]
-pub enum BsmCoc {
+pub enum BSMCoc {
   /// Black-Scholes-Merton 1973 (stock option)
   /// Cost of carry = risk-free rate
   #[default]
@@ -24,7 +24,7 @@ pub enum BsmCoc {
 
 /// Black-Scholes-Merton model
 #[derive(Default, Debug)]
-pub struct Bsm {
+pub struct BSM {
   /// Underlying price
   pub s: f64,
   /// Volatility
@@ -48,10 +48,40 @@ pub struct Bsm {
   /// Option type
   pub option_type: OptionType,
   /// Cost of carry
-  pub b: BsmCoc,
+  pub b: BSMCoc,
 }
 
-impl Bsm {
+impl Price for BSM {
+  /// Calculate the option price
+  #[must_use]
+  fn price(&self) -> f64 {
+    let (d1, d2) = self.d1_d2();
+    let n = Normal::default();
+    let tau = self.tau();
+
+    if self.option_type == OptionType::Call {
+      self.s * ((self.b() - self.r) * tau).exp() * n.cdf(d1)
+        - self.k * (-self.r * tau).exp() * n.cdf(d2)
+    } else {
+      -self.s * ((self.b() - self.r) * tau).exp() * n.cdf(-d1)
+        + self.k * (-self.r * tau).exp() * n.cdf(-d2)
+    }
+  }
+
+  fn tau(&self) -> Option<f64> {
+    self.tau
+  }
+
+  fn eval(&self) -> Option<chrono::NaiveDate> {
+    self.eval
+  }
+
+  fn expiration(&self) -> Option<chrono::NaiveDate> {
+    self.expiration
+  }
+}
+
+impl BSM {
   /// Create a new BSM model
   #[must_use]
   pub fn new(params: &Self) -> Self {
@@ -85,22 +115,6 @@ impl Bsm {
     }
   }
 
-  /// Calculate the option price
-  #[must_use]
-  pub fn price(&mut self) -> f64 {
-    let (d1, d2) = self.d1_d2();
-    let n = Normal::default();
-    let tau = self.tau();
-
-    if self.option_type == OptionType::Call {
-      self.s * ((self.b() - self.r) * tau).exp() * n.cdf(d1)
-        - self.k * (-self.r * tau).exp() * n.cdf(d2)
-    } else {
-      -self.s * ((self.b() - self.r) * tau).exp() * n.cdf(-d1)
-        + self.k * (-self.r * tau).exp() * n.cdf(-d2)
-    }
-  }
-
   /// Calculate d1
   fn d1_d2(&self) -> (f64, f64) {
     let d1 = (1.0 / (self.v * self.tau().sqrt()))
@@ -113,11 +127,11 @@ impl Bsm {
   /// Calculate b (cost of carry)
   fn b(&self) -> f64 {
     match self.b {
-      BsmCoc::BSM1973 => self.r,
-      BsmCoc::MERTON1973 => self.r - self.q.unwrap(),
-      BsmCoc::BLACK1976 => 0.0,
-      BsmCoc::ASAY1982 => 0.0,
-      BsmCoc::GARMAN1983 => self.r_d.unwrap() - self.r_f.unwrap(),
+      BSMCoc::BSM1973 => self.r,
+      BSMCoc::MERTON1973 => self.r - self.q.unwrap(),
+      BSMCoc::BLACK1976 => 0.0,
+      BSMCoc::ASAY1982 => 0.0,
+      BSMCoc::GARMAN1983 => self.r_d.unwrap() - self.r_f.unwrap(),
     }
   }
 

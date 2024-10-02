@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::stochastic::{noise::cgns::Cgns, Sampling2D};
+use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
 #[derive(Default)]
 
@@ -13,13 +13,13 @@ pub struct Sabr {
   pub v0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub cgns: Cgns,
+  pub cgns: CGNS,
 }
 
 impl Sabr {
   #[must_use]
   pub fn new(params: &Self) -> Self {
-    let cgns = Cgns::new(&Cgns {
+    let cgns = CGNS::new(&CGNS {
       rho: params.rho,
       n: params.n,
       t: params.t,
