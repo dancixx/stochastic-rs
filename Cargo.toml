@@ -45,6 +45,7 @@ quadrature = "0.1.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 rayon = "1.10.0"
+scilib = "1.0.0"
 statrs = "0.17.1"
 tikv-jemallocator = { version = "0.6.0", optional = true }
 time = { version = "0.3.36", features = [
