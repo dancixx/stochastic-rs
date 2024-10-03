@@ -7,6 +7,8 @@
 
 **stochastic-rs** is a Rust library designed for high-performance simulation and analysis of stochastic processes and models. The primary goal is to provide a simple, easy-to-use, and efficient library that caters to a wide range of applications, including quantitative finance, AI training, statistical analysis, and more. This library is under active development, and contributions are welcome. Please note that breaking changes may occur as the library evolves. 🚧
 
+Additionally, you might want to explore **RustQuant**, another excellent Rust package tailored for quantitative finance. Check it out here: [RustQuant](https://github.com/avhz/RustQuant)
+
 ## Modules
 
 The library is organized into several modules, each targeting specific areas of stochastic processes and their applications.
@@ -77,8 +79,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdancixx%2Fstochastic-rs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdancixx%2Fstochastic-rs?ref=badge_large)
 
 ## Contact
 
