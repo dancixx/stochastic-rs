@@ -2,7 +2,7 @@
 [![Crates.io](https://img.shields.io/crates/v/stochastic-rs?style=flat-square)](https://crates.io/crates/stochastic-rs)
 ![License](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
 
-# stochastic-rs
+# stochastic-rs 
 
 **stochastic-rs** is a Rust library designed for high-performance simulation and analysis of stochastic processes and models. The primary goal is to provide a simple, easy-to-use, and efficient library that caters to a wide range of applications, including quantitative finance, AI training, statistical analysis, and more. This library is under active development, and contributions are welcome. Please note that breaking changes may occur as the library evolves. 🚧
 
