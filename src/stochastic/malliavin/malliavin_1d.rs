@@ -2,6 +2,9 @@ use ndarray::Array1;
 
 use crate::stochastic::Sampling;
 
+/// This module provides tools for Malliavin calculus.
+/// The implementation is based on the perturbation method and it is very simple and still unstable.
+/// Use with caution.
 pub trait Malliavin {
   /// Compute the Malliavin derivative of the stochastic process using perturbation.
   ///
