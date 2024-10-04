@@ -65,10 +65,12 @@ impl Sampling2D<f64> for RoughBergomi {
     [s, v2]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

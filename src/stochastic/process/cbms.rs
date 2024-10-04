@@ -50,10 +50,12 @@ impl Sampling2D<f64> for CBMS {
     [bms.row(0).into_owned(), bms.row(1).into_owned()]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

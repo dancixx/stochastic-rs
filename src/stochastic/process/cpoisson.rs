@@ -57,10 +57,12 @@ impl<D: ProcessDistribution> Sampling3D<f64> for CompoundPoisson<D> {
     [poisson, cum_jupms, jumps]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n.unwrap_or(0)
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

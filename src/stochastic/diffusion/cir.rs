@@ -36,6 +36,7 @@ impl CIR {
 }
 
 impl Sampling<f64> for CIR {
+  /// Sample the Cox-Ingersoll-Ross (CIR) process
   fn sample(&self) -> Array1<f64> {
     assert!(
       2.0 * self.theta * self.mu < self.sigma.powi(2),
@@ -61,10 +62,12 @@ impl Sampling<f64> for CIR {
     cir
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

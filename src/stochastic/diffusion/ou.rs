@@ -31,6 +31,7 @@ impl OU {
 }
 
 impl Sampling<f64> for OU {
+  /// Sample the Ornstein-Uhlenbeck (OU) process
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
@@ -45,10 +46,12 @@ impl Sampling<f64> for OU {
     ou
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

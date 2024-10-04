@@ -66,10 +66,12 @@ where
     [p, cum_jupms, jumps]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n.unwrap_or(0)
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

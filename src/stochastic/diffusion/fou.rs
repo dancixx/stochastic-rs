@@ -35,6 +35,7 @@ impl FOU {
 }
 
 impl Sampling<f64> for FOU {
+  /// Sample the Fractional Ornstein-Uhlenbeck (FOU) process
   fn sample(&self) -> Array1<f64> {
     assert!(
       self.hurst > 0.0 && self.hurst < 1.0,
@@ -54,10 +55,13 @@ impl Sampling<f64> for FOU {
     fou.slice(s![..self.n()]).to_owned()
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of paths
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

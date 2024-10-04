@@ -31,6 +31,7 @@ impl Jacobi {
 }
 
 impl Sampling<f64> for Jacobi {
+  /// Sample the Jacobi process
   fn sample(&self) -> Array1<f64> {
     assert!(self.alpha > 0.0, "alpha must be positive");
     assert!(self.beta > 0.0, "beta must be positive");
@@ -58,10 +59,12 @@ impl Sampling<f64> for Jacobi {
     jacobi
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

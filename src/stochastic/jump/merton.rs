@@ -68,10 +68,12 @@ impl<D: ProcessDistribution> Sampling<f64> for Merton<D> {
     merton
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

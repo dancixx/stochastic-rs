@@ -59,6 +59,7 @@ impl DuffieKan {
 }
 
 impl Sampling2D<f64> for DuffieKan {
+  /// Sample the Duffie-Kan process
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
@@ -81,10 +82,12 @@ impl Sampling2D<f64> for DuffieKan {
     [r, x]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

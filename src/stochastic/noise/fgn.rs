@@ -95,10 +95,12 @@ impl Sampling<f64> for FGN {
     fgn
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n - self.offset
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

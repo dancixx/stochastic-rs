@@ -67,10 +67,12 @@ impl Sampling2D<f64> for Cfbms {
     [fbms.row(0).to_owned(), fbms.row(1).to_owned()]
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }

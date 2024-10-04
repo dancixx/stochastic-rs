@@ -1,3 +1,4 @@
+pub mod cev;
 pub mod cir;
 pub mod fcir;
 pub mod fgbm;

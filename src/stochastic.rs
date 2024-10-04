@@ -17,7 +17,10 @@ use rand_distr::Distribution as RandDistribution;
 pub trait ProcessDistribution: RandDistribution<f64> + Copy + Send + Sync + Default {}
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
+  /// Sample the process
   fn sample(&self) -> Array1<T>;
+
+  /// Parallel sampling
   fn sample_par(&self) -> Array2<T> {
     if self.m().is_none() {
       panic!("m must be specified for parallel sampling");
@@ -31,13 +34,27 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
 
     xs
   }
+
+  /// Number of time steps
   fn n(&self) -> usize;
+
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize>;
+
+  /// Distribution of the process
   fn distribution(&mut self) {}
+
+  /// Malliavin derivative of the process
+  fn malliavin(&self) -> Array1<T> {
+    unimplemented!()
+  }
 }
 
 pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
+  /// Sample the process
   fn sample(&self) -> [Array1<T>; 2];
+
+  /// Parallel sampling
   fn sample_par(&self) -> [Array2<T>; 2] {
     if self.m().is_none() {
       panic!("m must be specified for parallel sampling");
@@ -57,16 +74,32 @@ pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
     let xs2 = xs2.lock().unwrap().clone();
     [xs1, xs2]
   }
+
+  /// Number of time steps
   fn n(&self) -> usize;
+
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize>;
+
+  /// Malliavin derivative of the process
+  fn malliavin(&self) -> [Array1<T>; 2] {
+    unimplemented!()
+  }
 }
 
 pub trait Sampling3D<T: Clone + Send + Sync + Zero>: Send + Sync {
+  /// Sample the process
   fn sample(&self) -> [Array1<T>; 3];
+
+  /// Parallel sampling
   fn sample_par(&self) -> [Array2<T>; 3] {
     unimplemented!()
   }
+
+  /// Number of time steps
   fn n(&self) -> usize;
+
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize>;
 }
 

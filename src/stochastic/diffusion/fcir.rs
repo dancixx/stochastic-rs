@@ -37,6 +37,7 @@ impl FCIR {
 }
 
 impl Sampling<f64> for FCIR {
+  /// Sample the Fractional Cox-Ingersoll-Ross (FCIR) process
   fn sample(&self) -> Array1<f64> {
     assert!(
       2.0 * self.theta * self.mu < self.sigma.powi(2),
@@ -62,10 +63,12 @@ impl Sampling<f64> for FCIR {
     fcir.slice(s![..self.n()]).to_owned()
   }
 
+  /// Number of time steps
   fn n(&self) -> usize {
     self.n
   }
 
+  /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
   }
