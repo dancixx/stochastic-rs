@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use ndarray::Array1;
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
@@ -35,6 +37,12 @@ pub struct Heston {
   pub m: Option<usize>,
   /// Noise generator
   pub cgns: CGNS,
+  /// Calculate the Malliavin derivative
+  pub calculate_malliavin: Option<bool>,
+  /// Malliavin derivative of the volatility
+  malliavin_of_vol: Mutex<Option<Array1<f64>>>,
+  /// Malliavin derivative of the price
+  malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
 impl Heston {
@@ -61,6 +69,9 @@ impl Heston {
       use_sym: params.use_sym,
       m: params.m,
       cgns,
+      calculate_malliavin: Some(false),
+      malliavin_of_vol: Mutex::new(None),
+      malliavin_of_price: Mutex::new(None),
     }
   }
 }
@@ -93,6 +104,34 @@ impl Sampling2D<f64> for Heston {
       }
     }
 
+    if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
+      let mut det_term = Array1::zeros(self.n + 1);
+      let mut malliavin = Array1::zeros(self.n + 1);
+
+      for i in 1..=self.n {
+        match self.pow {
+          HestonPow::Sqrt => {
+            det_term[i] = ((-(self.kappa * self.theta / 2.0 - self.sigma.powi(2) / 8.0)
+              * (1.0 / v[i - 1])
+              - self.kappa / 2.0)
+              * dt)
+              .exp();
+            malliavin[i] = (self.sigma * v[i - 1].sqrt() / 2.0) * det_term[i];
+          }
+          HestonPow::ThreeHalves => {
+            det_term[i] = ((-(self.kappa * self.theta / 2.0 + 3.0 * self.sigma.powi(2) / 8.0)
+              * v[i - 1]
+              - (self.kappa * self.theta) / 2.0)
+              * dt)
+              .exp();
+            malliavin[i] = (self.sigma * v[i - 1].powf(1.5) / 2.0) * det_term[i];
+          }
+        };
+      }
+
+      let _ = std::mem::replace(&mut *self.malliavin_of_vol.lock().unwrap(), Some(malliavin));
+    }
+
     [s, v]
   }
 
@@ -104,6 +143,26 @@ impl Sampling2D<f64> for Heston {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+
+  /// Malliavin derivative of the volatility
+  ///
+  /// The Malliavin derivative of the Heston model is given by
+  /// D_r v_t = \sigma v_t^{1/2} / 2 * exp(-(\kappa \theta / 2 - \sigma^2 / 8) / v_t * dt)
+  ///
+  /// The Malliavin derivative of the 3/2 Heston model is given by
+  /// D_r v_t = \sigma v_t^{3/2} / 2 * exp(-(\kappa \theta / 2 + 3 \sigma^2 / 8) * v_t * dt)
+  fn malliavin(&self) -> [Array1<f64>; 2] {
+    [
+      Array1::zeros(self.n + 1),
+      self
+        .malliavin_of_vol
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .clone(),
+    ]
   }
 }
 
@@ -129,6 +188,9 @@ mod tests {
       use_sym: Some(true),
       m: Some(1),
       cgns: CGNS::default(),
+      calculate_malliavin: Some(false),
+      malliavin_of_vol: Mutex::new(None),
+      malliavin_of_price: Mutex::new(None),
     });
     let mut plot = Plot::new();
     let [s, v] = heston.sample();
