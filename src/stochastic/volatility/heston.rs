@@ -1,3 +1,4 @@
+#[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
 use ndarray::Array1;
@@ -38,10 +39,13 @@ pub struct Heston {
   /// Noise generator
   pub cgns: CGNS,
   /// Calculate the Malliavin derivative
+  #[cfg(feature = "malliavin")]
   pub calculate_malliavin: Option<bool>,
   /// Malliavin derivative of the volatility
+  #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
   /// Malliavin derivative of the price
+  #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
@@ -69,8 +73,11 @@ impl Heston {
       use_sym: params.use_sym,
       m: params.m,
       cgns,
+      #[cfg(feature = "malliavin")]
       calculate_malliavin: Some(false),
+      #[cfg(feature = "malliavin")]
       malliavin_of_vol: Mutex::new(None),
+      #[cfg(feature = "malliavin")]
       malliavin_of_price: Mutex::new(None),
     }
   }
@@ -104,6 +111,7 @@ impl Sampling2D<f64> for Heston {
       }
     }
 
+    #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut det_term = Array1::zeros(self.n + 1);
       let mut malliavin = Array1::zeros(self.n + 1);
@@ -152,6 +160,7 @@ impl Sampling2D<f64> for Heston {
   ///
   /// The Malliavin derivative of the 3/2 Heston model is given by
   /// D_r v_t = \sigma v_t^{3/2} / 2 * exp(-(\kappa \theta / 2 + 3 \sigma^2 / 8) * v_t * dt)
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> [Array1<f64>; 2] {
     [
       Array1::zeros(self.n + 1),
@@ -188,8 +197,11 @@ mod tests {
       use_sym: Some(true),
       m: Some(1),
       cgns: CGNS::default(),
+      #[cfg(feature = "malliavin")]
       calculate_malliavin: Some(false),
+      #[cfg(feature = "malliavin")]
       malliavin_of_vol: Mutex::new(None),
+      #[cfg(feature = "malliavin")]
       malliavin_of_price: Mutex::new(None),
     });
     let mut plot = Plot::new();

@@ -20,7 +20,7 @@ pub trait Malliavin2D {
     let mut derivates = Array1::zeros(path.len() + 1);
     let f_original = f(&path);
 
-    for i in 1..self.path().len() {
+    for i in 1..=self.path().len() {
       let original_value = path[i];
       path[i] += epsilon;
       let f_perturbed = f(&path);
@@ -44,7 +44,7 @@ pub trait Malliavin2D {
     let final_value = |path: &Array1<f64>| -> f64 { *path.last().unwrap() };
     let f_original = final_value(&path);
 
-    for i in 1..path.len() {
+    for i in 1..=path.len() {
       let original_value = path[i];
       path[i] += epsilon;
       let f_perturbed = final_value(&path);

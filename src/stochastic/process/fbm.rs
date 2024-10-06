@@ -1,6 +1,8 @@
+#[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
 use ndarray::{s, Array1};
+#[cfg(feature = "malliavin")]
 use statrs::function::gamma;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
@@ -12,7 +14,9 @@ pub struct Fbm {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub fgn: FGN,
+  #[cfg(feature = "malliavin")]
   pub calculate_malliavin: Option<bool>,
+  #[cfg(feature = "malliavin")]
   malliavin: Mutex<Option<Array1<f64>>>,
 }
 
@@ -30,7 +34,9 @@ impl Fbm {
       n: params.n,
       m: params.m,
       fgn,
+      #[cfg(feature = "malliavin")]
       calculate_malliavin: Some(false),
+      #[cfg(feature = "malliavin")]
       malliavin: Mutex::new(None),
     }
   }
@@ -46,6 +52,7 @@ impl Sampling<f64> for Fbm {
       fbm[i] += fbm[i - 1];
     }
 
+    #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut malliavin = Array1::zeros(self.n + 1);
       let dt = self.t.unwrap_or(1.0) / self.n as f64;
@@ -76,6 +83,7 @@ impl Sampling<f64> for Fbm {
   /// where B^H_t is the fractional Brownian motion with Hurst parameter H in Mandelbrot-Van Ness representation as
   /// B^H_t = 1 / Γ(H + 1/2) ∫_0^t (t - s)^{H - 1/2} dW_s
   /// which is a truncated Wiener integral.
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().clone().unwrap()
   }

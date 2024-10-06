@@ -89,6 +89,7 @@ impl Sampling<f64> for CEV {
   /// D_r S_t = \sigma S_t^{\gamma} * 1_{[0, r]}(r) exp(\int_0^r (\mu - \frac{\gamma^2 \sigma^2 S_u^{2\gamma - 2}}{2}) du + \int_0^r \gamma \sigma S_u^{\gamma - 1} dW_u)
   ///
   /// The Malliavin derivative of the CEV process shows the sensitivity of the stock price with respect to the Wiener process.
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().clone().unwrap()
   }

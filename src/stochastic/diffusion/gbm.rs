@@ -1,3 +1,4 @@
+#[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
 use ndarray::Array1;
@@ -20,7 +21,9 @@ pub struct GBM {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub distribution: Option<LogNormal>,
+  #[cfg(feature = "malliavin")]
   pub calculate_malliavin: Option<bool>,
+  #[cfg(feature = "malliavin")]
   malliavin: Mutex<Option<Array1<f64>>>,
 }
 
@@ -35,7 +38,9 @@ impl GBM {
       t: params.t,
       m: params.m,
       distribution: None,
+      #[cfg(feature = "malliavin")]
       calculate_malliavin: Some(false),
+      #[cfg(feature = "malliavin")]
       malliavin: Mutex::new(None),
     }
   }
@@ -54,6 +59,7 @@ impl Sampling<f64> for GBM {
       gbm[i] = gbm[i - 1] + self.mu * gbm[i - 1] * dt + self.sigma * gbm[i - 1] * gn[i - 1]
     }
 
+    #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut malliavin = Array1::zeros(self.n + 1);
       for i in 1..=self.n {
@@ -95,6 +101,7 @@ impl Sampling<f64> for GBM {
   /// D_r S_t = \sigma S_t * 1_[0, r](r)
   ///
   /// The Malliavin derivate of the GBM shows the sensitivity of the stock price with respect to the Wiener process.
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().as_ref().unwrap().clone()
   }

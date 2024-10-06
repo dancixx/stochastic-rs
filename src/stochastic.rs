@@ -1,6 +1,24 @@
+//! # Stochastic Process Simulation Modules
+//!
+//! `stochastic` provides various modules to simulate and analyze stochastic processes efficiently.
+//!
+//! ## Modules
+//!
+//! | Module          | Description                                                                                                                                                                       |
+//! |-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+//! | **diffusion**    | Handles diffusion processes, such as Brownian motion and Geometric Brownian motion, commonly used in physics and finance to model random behavior over time.                                                            |
+//! | **interest**     | Provides models for simulating stochastic interest rates, including well-known models like the Cox-Ingersoll-Ross (CIR) model used in financial mathematics.                                                             |
+//! | **jump**         | Implements jump processes, where sudden changes occur at random intervals, such as in the Poisson process or in financial models like the Bates model.                                                                  |
+//! | **malliavin**    | Tools for working with the Malliavin calculus, which is used to compute derivatives of stochastic processes for sensitivity analysis and other advanced applications.                                                     |
+//! | **noise**        | Generates various noise processes, including Gaussian and fractional Gaussian noise, which are essential for simulating random perturbations in stochastic models.                                                       |
+//! | **process**      | Provides general abstractions and implementations for creating, simulating, and sampling stochastic processes, supporting both regular and parallelized workflows.                                                       |
+//! | **volatility**   | Focuses on modeling stochastic volatility, including processes like the Heston model, which are used to simulate changes in volatility over time in financial markets.                                                    |
+//!
+
 pub mod diffusion;
 pub mod interest;
 pub mod jump;
+#[cfg(feature = "malliavin")]
 pub mod malliavin;
 pub mod noise;
 pub mod process;
@@ -45,6 +63,7 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   fn distribution(&mut self) {}
 
   /// Malliavin derivative of the process
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<T> {
     unimplemented!()
   }
@@ -82,6 +101,7 @@ pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
   fn m(&self) -> Option<usize>;
 
   /// Malliavin derivative of the process
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> [Array1<T>; 2] {
     unimplemented!()
   }

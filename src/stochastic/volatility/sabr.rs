@@ -1,3 +1,4 @@
+#[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
 use ndarray::Array1;
@@ -16,8 +17,11 @@ pub struct Sabr {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub cgns: CGNS,
+  #[cfg(feature = "malliavin")]
   pub calculate_malliavin: Option<bool>,
+  #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
+  #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
@@ -41,8 +45,11 @@ impl Sabr {
       t: params.t,
       m: params.m,
       cgns,
+      #[cfg(feature = "malliavin")]
       calculate_malliavin: Some(false),
+      #[cfg(feature = "malliavin")]
       malliavin_of_vol: Mutex::new(None),
+      #[cfg(feature = "malliavin")]
       malliavin_of_price: Mutex::new(None),
     }
   }
@@ -63,6 +70,7 @@ impl Sampling2D<f64> for Sabr {
       v[i] = v[i - 1] + self.alpha * v[i - 1] * cgn2[i - 1];
     }
 
+    #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       // Only volatility Malliavin derivative is supported
       let mut malliavin_of_vol = Array1::<f64>::zeros(self.n + 1);
@@ -93,6 +101,7 @@ impl Sampling2D<f64> for Sabr {
   ///
   /// The Malliavin derivative of the volaility process in the SABR model is given by:
   /// D_r \sigma_t = \alpha \sigma_t 1_{[0, T]}(r)
+  #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> [Array1<f64>; 2] {
     [
       Array1::zeros(self.n + 1),

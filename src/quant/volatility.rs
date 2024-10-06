@@ -92,7 +92,6 @@ where
   fn jacobian(&self) -> Option<DMatrix<f64>> {
     let derivates = self.derivates.borrow();
     let derivates = derivates.iter().flatten().cloned().collect::<Vec<f64>>();
-    println!("{:?}", derivates.len());
 
     // The Jacobian matrix is a matrix of partial derivatives
     // of the residuals with respect to the parameters.
