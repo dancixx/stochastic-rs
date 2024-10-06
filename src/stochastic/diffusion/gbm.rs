@@ -187,26 +187,26 @@ mod tests {
 
   #[test]
   fn gmb_length_equals_n() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     assert_eq!(gbm.sample().len(), N);
   }
 
   #[test]
   fn gmb_starts_with_x0() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     assert_eq!(gbm.sample()[0], X0);
   }
 
   #[test]
   fn gmb_plot() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     plot_1d!(gbm.sample(), "Geometric Brownian Motion (GBM) process");
   }
 
   #[test]
   #[cfg(feature = "malliavin")]
   fn gmb_malliavin() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, Some(true));
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, Some(true));
     let process = gbm.sample();
     let malliavin = gbm.malliavin();
     plot_2d!(
