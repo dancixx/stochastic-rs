@@ -30,7 +30,7 @@ impl Sampling<f64> for Poisson {
     if let Some(n) = self.n {
       let exponentials = Array1::random(n, Exp::new(1.0 / self.lambda).unwrap());
       let mut poisson = Array1::<f64>::zeros(n + 1);
-      for i in 1..(n + 1) {
+      for i in 1..=n {
         poisson[i] = poisson[i - 1] + exponentials[i - 1];
       }
 

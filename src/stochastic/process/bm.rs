@@ -26,10 +26,10 @@ impl Sampling<f64> for BM {
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
-    let mut bm = Array1::<f64>::zeros(self.n);
+    let mut bm = Array1::<f64>::zeros(self.n + 1);
     bm.slice_mut(s![1..]).assign(&gn);
 
-    for i in 1..self.n {
+    for i in 1..=self.n {
       bm[i] += bm[i - 1];
     }
 

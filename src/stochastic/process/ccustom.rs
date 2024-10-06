@@ -56,7 +56,7 @@ where
 
     let p = self.customjt.sample();
     let mut jumps = Array1::<f64>::zeros(self.n.unwrap_or(p.len()));
-    for i in 1..p.len() {
+    for i in 1..=p.len() {
       jumps[i] = self.jumps_distribution.sample(&mut thread_rng());
     }
 

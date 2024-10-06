@@ -32,7 +32,7 @@ impl<D: ProcessDistribution> Sampling<f64> for CustomJt<D> {
     if let Some(n) = self.n {
       let random = Array1::random(n, self.distribution);
       let mut x = Array1::<f64>::zeros(n + 1);
-      for i in 1..n + 11 {
+      for i in 1..=n {
         x[i] = x[i - 1] + random[i - 1];
       }
 

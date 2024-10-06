@@ -46,8 +46,8 @@ impl<D: ProcessDistribution> Sampling3D<f64> for CompoundPoisson<D> {
     }
 
     let poisson = self.poisson.sample();
-    let mut jumps = Array1::<f64>::zeros(poisson.len());
-    for i in 1..poisson.len() {
+    let mut jumps = Array1::<f64>::zeros(poisson.len() + 1);
+    for i in 1..=poisson.len() {
       jumps[i] = self.distribution.sample(&mut thread_rng());
     }
 
