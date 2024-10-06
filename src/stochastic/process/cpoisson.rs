@@ -1,3 +1,4 @@
+use impl_new_derive::ImplNew;
 use ndarray::{Array1, Axis};
 use rand::thread_rng;
 
@@ -5,7 +6,7 @@ use crate::stochastic::{ProcessDistribution, Sampling, Sampling3D};
 
 use super::poisson::Poisson;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct CompoundPoisson<D>
 where
   D: ProcessDistribution,
@@ -18,27 +19,6 @@ where
   pub poisson: Poisson,
 }
 
-impl<D: ProcessDistribution> CompoundPoisson<D> {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let poisson = Poisson::new(&Poisson {
-      lambda: params.lambda,
-      n: params.n,
-      t_max: params.t_max,
-      m: params.m,
-    });
-
-    Self {
-      n: params.n,
-      lambda: params.lambda,
-      t_max: params.t_max,
-      m: params.m,
-      distribution: params.distribution,
-      poisson,
-    }
-  }
-}
-
 impl<D: ProcessDistribution> Sampling3D<f64> for CompoundPoisson<D> {
   fn sample(&self) -> [Array1<f64>; 3] {
     if self.n.is_none() && self.t_max.is_none() {
@@ -46,8 +26,8 @@ impl<D: ProcessDistribution> Sampling3D<f64> for CompoundPoisson<D> {
     }
 
     let poisson = self.poisson.sample();
-    let mut jumps = Array1::<f64>::zeros(poisson.len() + 1);
-    for i in 1..=poisson.len() {
+    let mut jumps = Array1::<f64>::zeros(poisson.len());
+    for i in 1..poisson.len() {
       jumps[i] = self.distribution.sample(&mut thread_rng());
     }
 

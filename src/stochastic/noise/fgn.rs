@@ -19,12 +19,6 @@ pub struct FGN {
   pub fft_handler: Arc<FftHandler<f64>>,
 }
 
-impl Default for FGN {
-  fn default() -> Self {
-    Self::new(0.7, 1024, None, None)
-  }
-}
-
 impl FGN {
   #[must_use]
   pub fn new(hurst: f64, n: usize, t: Option<f64>, m: Option<usize>) -> Self {
@@ -108,14 +102,32 @@ impl Sampling<f64> for FGN {
 
 #[cfg(test)]
 mod tests {
-
-  use crate::plot_1d;
+  use crate::{plot_1d, stochastic::N};
 
   use super::*;
 
   #[test]
+  fn fgn_length_equals_n() {
+    let fbm = FGN::new(0.7, N, Some(1.0), None);
+    assert_eq!(fbm.sample().len(), N);
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  fn fgn_starts_with_x0() {
+    unimplemented!()
+  }
+
+  #[test]
   fn fgn_plot() {
-    let fgn = FGN::new(0.7, 1000, Some(1.0), None);
-    plot_1d!(fgn.sample(), "FGN");
+    let fbm = FGN::new(0.7, N, Some(1.0), None);
+    plot_1d!(fbm.sample(), "Fractional Brownian Motion (H = 0.7)");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn fgn_malliavin() {
+    unimplemented!();
   }
 }

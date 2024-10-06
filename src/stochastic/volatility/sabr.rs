@@ -1,11 +1,12 @@
 #[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 
 pub struct Sabr {
   pub alpha: f64,
@@ -23,36 +24,6 @@ pub struct Sabr {
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
   #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
-}
-
-impl Sabr {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let cgns = CGNS::new(&CGNS {
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-    });
-
-    Self {
-      alpha: params.alpha,
-      beta: params.beta,
-      rho: params.rho,
-      n: params.n,
-      f0: params.f0,
-      v0: params.v0,
-      t: params.t,
-      m: params.m,
-      cgns,
-      #[cfg(feature = "malliavin")]
-      calculate_malliavin: Some(false),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_vol: Mutex::new(None),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_price: Mutex::new(None),
-    }
-  }
 }
 
 impl Sampling2D<f64> for Sabr {

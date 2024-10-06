@@ -1,5 +1,5 @@
-use ndarray::{s, Array1};
-use stochastic_rs_macros::ImplNew;
+use impl_new_derive::ImplNew;
+use ndarray::Array1;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
@@ -17,7 +17,7 @@ pub struct FGBM {
 impl Sampling<f64> for FGBM {
   /// Sample the Fractional Geometric Brownian Motion (FGBM) process
   fn sample(&self) -> Array1<f64> {
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let fgn = self.fgn.sample();
 
     let mut fgbm = Array1::<f64>::zeros(self.n);
@@ -27,7 +27,7 @@ impl Sampling<f64> for FGBM {
       fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]
     }
 
-    fgbm.slice(s![..self.n()]).to_owned()
+    fgbm
   }
 
   /// Number of time steps

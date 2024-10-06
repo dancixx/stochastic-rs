@@ -1,5 +1,5 @@
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
-use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{diffusion::fou::FOU, Sampling};
 
@@ -17,6 +17,7 @@ pub struct FVasicek {
 }
 
 impl Sampling<f64> for FVasicek {
+  /// Sample the Fractional Vasicek process
   fn sample(&self) -> Array1<f64> {
     self.fou.sample()
   }

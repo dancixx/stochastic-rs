@@ -1,15 +1,15 @@
+use impl_new_derive::ImplNew;
 use ndarray::{s, Array1};
 
 use crate::stochastic::{
   noise::fgn::FGN, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
 };
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct JumpFOU<D>
 where
   D: ProcessDistribution,
 {
-  pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
   pub theta: f64,
@@ -23,50 +23,14 @@ where
   pub cpoisson: CompoundPoisson<D>,
 }
 
-impl<D: ProcessDistribution> JumpFOU<D> {
-  #[must_use]
-  pub fn new(params: &JumpFOU<D>) -> Self {
-    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
-
-    let cpoisson = CompoundPoisson::new(&CompoundPoisson {
-      n: None,
-      lambda: params.lambda.unwrap(),
-      t_max: Some(params.t.unwrap_or(1.0) / params.n as f64),
-      distribution: params.jump_distribution,
-      m: params.m,
-      ..Default::default()
-    });
-
-    Self {
-      hurst: params.hurst,
-      mu: params.mu,
-      sigma: params.sigma,
-      theta: params.theta,
-      lambda: params.lambda,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      jump_distribution: params.jump_distribution,
-      fgn,
-      cpoisson,
-    }
-  }
-}
-
 impl<D: ProcessDistribution> Sampling<f64> for JumpFOU<D> {
   fn sample(&self) -> Array1<f64> {
-    assert!(
-      self.hurst > 0.0 && self.hurst < 1.0,
-      "Hurst parameter must be in (0, 1)"
-    );
-
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let fgn = self.fgn.sample();
-    let mut jump_fou = Array1::<f64>::zeros(self.n + 1);
+    let mut jump_fou = Array1::<f64>::zeros(self.n);
     jump_fou[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       let [.., jumps] = self.cpoisson.sample();
 
       jump_fou[i] = jump_fou[i - 1]

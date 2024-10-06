@@ -1,5 +1,5 @@
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
-use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{diffusion::ou::OU, Sampling};
 

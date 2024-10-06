@@ -1,10 +1,11 @@
+use impl_new_derive::ImplNew;
 use ndarray::{Array0, Array1, Axis, Dim};
 use ndarray_rand::RandomExt;
 use rand::thread_rng;
 
 use crate::stochastic::{ProcessDistribution, Sampling};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct CustomJt<D>
 where
   D: ProcessDistribution,
@@ -15,24 +16,12 @@ where
   pub distribution: D,
 }
 
-impl<D: ProcessDistribution> CustomJt<D> {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      n: params.n,
-      t_max: params.t_max,
-      m: params.m,
-      distribution: params.distribution,
-    }
-  }
-}
-
 impl<D: ProcessDistribution> Sampling<f64> for CustomJt<D> {
   fn sample(&self) -> Array1<f64> {
     if let Some(n) = self.n {
       let random = Array1::random(n, self.distribution);
-      let mut x = Array1::<f64>::zeros(n + 1);
-      for i in 1..=n {
+      let mut x = Array1::<f64>::zeros(n);
+      for i in 1..n {
         x[i] = x[i - 1] + random[i - 1];
       }
 

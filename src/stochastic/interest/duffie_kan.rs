@@ -1,8 +1,9 @@
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 
 pub struct DuffieKan {
   pub alpha: f64,
@@ -25,52 +26,19 @@ pub struct DuffieKan {
   pub cgns: CGNS,
 }
 
-impl DuffieKan {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let cgns: CGNS = CGNS::new(&CGNS {
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-    });
-
-    Self {
-      alpha: params.alpha,
-      beta: params.beta,
-      gamma: params.gamma,
-      rho: params.rho,
-      a1: params.a1,
-      b1: params.b1,
-      c1: params.c1,
-      sigma1: params.sigma1,
-      a2: params.a2,
-      b2: params.b2,
-      c2: params.c2,
-      sigma2: params.sigma2,
-      n: params.n,
-      r0: params.r0,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      cgns,
-    }
-  }
-}
-
 impl Sampling2D<f64> for DuffieKan {
   /// Sample the Duffie-Kan process
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
 
-    let mut r = Array1::<f64>::zeros(self.n + 1);
-    let mut x = Array1::<f64>::zeros(self.n + 1);
+    let mut r = Array1::<f64>::zeros(self.n);
+    let mut x = Array1::<f64>::zeros(self.n);
 
     r[0] = self.r0.unwrap_or(0.0);
     x[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       r[i] = r[i - 1]
         + (self.a1 * r[i - 1] + self.b1 * x[i - 1] + self.c1) * dt
         + self.sigma1 * (self.alpha * r[i - 1] + self.beta * x[i - 1] + self.gamma) * cgn1[i - 1];

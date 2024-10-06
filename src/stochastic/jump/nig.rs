@@ -1,10 +1,11 @@
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 use ndarray_rand::{rand_distr::InverseGaussian, RandomExt};
 use rand_distr::Normal;
 
 use crate::stochastic::Sampling;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 
 pub struct NIG {
   pub theta: f64,
@@ -16,32 +17,17 @@ pub struct NIG {
   pub m: Option<usize>,
 }
 
-impl NIG {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      theta: params.theta,
-      sigma: params.sigma,
-      kappa: params.kappa,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-    }
-  }
-}
-
 impl Sampling<f64> for NIG {
   fn sample(&self) -> Array1<f64> {
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let scale = dt.powf(2.0) / self.kappa;
     let mean = dt / scale;
-    let ig = Array1::random(self.n, InverseGaussian::new(mean, scale).unwrap());
-    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
-    let mut nig = Array1::zeros(self.n + 1);
+    let ig = Array1::random(self.n - 1, InverseGaussian::new(mean, scale).unwrap());
+    let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
+    let mut nig = Array1::zeros(self.n);
     nig[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       nig[i] = nig[i - 1] + self.theta * ig[i - 1] + self.sigma * ig[i - 1].sqrt() * gn[i - 1]
     }
 

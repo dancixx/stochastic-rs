@@ -24,6 +24,7 @@ candle-datasets = "0.7.2"
 candle-nn = "0.7.2"
 candle-transformers = "0.7.2"
 chrono = "0.4.38"
+impl-new-derive = "0.1.0"
 indicatif = "0.17.8"
 levenberg-marquardt = "0.14.0"
 linreg = "0.2.0"
@@ -45,7 +46,6 @@ rand_distr = "0.4.3"
 rayon = "1.10.0"
 scilib = "1.0.0"
 statrs = "0.17.1"
-stochastic-rs-macros = { version = "0.1.0", path = "stochastic-rs-macros" }
 tikv-jemallocator = { version = "0.6.0", optional = true }
 time = { version = "0.3.36", features = [
     "formatting",

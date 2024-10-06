@@ -1,5 +1,5 @@
-use ndarray::{s, Array1};
-use stochastic_rs_macros::ImplNew;
+use impl_new_derive::ImplNew;
+use ndarray::Array1;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
@@ -23,7 +23,7 @@ impl Sampling<f64> for FJacobi {
     assert!(self.sigma > 0.0, "sigma must be positive");
     assert!(self.alpha < self.beta, "alpha must be less than beta");
 
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let fgn = self.fgn.sample();
 
     let mut fjacobi = Array1::<f64>::zeros(self.n);
@@ -41,7 +41,7 @@ impl Sampling<f64> for FJacobi {
       }
     }
 
-    fjacobi.slice(s![..self.n()]).to_owned()
+    fjacobi
   }
 
   /// Number of time steps

@@ -1,9 +1,10 @@
+#[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand_distr::Normal;
-use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::Sampling;
 
@@ -24,7 +25,7 @@ pub struct CEV {
 impl Sampling<f64> for CEV {
   /// Sample the CEV process
   fn sample(&self) -> Array1<f64> {
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut cev = Array1::<f64>::zeros(self.n);

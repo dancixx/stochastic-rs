@@ -1,34 +1,15 @@
+use impl_new_derive::ImplNew;
 use ndarray::{Array1, Array2};
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct CBMS {
   pub rho: f64,
   pub n: usize,
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub cgns: CGNS,
-}
-
-impl CBMS {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let cgns = CGNS::new(&CGNS {
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-    });
-
-    Self {
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      cgns,
-    }
-  }
 }
 
 impl Sampling2D<f64> for CBMS {
@@ -38,10 +19,10 @@ impl Sampling2D<f64> for CBMS {
       "Correlation coefficient must be in [-1, 1]"
     );
 
-    let mut bms = Array2::<f64>::zeros((2, self.n + 1));
+    let mut bms = Array2::<f64>::zeros((2, self.n));
     let [cgn1, cgn2] = self.cgns.sample();
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       bms[[0, i]] = bms[[0, i - 1]] + cgn1[i - 1];
       bms[[1, i]] =
         bms[[1, i - 1]] + self.rho * cgn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * cgn2[i - 1];

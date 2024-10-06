@@ -1,6 +1,7 @@
 #[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use num_complex::Complex64;
@@ -9,7 +10,6 @@ use statrs::{
   distribution::{Continuous, ContinuousCDF, LogNormal},
   statistics::{Distribution as StatDistribution, Median, Mode},
 };
-use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{Distribution, Sampling};
 
@@ -31,7 +31,7 @@ pub struct GBM {
 impl Sampling<f64> for GBM {
   /// Sample the GBM process
   fn sample(&self) -> Array1<f64> {
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut gbm = Array1::<f64>::zeros(self.n);
@@ -186,26 +186,26 @@ mod tests {
   use super::*;
 
   #[test]
-  fn gmb_length_equals_n() {
+  fn gbm_length_equals_n() {
     let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     assert_eq!(gbm.sample().len(), N);
   }
 
   #[test]
-  fn gmb_starts_with_x0() {
+  fn gbm_starts_with_x0() {
     let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     assert_eq!(gbm.sample()[0], X0);
   }
 
   #[test]
-  fn gmb_plot() {
+  fn gbm_plot() {
     let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
     plot_1d!(gbm.sample(), "Geometric Brownian Motion (GBM) process");
   }
 
   #[test]
   #[cfg(feature = "malliavin")]
-  fn gmb_malliavin() {
+  fn gbm_malliavin() {
     let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, Some(true));
     let process = gbm.sample();
     let malliavin = gbm.malliavin();

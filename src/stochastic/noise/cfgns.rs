@@ -1,10 +1,11 @@
-use ndarray::{s, Array1, Array2};
+use impl_new_derive::ImplNew;
+use ndarray::{Array1, Array2};
 
 use crate::stochastic::{Sampling, Sampling2D};
 
 use super::fgn::FGN;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct CFGNS {
   pub hurst: f64,
   pub rho: f64,
@@ -12,22 +13,6 @@ pub struct CFGNS {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub fgn: FGN,
-}
-
-impl CFGNS {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
-
-    Self {
-      hurst: params.hurst,
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-      fgn,
-    }
-  }
 }
 
 impl Sampling2D<f64> for CFGNS {
@@ -41,19 +26,16 @@ impl Sampling2D<f64> for CFGNS {
       "Correlation coefficient must be in [-1, 1]"
     );
 
-    let mut cfgns = Array2::<f64>::zeros((2, self.n + 1));
+    let mut cfgns = Array2::<f64>::zeros((2, self.n));
     let fgn1 = self.fgn.sample();
     let fgn2 = self.fgn.sample();
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       cfgns[[0, i]] = fgn1[i - 1];
       cfgns[[1, i]] = self.rho * fgn1[i - 1] + (1.0 - self.rho.powi(2)).sqrt() * fgn2[i - 1];
     }
 
-    [
-      cfgns.row(0).slice(s![..self.n()]).into_owned(),
-      cfgns.row(1).slice(s![..self.n()]).into_owned(),
-    ]
+    [cfgns.row(0).into_owned(), cfgns.row(1).into_owned()]
   }
 
   /// Number of time steps

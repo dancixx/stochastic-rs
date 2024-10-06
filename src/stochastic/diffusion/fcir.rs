@@ -1,5 +1,5 @@
-use ndarray::{s, Array1};
-use stochastic_rs_macros::ImplNew;
+use impl_new_derive::ImplNew;
+use ndarray::Array1;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
@@ -28,7 +28,7 @@ impl Sampling<f64> for FCIR {
     );
 
     let fgn = self.fgn.sample();
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
 
     let mut fcir = Array1::<f64>::zeros(self.n);
     fcir[0] = self.x0.unwrap_or(0.0);
@@ -43,7 +43,7 @@ impl Sampling<f64> for FCIR {
       };
     }
 
-    fcir.slice(s![..self.n()]).to_owned()
+    fcir
   }
 
   /// Number of time steps

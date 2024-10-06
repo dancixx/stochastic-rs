@@ -1,14 +1,15 @@
 #[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
+use impl_new_derive::ImplNew;
 use ndarray::{s, Array1};
 #[cfg(feature = "malliavin")]
 use statrs::function::gamma;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
-#[derive(Default)]
-pub struct Fbm {
+#[derive(ImplNew)]
+pub struct FBM {
   pub hurst: f64,
   pub n: usize,
   pub t: Option<f64>,
@@ -20,32 +21,10 @@ pub struct Fbm {
   malliavin: Mutex<Option<Array1<f64>>>,
 }
 
-impl Fbm {
-  pub fn new(params: &Self) -> Self {
-    if !(0.0..=1.0).contains(&params.hurst) {
-      panic!("Hurst parameter must be in (0, 1)")
-    }
-
-    let fgn = FGN::new(params.hurst, params.n, params.t, None);
-
-    Self {
-      hurst: params.hurst,
-      t: params.t,
-      n: params.n,
-      m: params.m,
-      fgn,
-      #[cfg(feature = "malliavin")]
-      calculate_malliavin: Some(false),
-      #[cfg(feature = "malliavin")]
-      malliavin: Mutex::new(None),
-    }
-  }
-}
-
-impl Sampling<f64> for Fbm {
+impl Sampling<f64> for FBM {
   fn sample(&self) -> Array1<f64> {
     let fgn = self.fgn.sample();
-    let mut fbm = Array1::<f64>::zeros(self.n + 1);
+    let mut fbm = Array1::<f64>::zeros(self.n);
     fbm.slice_mut(s![1..]).assign(&fgn);
 
     for i in 1..=self.n {
@@ -54,9 +33,9 @@ impl Sampling<f64> for Fbm {
 
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
-      let mut malliavin = Array1::zeros(self.n + 1);
-      let dt = self.t.unwrap_or(1.0) / self.n as f64;
-      for i in 1..=self.n {
+      let mut malliavin = Array1::zeros(self.n);
+      let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
+      for i in 1..self.n {
         malliavin[i] = 1.0 / (gamma::gamma(self.hurst + 0.5)) * dt.powf(self.hurst - 0.5);
       }
 
@@ -91,34 +70,70 @@ impl Sampling<f64> for Fbm {
 
 #[cfg(test)]
 mod tests {
-  use ndarray::Axis;
-  use plotly::{common::Line, Plot, Scatter};
+  use crate::{plot_1d, plot_2d, stochastic::N};
 
   use super::*;
 
   #[test]
-  fn plot() {
-    let fbm = Fbm::new(&Fbm {
-      hurst: 0.9,
-      n: 1000,
-      t: Some(1.0),
-      m: Some(1),
-      ..Default::default()
-    });
+  fn fbm_length_equals_n() {
+    let fbm = FBM::new(
+      0.7,
+      N,
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+      None,
+    );
 
-    let mut plot = Plot::new();
-    let d = fbm.sample_par();
-    for data in d.axis_iter(Axis(0)) {
-      let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
-        .mode(plotly::common::Mode::Lines)
-        .line(
-          Line::new()
-            .color("orange")
-            .shape(plotly::common::LineShape::Linear),
-        )
-        .name("Fbm");
-      plot.add_trace(trace);
-    }
-    plot.show();
+    assert_eq!(fbm.sample().len(), N);
+  }
+
+  #[test]
+  fn fbm_starts_with_x0() {
+    let fbm = FBM::new(
+      0.7,
+      N,
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+      None,
+    );
+
+    assert_eq!(fbm.sample()[0], 0.0);
+  }
+
+  #[test]
+  fn fbm_plot() {
+    let fbm = FBM::new(
+      0.7,
+      N,
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+      None,
+    );
+
+    plot_1d!(fbm.sample(), "Fractional Brownian Motion (H = 0.7)");
+  }
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn fbm_malliavin() {
+    let fbm = FBM::new(
+      0.7,
+      N,
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+      Some(true),
+    );
+    let process = fbm.sample();
+    let malliavin = fbm.malliavin();
+    plot_2d!(
+      process,
+      "Fractional Brownian Motion (H = 0.7)",
+      malliavin,
+      "Malliavin derivative of Fractional Brownian Motion (H = 0.7)"
+    );
   }
 }

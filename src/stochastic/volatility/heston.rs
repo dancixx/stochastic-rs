@@ -1,13 +1,14 @@
 #[cfg(feature = "malliavin")]
 use std::sync::Mutex;
 
+use impl_new_derive::ImplNew;
 use ndarray::Array1;
 
 use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
 use super::HestonPow;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 
 pub struct Heston {
   /// Initial stock price
@@ -49,52 +50,18 @@ pub struct Heston {
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
-impl Heston {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let cgns = CGNS::new(&CGNS {
-      rho: params.rho,
-      n: params.n,
-      t: params.t,
-      m: params.m,
-    });
-
-    Self {
-      s0: params.s0,
-      v0: params.v0,
-      kappa: params.kappa,
-      theta: params.theta,
-      sigma: params.sigma,
-      rho: params.rho,
-      mu: params.mu,
-      n: params.n,
-      t: params.t,
-      pow: params.pow,
-      use_sym: params.use_sym,
-      m: params.m,
-      cgns,
-      #[cfg(feature = "malliavin")]
-      calculate_malliavin: Some(false),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_vol: Mutex::new(None),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_price: Mutex::new(None),
-    }
-  }
-}
-
 impl Sampling2D<f64> for Heston {
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
-    let dt = self.t.unwrap_or(1.0) / self.n as f64;
+    let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
 
-    let mut s = Array1::<f64>::zeros(self.n + 1);
-    let mut v = Array1::<f64>::zeros(self.n + 1);
+    let mut s = Array1::<f64>::zeros(self.n);
+    let mut v = Array1::<f64>::zeros(self.n);
 
     s[0] = self.s0.unwrap_or(0.0);
     v[0] = self.v0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       s[i] = s[i - 1] + self.mu * s[i - 1] * dt + s[i - 1] * v[i - 1].sqrt() * cgn1[i - 1];
 
       let dv = self.kappa * (self.theta - v[i - 1]) * dt
@@ -172,58 +139,5 @@ impl Sampling2D<f64> for Heston {
         .unwrap()
         .clone(),
     ]
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use plotly::{common::Line, Plot, Scatter};
-
-  use super::*;
-
-  #[test]
-  fn plot() {
-    let heston = Heston::new(&Heston {
-      s0: Some(0.05),
-      v0: Some(0.04),
-      kappa: 2.0,
-      theta: 0.04,
-      sigma: 0.1,
-      rho: -0.7,
-      mu: 0.05,
-      n: 1000,
-      t: Some(1.0),
-      pow: HestonPow::default(),
-      use_sym: Some(true),
-      m: Some(1),
-      cgns: CGNS::default(),
-      #[cfg(feature = "malliavin")]
-      calculate_malliavin: Some(false),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_vol: Mutex::new(None),
-      #[cfg(feature = "malliavin")]
-      malliavin_of_price: Mutex::new(None),
-    });
-    let mut plot = Plot::new();
-    let [s, v] = heston.sample();
-    let price = Scatter::new((0..s.len()).collect::<Vec<_>>(), s.to_vec())
-      .mode(plotly::common::Mode::Lines)
-      .line(
-        Line::new()
-          .color("blue")
-          .shape(plotly::common::LineShape::Linear),
-      )
-      .name("Heston");
-    plot.add_trace(price);
-    let vol = Scatter::new((0..v.len()).collect::<Vec<_>>(), v.to_vec())
-      .mode(plotly::common::Mode::Lines)
-      .line(
-        Line::new()
-          .color("orange")
-          .shape(plotly::common::LineShape::Linear),
-      )
-      .name("Heston");
-    plot.add_trace(vol);
-    plot.show();
   }
 }
