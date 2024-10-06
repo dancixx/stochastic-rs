@@ -53,52 +53,54 @@ mod tests {
 
   #[test]
   fn fgbm_length_equals_n() {
-    let cir = FGBM::new(
+    let fgbm = FGBM::new(
       1.0,
       0.8,
       N,
       Some(X0),
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
     );
 
-    assert_eq!(cir.sample().len(), N);
+    assert_eq!(fgbm.sample().len(), N);
   }
 
   #[test]
   fn fgbm_starts_with_x0() {
-    let cir = FGBM::new(
+    let fgbm = FGBM::new(
       1.0,
       0.8,
       N,
       Some(X0),
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
     );
-    assert_eq!(cir.sample()[0], X0);
+
+    assert_eq!(fgbm.sample()[0], X0);
   }
 
   #[test]
   fn fgbm_plot() {
-    let cir = FGBM::new(
+    let fgbm = FGBM::new(
       1.0,
       0.8,
       N,
       Some(X0),
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
     );
 
     plot_1d!(
-      cir.sample(),
+      fgbm.sample(),
       "Fractional Geometric Brownian Motion (FGBM) process"
     );
   }
 
   #[test]
+  #[ignore = "Not implemented"]
   #[cfg(feature = "malliavin")]
   fn fgbm_malliavin() {
     unimplemented!();

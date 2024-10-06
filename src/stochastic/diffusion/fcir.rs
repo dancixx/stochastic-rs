@@ -68,7 +68,7 @@ mod tests {
 
   #[test]
   fn fcir_length_equals_n() {
-    let cir = FCIR::new(
+    let fcir = FCIR::new(
       1.0,
       1.2,
       0.2,
@@ -80,12 +80,12 @@ mod tests {
       FGN::new(0.7, N, Some(1.0), None),
     );
 
-    assert_eq!(cir.sample().len(), N);
+    assert_eq!(fcir.sample().len(), N);
   }
 
   #[test]
   fn fcir_starts_with_x0() {
-    let cir = FCIR::new(
+    let fcir = FCIR::new(
       1.0,
       1.2,
       0.2,
@@ -97,12 +97,12 @@ mod tests {
       FGN::new(0.7, N, Some(1.0), None),
     );
 
-    assert_eq!(cir.sample()[0], X0);
+    assert_eq!(fcir.sample()[0], X0);
   }
 
   #[test]
   fn fcir_plot() {
-    let cir = FCIR::new(
+    let fcir = FCIR::new(
       1.0,
       1.2,
       0.2,
@@ -114,10 +114,14 @@ mod tests {
       FGN::new(0.7, N, Some(1.0), None),
     );
 
-    plot_1d!(cir.sample(), "Fractional Cox-Ingersoll-Ross (FCIR) process");
+    plot_1d!(
+      fcir.sample(),
+      "Fractional Cox-Ingersoll-Ross (FCIR) process"
+    );
   }
 
   #[test]
+  #[ignore = "Not implemented"]
   #[cfg(feature = "malliavin")]
   fn fcir_malliavin() {
     unimplemented!();

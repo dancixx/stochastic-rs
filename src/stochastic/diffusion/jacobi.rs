@@ -1,10 +1,11 @@
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand_distr::Normal;
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::Sampling;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct Jacobi {
   pub alpha: f64,
   pub beta: f64,
@@ -13,21 +14,6 @@ pub struct Jacobi {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-}
-
-impl Jacobi {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      alpha: params.alpha,
-      beta: params.beta,
-      sigma: params.sigma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-    }
-  }
 }
 
 impl Sampling<f64> for Jacobi {
@@ -67,5 +53,40 @@ impl Sampling<f64> for Jacobi {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{Sampling, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn fjacobi_length_equals_n() {
+    let jacobi = Jacobi::new(0.43, 0.5, 0.8, N, Some(X0), Some(1.0), None);
+    assert_eq!(jacobi.sample().len(), N);
+  }
+
+  #[test]
+  fn jacobi_starts_with_x0() {
+    let jacobi = Jacobi::new(0.43, 0.5, 0.8, N, Some(X0), Some(1.0), None);
+    assert_eq!(jacobi.sample()[0], X0);
+  }
+
+  #[test]
+  fn jacobi_plot() {
+    let jacobi = Jacobi::new(0.43, 0.5, 0.8, N, Some(X0), Some(1.0), None);
+    plot_1d!(jacobi.sample(), "Jacobi process");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn fjacobi_malliavin() {
+    unimplemented!();
   }
 }

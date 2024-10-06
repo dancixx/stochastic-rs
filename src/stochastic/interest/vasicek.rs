@@ -1,8 +1,9 @@
 use ndarray::Array1;
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{diffusion::ou::OU, Sampling};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct Vasicek {
   pub mu: f64,
   pub sigma: f64,
@@ -12,32 +13,6 @@ pub struct Vasicek {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub ou: OU,
-}
-
-impl Vasicek {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let ou = OU::new(&OU {
-      mu: params.mu,
-      sigma: params.sigma,
-      theta: params.theta.unwrap_or(1.0),
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-    });
-
-    Self {
-      mu: params.mu,
-      sigma: params.sigma,
-      theta: params.theta,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      ou,
-    }
-  }
 }
 
 impl Sampling<f64> for Vasicek {

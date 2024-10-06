@@ -1,10 +1,10 @@
 use ndarray::{s, Array1};
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct FJacobi {
-  pub hurst: f64,
   pub alpha: f64,
   pub beta: f64,
   pub sigma: f64,
@@ -15,32 +15,9 @@ pub struct FJacobi {
   pub fgn: FGN,
 }
 
-impl FJacobi {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
-
-    Self {
-      hurst: params.hurst,
-      alpha: params.alpha,
-      beta: params.beta,
-      sigma: params.sigma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      fgn,
-    }
-  }
-}
-
 impl Sampling<f64> for FJacobi {
   /// Sample the Fractional Jacobi process
   fn sample(&self) -> Array1<f64> {
-    assert!(
-      self.hurst > 0.0 && self.hurst < 1.0,
-      "Hurst parameter must be in (0, 1)"
-    );
     assert!(self.alpha > 0.0, "alpha must be positive");
     assert!(self.beta > 0.0, "beta must be positive");
     assert!(self.sigma > 0.0, "sigma must be positive");
@@ -49,10 +26,10 @@ impl Sampling<f64> for FJacobi {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let fgn = self.fgn.sample();
 
-    let mut fjacobi = Array1::<f64>::zeros(self.n + 1);
+    let mut fjacobi = Array1::<f64>::zeros(self.n);
     fjacobi[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       fjacobi[i] = match fjacobi[i - 1] {
         _ if fjacobi[i - 1] <= 0.0 && i > 0 => 0.0,
         _ if fjacobi[i - 1] >= 1.0 && i > 0 => 1.0,
@@ -72,9 +49,73 @@ impl Sampling<f64> for FJacobi {
     self.n
   }
 
-  /// Number of paths
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{noise::fgn::FGN, Sampling, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn fjacobi_length_equals_n() {
+    let fjacobi = FJacobi::new(
+      0.43,
+      0.5,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N - 1, Some(1.0), None),
+    );
+
+    assert_eq!(fjacobi.sample().len(), N);
+  }
+
+  #[test]
+  fn fjacobi_starts_with_x0() {
+    let fjacobi = FJacobi::new(
+      0.43,
+      0.5,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N - 1, Some(1.0), None),
+    );
+
+    assert_eq!(fjacobi.sample()[0], X0);
+  }
+
+  #[test]
+  fn fjacobi_plot() {
+    let fjacobi = FJacobi::new(
+      0.43,
+      0.5,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N - 1, Some(1.0), None),
+    );
+
+    plot_1d!(fjacobi.sample(), "Fractional Jacobi process");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn fjacobi_malliavin() {
+    unimplemented!();
   }
 }

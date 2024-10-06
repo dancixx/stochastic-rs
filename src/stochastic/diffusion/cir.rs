@@ -29,7 +29,7 @@ impl Sampling<f64> for CIR {
     );
 
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
-    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
+    let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut cir = Array1::<f64>::zeros(self.n);
     cir[0] = self.x0.unwrap_or(0.0);
@@ -69,23 +69,24 @@ mod tests {
 
   #[test]
   fn cir_length_equals_n() {
-    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), Some(1));
+    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), None);
     assert_eq!(cir.sample().len(), N);
   }
 
   #[test]
   fn cir_starts_with_x0() {
-    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), Some(1));
+    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), None);
     assert_eq!(cir.sample()[0], X0);
   }
 
   #[test]
   fn cir_plot() {
-    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), Some(1));
+    let cir = CIR::new(1.0, 1.2, 0.2, N, Some(X0), Some(1.0), Some(false), None);
     plot_1d!(cir.sample(), "Cox-Ingersoll-Ross (CIR) process");
   }
 
   #[test]
+  #[ignore = "Not implemented"]
   #[cfg(feature = "malliavin")]
   fn cir_malliavin() {
     unimplemented!();

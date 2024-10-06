@@ -1,10 +1,11 @@
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand_distr::Normal;
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::Sampling;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct OU {
   pub mu: f64,
   pub sigma: f64,
@@ -13,21 +14,6 @@ pub struct OU {
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-}
-
-impl OU {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      mu: params.mu,
-      sigma: params.sigma,
-      theta: params.theta,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-    }
-  }
 }
 
 impl Sampling<f64> for OU {
@@ -54,5 +40,43 @@ impl Sampling<f64> for OU {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{Sampling, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn ou_length_equals_n() {
+    let ou = OU::new(2.0, 1.0, 0.8, N, Some(X0), Some(1.0), None);
+
+    assert_eq!(ou.sample().len(), N);
+  }
+
+  #[test]
+  fn ou_starts_with_x0() {
+    let ou = OU::new(2.0, 1.0, 0.8, N, Some(X0), Some(1.0), None);
+
+    assert_eq!(ou.sample()[0], X0);
+  }
+
+  #[test]
+  fn ou_plot() {
+    let ou = OU::new(2.0, 1.0, 0.8, N, Some(X0), Some(1.0), None);
+
+    plot_1d!(ou.sample(), "Fractional Ornstein-Uhlenbeck (FOU) Process");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn fou_malliavin() {
+    unimplemented!();
   }
 }

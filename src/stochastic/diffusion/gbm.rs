@@ -9,10 +9,11 @@ use statrs::{
   distribution::{Continuous, ContinuousCDF, LogNormal},
   statistics::{Distribution as StatDistribution, Median, Mode},
 };
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{Distribution, Sampling};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct GBM {
   pub mu: f64,
   pub sigma: f64,
@@ -27,42 +28,23 @@ pub struct GBM {
   malliavin: Mutex<Option<Array1<f64>>>,
 }
 
-impl GBM {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      mu: params.mu,
-      sigma: params.sigma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      distribution: None,
-      #[cfg(feature = "malliavin")]
-      calculate_malliavin: Some(false),
-      #[cfg(feature = "malliavin")]
-      malliavin: Mutex::new(None),
-    }
-  }
-}
-
 impl Sampling<f64> for GBM {
   /// Sample the GBM process
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
-    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
+    let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
 
-    let mut gbm = Array1::<f64>::zeros(self.n + 1);
+    let mut gbm = Array1::<f64>::zeros(self.n);
     gbm[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       gbm[i] = gbm[i - 1] + self.mu * gbm[i - 1] * dt + self.sigma * gbm[i - 1] * gn[i - 1]
     }
 
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
-      let mut malliavin = Array1::zeros(self.n + 1);
-      for i in 1..=self.n {
+      let mut malliavin = Array1::zeros(self.n);
+      for i in 1..self.n {
         malliavin[i] = self.sigma * gbm[i - 1];
       }
 
@@ -191,5 +173,47 @@ impl Distribution for GBM {
   /// Moment generating function of the distribution
   fn moment_generating_function(&self, _t: f64) -> f64 {
     unimplemented!()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d, plot_2d,
+    stochastic::{N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn gmb_length_equals_n() {
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    assert_eq!(gbm.sample().len(), N);
+  }
+
+  #[test]
+  fn gmb_starts_with_x0() {
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    assert_eq!(gbm.sample()[0], X0);
+  }
+
+  #[test]
+  fn gmb_plot() {
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, None);
+    plot_1d!(gbm.sample(), "Geometric Brownian Motion (GBM) process");
+  }
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn gmb_malliavin() {
+    let gbm = GBM::new(0.25, 0.5, N, Some(X0), None, None, None, Some(true));
+    let process = gbm.sample();
+    let malliavin = gbm.malliavin();
+    plot_2d!(
+      process,
+      "Geometric Brownian Motion (GBM) process",
+      malliavin,
+      "Malliavin derivative of the GBM process"
+    );
   }
 }

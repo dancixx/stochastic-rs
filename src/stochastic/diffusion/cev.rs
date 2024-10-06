@@ -25,7 +25,7 @@ impl Sampling<f64> for CEV {
   /// Sample the CEV process
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
-    let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
+    let gn = Array1::random(self.n - 1, Normal::new(0.0, dt.sqrt()).unwrap());
 
     let mut cev = Array1::<f64>::zeros(self.n);
     cev[0] = self.x0.unwrap_or(0.0);
@@ -92,19 +92,19 @@ mod tests {
 
   #[test]
   fn cev_length_equals_n() {
-    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, None);
     assert_eq!(cev.sample().len(), N);
   }
 
   #[test]
   fn cev_starts_with_x0() {
-    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, None);
     assert_eq!(cev.sample()[0], X0);
   }
 
   #[test]
   fn cev_plot() {
-    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, None);
     plot_1d!(
       cev.sample(),
       "Constant Elasticity of Variance (CEV) process"
