@@ -38,7 +38,7 @@ ndarray = { version = "0.16.1", features = [
 ndarray-rand = "0.15.0"
 ndrustfft = "0.5.0"
 num-complex = { version = "0.4.6", features = ["rand"] }
-plotly = "0.9.0"
+plotly = "0.10.0"
 polars = { version = "0.43.1", features = ["lazy"] }
 quadrature = "0.1.2"
 rand = "0.8.5"
@@ -58,7 +58,7 @@ yahoo_finance_api = { version = "2.3.0", optional = true }
 [dev-dependencies]
 
 [features]
-default = ["jemalloc", "yahoo"]
+default = ["jemalloc"]
 jemalloc = ["dep:tikv-jemallocator"]
 malliavin = []
 mimalloc = ["dep:mimalloc"]
