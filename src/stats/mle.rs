@@ -1,3 +1,5 @@
+use ndarray::Array1;
+
 /// Maximum likelihood estimation for Heston model
 /// http://scis.scichina.com/en/2018/042202.pdf
 ///
@@ -8,7 +10,7 @@
 ///
 /// # Returns
 /// Vec<f64> - estimated parameters
-pub fn nmle_heston(s: Vec<f64>, v: Vec<f64>, r: f64) -> Vec<f64> {
+pub fn nmle_heston(s: Array1<f64>, v: Array1<f64>, r: f64) -> Vec<f64> {
   let n = v.len();
   let delta = 1.0 / n as f64;
   let mut sum = [0.0; 4];
