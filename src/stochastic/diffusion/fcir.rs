@@ -1,10 +1,13 @@
 use ndarray::{s, Array1};
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
-#[derive(Default)]
+/// Fractional Cox-Ingersoll-Ross (FCIR) process.
+/// dX(t) = theta(mu - X(t))dt + sigma * sqrt(X(t))dW^H(t)
+/// where X(t) is the FCIR process.
+#[derive(ImplNew)]
 pub struct FCIR {
-  pub hurst: f64,
   pub theta: f64,
   pub mu: f64,
   pub sigma: f64,
@@ -16,41 +19,21 @@ pub struct FCIR {
   pub fgn: FGN,
 }
 
-impl FCIR {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
-
-    Self {
-      hurst: params.hurst,
-      theta: params.theta,
-      mu: params.mu,
-      sigma: params.sigma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      use_sym: params.use_sym,
-      m: params.m,
-      fgn,
-    }
-  }
-}
-
 impl Sampling<f64> for FCIR {
   /// Sample the Fractional Cox-Ingersoll-Ross (FCIR) process
   fn sample(&self) -> Array1<f64> {
     assert!(
-      2.0 * self.theta * self.mu < self.sigma.powi(2),
+      2.0 * self.theta * self.mu >= self.sigma.powi(2),
       "2 * theta * mu < sigma^2"
     );
 
     let fgn = self.fgn.sample();
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
 
-    let mut fcir = Array1::<f64>::zeros(self.n + 1);
+    let mut fcir = Array1::<f64>::zeros(self.n);
     fcir[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       let dfcir = self.theta * (self.mu - fcir[i - 1]) * dt
         + self.sigma * (fcir[i - 1]).abs().sqrt() * fgn[i - 1];
 
@@ -71,5 +54,72 @@ impl Sampling<f64> for FCIR {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{noise::fgn::FGN, Sampling, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn fcir_length_equals_n() {
+    let cir = FCIR::new(
+      1.0,
+      1.2,
+      0.2,
+      N,
+      Some(X0),
+      Some(1.0),
+      Some(false),
+      Some(1),
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+
+    assert_eq!(cir.sample().len(), N);
+  }
+
+  #[test]
+  fn fcir_starts_with_x0() {
+    let cir = FCIR::new(
+      1.0,
+      1.2,
+      0.2,
+      N,
+      Some(X0),
+      Some(1.0),
+      Some(false),
+      Some(1),
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+
+    assert_eq!(cir.sample()[0], X0);
+  }
+
+  #[test]
+  fn fcir_plot() {
+    let cir = FCIR::new(
+      1.0,
+      1.2,
+      0.2,
+      N,
+      Some(X0),
+      Some(1.0),
+      Some(false),
+      Some(1),
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+
+    plot_1d!(cir.sample(), "Fractional Cox-Ingersoll-Ross (FCIR) process");
+  }
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn fcir_malliavin() {
+    unimplemented!();
   }
 }

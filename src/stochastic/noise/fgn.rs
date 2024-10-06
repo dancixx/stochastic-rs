@@ -108,26 +108,14 @@ impl Sampling<f64> for FGN {
 
 #[cfg(test)]
 mod tests {
-  use plotly::{common::Line, Plot, Scatter};
+
+  use crate::plot_1d;
 
   use super::*;
 
   #[test]
-  fn plot() {
-    let fgn = FGN::new(0.7, 1000, Some(1.0), Some(1));
-    let mut plot = Plot::new();
-    let d = fgn.sample_par();
-    for data in d.axis_iter(Axis(0)) {
-      let trace = Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
-        .mode(plotly::common::Mode::Lines)
-        .line(
-          Line::new()
-            .color("orange")
-            .shape(plotly::common::LineShape::Linear),
-        )
-        .name("Fgn");
-      plot.add_trace(trace);
-    }
-    plot.show();
+  fn fgn_plot() {
+    let fgn = FGN::new(0.7, 1000, Some(1.0), None);
+    plot_1d!(fgn.sample(), "FGN");
   }
 }

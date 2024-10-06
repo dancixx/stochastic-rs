@@ -51,6 +51,8 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 pub mod ai;
+#[doc(hidden)]
+mod macros;
 pub mod quant;
 pub mod stats;
 pub mod stochastic;

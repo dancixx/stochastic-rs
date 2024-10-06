@@ -32,6 +32,9 @@ use ndrustfft::Zero;
 use num_complex::Complex64;
 use rand_distr::Distribution as RandDistribution;
 
+pub const N: usize = 100;
+pub const X0: f64 = 0.5;
+
 pub trait ProcessDistribution: RandDistribution<f64> + Copy + Send + Sync + Default {}
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {

@@ -1,52 +1,29 @@
 use ndarray::{s, Array1};
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::{noise::fgn::FGN, Sampling};
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct FGBM {
-  pub hurst: f64,
   pub mu: f64,
   pub sigma: f64,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  fgn: FGN,
-}
-
-impl FGBM {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    let fgn = FGN::new(params.hurst, params.n, params.t, params.m);
-
-    Self {
-      hurst: params.hurst,
-      mu: params.mu,
-      sigma: params.sigma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      fgn,
-    }
-  }
+  pub fgn: FGN,
 }
 
 impl Sampling<f64> for FGBM {
   /// Sample the Fractional Geometric Brownian Motion (FGBM) process
   fn sample(&self) -> Array1<f64> {
-    assert!(
-      self.hurst > 0.0 && self.hurst < 1.0,
-      "Hurst parameter must be in (0, 1)"
-    );
-
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let fgn = self.fgn.sample();
 
-    let mut fgbm = Array1::<f64>::zeros(self.n + 1);
+    let mut fgbm = Array1::<f64>::zeros(self.n);
     fgbm[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       fgbm[i] = fgbm[i - 1] + self.mu * fgbm[i - 1] * dt + self.sigma * fgbm[i - 1] * fgn[i - 1]
     }
 
@@ -62,5 +39,68 @@ impl Sampling<f64> for FGBM {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{noise::fgn::FGN, Sampling, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn fgbm_length_equals_n() {
+    let cir = FGBM::new(
+      1.0,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+
+    assert_eq!(cir.sample().len(), N);
+  }
+
+  #[test]
+  fn fgbm_starts_with_x0() {
+    let cir = FGBM::new(
+      1.0,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+    assert_eq!(cir.sample()[0], X0);
+  }
+
+  #[test]
+  fn fgbm_plot() {
+    let cir = FGBM::new(
+      1.0,
+      0.8,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      FGN::new(0.7, N, Some(1.0), None),
+    );
+
+    plot_1d!(
+      cir.sample(),
+      "Fractional Geometric Brownian Motion (FGBM) process"
+    );
+  }
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn fgbm_malliavin() {
+    unimplemented!();
   }
 }

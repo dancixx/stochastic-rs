@@ -3,10 +3,11 @@ use std::sync::Mutex;
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand_distr::Normal;
+use stochastic_rs_macros::ImplNew;
 
 use crate::stochastic::Sampling;
 
-#[derive(Default)]
+#[derive(ImplNew)]
 pub struct CEV {
   pub mu: f64,
   pub sigma: f64,
@@ -16,24 +17,8 @@ pub struct CEV {
   pub t: Option<f64>,
   pub m: Option<usize>,
   pub calculate_malliavin: Option<bool>,
+  #[cfg(feature = "malliavin")]
   malliavin: Mutex<Option<Array1<f64>>>,
-}
-
-impl CEV {
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    Self {
-      mu: params.mu,
-      sigma: params.sigma,
-      gamma: params.gamma,
-      n: params.n,
-      x0: params.x0,
-      t: params.t,
-      m: params.m,
-      calculate_malliavin: Some(false),
-      malliavin: Mutex::new(None),
-    }
-  }
 }
 
 impl Sampling<f64> for CEV {
@@ -42,21 +27,22 @@ impl Sampling<f64> for CEV {
     let dt = self.t.unwrap_or(1.0) / self.n as f64;
     let gn = Array1::random(self.n, Normal::new(0.0, dt.sqrt()).unwrap());
 
-    let mut cev = Array1::<f64>::zeros(self.n + 1);
+    let mut cev = Array1::<f64>::zeros(self.n);
     cev[0] = self.x0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       cev[i] = cev[i - 1]
         + self.mu * cev[i - 1] * dt
         + self.sigma * cev[i - 1].powf(self.gamma) * gn[i - 1]
     }
 
+    #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
-      let mut det_term = Array1::zeros(self.n + 1);
-      let mut stochastic_term = Array1::zeros(self.n + 1);
-      let mut malliavin = Array1::zeros(self.n + 1);
+      let mut det_term = Array1::zeros(self.n);
+      let mut stochastic_term = Array1::zeros(self.n);
+      let mut malliavin = Array1::zeros(self.n);
 
-      for i in 1..=self.n {
+      for i in 1..self.n {
         det_term[i] = (self.mu
           - (self.gamma.powi(2) * self.sigma.powi(2) * cev[i - 1].powf(2.0 * self.gamma - 2.0)
             / 2.0))
@@ -92,5 +78,50 @@ impl Sampling<f64> for CEV {
   #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().clone().unwrap()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d, plot_2d,
+    stochastic::{N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn cev_length_equals_n() {
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    assert_eq!(cev.sample().len(), N);
+  }
+
+  #[test]
+  fn cev_starts_with_x0() {
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    assert_eq!(cev.sample()[0], X0);
+  }
+
+  #[test]
+  fn cev_plot() {
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(false));
+    plot_1d!(
+      cev.sample(),
+      "Constant Elasticity of Variance (CEV) process"
+    );
+  }
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn cev_malliavin() {
+    let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(true));
+    let process = cev.sample();
+    let malliavin = cev.malliavin();
+    plot_2d!(
+      process,
+      "Constant Elasticity of Variance (CEV) process",
+      malliavin,
+      "Malliavin derivative of the CEV process"
+    );
   }
 }
