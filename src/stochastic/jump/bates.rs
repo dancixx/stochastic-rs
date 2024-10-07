@@ -1,15 +1,15 @@
 use impl_new_derive::ImplNew;
 use ndarray::Array1;
+use rand_distr::Distribution;
 
 use crate::stochastic::{
-  noise::cgns::CGNS, process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling2D,
-  Sampling3D,
+  noise::cgns::CGNS, process::cpoisson::CompoundPoisson, Sampling2D, Sampling3D,
 };
 
 #[derive(ImplNew)]
 pub struct Bates1996<D>
 where
-  D: ProcessDistribution,
+  D: Distribution<f64> + Send + Sync,
 {
   pub mu: Option<f64>,
   pub b: Option<f64>,
@@ -27,12 +27,14 @@ where
   pub t: Option<f64>,
   pub use_sym: Option<bool>,
   pub m: Option<usize>,
-  pub jumps_distribution: D,
   pub cgns: CGNS,
   pub cpoisson: CompoundPoisson<D>,
 }
 
-impl<D: ProcessDistribution> Sampling2D<f64> for Bates1996<D> {
+impl<D> Sampling2D<f64> for Bates1996<D>
+where
+  D: Distribution<f64> + Send + Sync,
+{
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
     let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
@@ -76,5 +78,117 @@ impl<D: ProcessDistribution> Sampling2D<f64> for Bates1996<D> {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use rand_distr::Normal;
+
+  use crate::{
+    plot_2d,
+    stochastic::{process::poisson::Poisson, N, S0, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn bates1996__length_equals_n() {
+    let bates1996 = Bates1996::new(
+      Some(3.0),
+      None,
+      None,
+      None,
+      1.0,
+      2.25,
+      2.5,
+      0.9,
+      0.1,
+      0.1,
+      N,
+      Some(S0),
+      Some(X0),
+      None,
+      None,
+      None,
+      CGNS::new(0.7, N, None, None),
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    assert_eq!(bates1996.sample()[0].len(), N);
+    assert_eq!(bates1996.sample()[1].len(), N);
+  }
+
+  #[test]
+  fn bates1996__starts_with_x0() {
+    let bates1996 = Bates1996::new(
+      Some(3.0),
+      None,
+      None,
+      None,
+      1.0,
+      2.25,
+      2.5,
+      0.9,
+      0.1,
+      0.1,
+      N,
+      Some(S0),
+      Some(X0),
+      None,
+      None,
+      None,
+      CGNS::new(0.7, N, None, None),
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    assert_eq!(bates1996.sample()[0][0], S0);
+    assert_eq!(bates1996.sample()[1][0], X0);
+  }
+
+  #[test]
+  fn bates1996__plot() {
+    let bates1996 = Bates1996::new(
+      Some(3.0),
+      None,
+      None,
+      None,
+      1.0,
+      2.25,
+      2.5,
+      0.9,
+      0.1,
+      0.1,
+      N,
+      Some(S0),
+      Some(X0),
+      None,
+      None,
+      None,
+      CGNS::new(0.7, N, None, None),
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    let [s, v] = bates1996.sample();
+    plot_2d!(s, "Bates1996 process (s)", v, "Bates1996 process (v)");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn bates1996__malliavin() {
+    unimplemented!()
   }
 }

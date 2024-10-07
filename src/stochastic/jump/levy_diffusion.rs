@@ -1,29 +1,28 @@
 use impl_new_derive::ImplNew;
 use ndarray::Array1;
 use ndarray_rand::RandomExt;
-use rand_distr::Normal;
+use rand_distr::{Distribution, Normal};
 
-use crate::stochastic::{
-  process::cpoisson::CompoundPoisson, ProcessDistribution, Sampling, Sampling3D,
-};
+use crate::stochastic::{process::cpoisson::CompoundPoisson, Sampling, Sampling3D};
 
 #[derive(ImplNew)]
 pub struct LevyDiffusion<D>
 where
-  D: ProcessDistribution,
+  D: Distribution<f64> + Send + Sync,
 {
   pub gamma: f64,
   pub sigma: f64,
-  pub lambda: f64,
   pub n: usize,
   pub x0: Option<f64>,
   pub t: Option<f64>,
   pub m: Option<usize>,
-  pub jump_distribution: D,
   pub cpoisson: CompoundPoisson<D>,
 }
 
-impl<D: ProcessDistribution> Sampling<f64> for LevyDiffusion<D> {
+impl<D> Sampling<f64> for LevyDiffusion<D>
+where
+  D: Distribution<f64> + Send + Sync,
+{
   fn sample(&self) -> Array1<f64> {
     let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let mut levy = Array1::<f64>::zeros(self.n);
@@ -46,5 +45,79 @@ impl<D: ProcessDistribution> Sampling<f64> for LevyDiffusion<D> {
   /// Number of samples for parallel sampling
   fn m(&self) -> Option<usize> {
     self.m
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{process::poisson::Poisson, N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn levy_diffusion_length_equals_n() {
+    let levy = LevyDiffusion::new(
+      2.25,
+      2.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    assert_eq!(levy.sample().len(), N);
+  }
+
+  #[test]
+  fn levy_diffusion_starts_with_x0() {
+    let levy = LevyDiffusion::new(
+      2.25,
+      2.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    assert_eq!(levy.sample()[0], X0);
+  }
+
+  #[test]
+  fn levy_diffusion_plot() {
+    let levy = LevyDiffusion::new(
+      2.25,
+      2.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      CompoundPoisson::new(
+        None,
+        Normal::new(0.0, 2.0).unwrap(),
+        Poisson::new(1.0, None, Some(1.0 / N as f64), None),
+      ),
+    );
+
+    plot_1d!(levy.sample(), "Levy diffusion process");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn levy_diffusion_malliavin() {
+    unimplemented!()
   }
 }

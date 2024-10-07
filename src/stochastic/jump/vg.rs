@@ -47,3 +47,38 @@ impl Sampling<f64> for VG {
     self.m
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn vg_length_equals_n() {
+    let vg = VG::new(2.25, 2.5, 1.0, N, Some(X0), None, None);
+    assert_eq!(vg.sample().len(), N);
+  }
+
+  #[test]
+  fn vg_starts_with_x0() {
+    let vg = VG::new(2.25, 2.5, 1.0, N, Some(X0), None, None);
+    assert_eq!(vg.sample()[0], X0);
+  }
+
+  #[test]
+  fn vg_plot() {
+    let vg = VG::new(2.25, 2.5, 1.0, N, Some(X0), None, None);
+    plot_1d!(vg.sample(), "Variace Gamma (VG)");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn vg_malliavin() {
+    unimplemented!()
+  }
+}

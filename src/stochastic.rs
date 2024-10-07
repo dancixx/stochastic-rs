@@ -30,12 +30,10 @@ use ndarray::parallel::prelude::*;
 use ndarray::{Array1, Array2, Axis};
 use ndrustfft::Zero;
 use num_complex::Complex64;
-use rand_distr::Distribution as RandDistribution;
 
-pub const N: usize = 100;
+pub const N: usize = 1000;
 pub const X0: f64 = 0.5;
-
-pub trait ProcessDistribution: RandDistribution<f64> + Copy + Send + Sync + Default {}
+pub const S0: f64 = 100.0;
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   /// Sample the process

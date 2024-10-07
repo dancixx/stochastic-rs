@@ -44,3 +44,38 @@ impl Sampling<f64> for NIG {
     self.m
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn nig_length_equals_n() {
+    let nig = NIG::new(2.25, 2.5, 1.0, N, Some(X0), Some(100.0), None);
+    assert_eq!(nig.sample().len(), N);
+  }
+
+  #[test]
+  fn nig_starts_with_x0() {
+    let nig = NIG::new(2.25, 2.5, 1.0, N, Some(X0), Some(100.0), None);
+    assert_eq!(nig.sample()[0], X0);
+  }
+
+  #[test]
+  fn nig_plot() {
+    let nig = NIG::new(2.25, 2.5, 1.0, N, Some(X0), Some(100.0), None);
+    plot_1d!(nig.sample(), "Normal Inverse Gaussian (NIG)");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn nig_malliavin() {
+    unimplemented!()
+  }
+}

@@ -39,3 +39,38 @@ impl Sampling<f64> for IG {
     self.m
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_1d,
+    stochastic::{N, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  fn ig_length_equals_n() {
+    let ig = IG::new(2.25, N, Some(X0), Some(10.0), None);
+    assert_eq!(ig.sample().len(), N);
+  }
+
+  #[test]
+  fn ig_starts_with_x0() {
+    let ig = IG::new(2.25, N, Some(X0), Some(10.0), None);
+    assert_eq!(ig.sample()[0], X0);
+  }
+
+  #[test]
+  fn ig_plot() {
+    let ig = IG::new(2.25, N, Some(X0), Some(10.0), None);
+    plot_1d!(ig.sample(), "Inverse Gaussian (IG)");
+  }
+
+  #[test]
+  #[ignore = "Not implemented"]
+  #[cfg(feature = "malliavin")]
+  fn ig_malliavin() {
+    unimplemented!()
+  }
+}

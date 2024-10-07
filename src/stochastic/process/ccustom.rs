@@ -1,16 +1,17 @@
 use impl_new_derive::ImplNew;
 use ndarray::{Array1, Axis};
 use rand::thread_rng;
+use rand_distr::Distribution;
 
-use crate::stochastic::{ProcessDistribution, Sampling, Sampling3D};
+use crate::stochastic::{Sampling, Sampling3D};
 
 use super::customjt::CustomJt;
 
 #[derive(ImplNew)]
 pub struct CompoundCustom<D, E>
 where
-  D: ProcessDistribution,
-  E: ProcessDistribution,
+  D: Distribution<f64> + Send + Sync,
+  E: Distribution<f64> + Send + Sync,
 {
   pub n: Option<usize>,
   pub t_max: Option<f64>,
@@ -22,8 +23,8 @@ where
 
 impl<D, E> Sampling3D<f64> for CompoundCustom<D, E>
 where
-  D: ProcessDistribution,
-  E: ProcessDistribution,
+  D: Distribution<f64> + Send + Sync,
+  E: Distribution<f64> + Send + Sync,
 {
   fn sample(&self) -> [Array1<f64>; 3] {
     if self.n.is_none() && self.t_max.is_none() {
