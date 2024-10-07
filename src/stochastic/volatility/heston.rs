@@ -45,6 +45,9 @@ pub struct Heston {
   /// Malliavin derivative of the volatility
   #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
+  /// Sensitivity of the Malliavin derivative of the volatility
+  #[cfg(feature = "malliavin")]
+  malliavin_sensitivity_of_vol: Mutex<Option<Array1<f64>>>,
   /// Malliavin derivative of the price
   #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
@@ -80,10 +83,11 @@ impl Sampling2D<f64> for Heston {
 
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
-      let mut det_term = Array1::zeros(self.n + 1);
-      let mut malliavin = Array1::zeros(self.n + 1);
+      let mut det_term = Array1::zeros(self.n);
+      let mut malliavin = Array1::zeros(self.n);
+      let mut malliavin_sensitivity = Array1::zeros(self.n);
 
-      for i in 1..=self.n {
+      for i in 0..self.n {
         match self.pow {
           HestonPow::Sqrt => {
             det_term[i] = ((-(self.kappa * self.theta / 2.0 - self.sigma.powi(2) / 8.0)
@@ -92,6 +96,10 @@ impl Sampling2D<f64> for Heston {
               * dt)
               .exp();
             malliavin[i] = (self.sigma * v[i - 1].sqrt() / 2.0) * det_term[i];
+
+            if i > 0 {
+              malliavin_sensitivity[i] = malliavin[i] * cgn2[i - 1];
+            }
           }
           HestonPow::ThreeHalves => {
             det_term[i] = ((-(self.kappa * self.theta / 2.0 + 3.0 * self.sigma.powi(2) / 8.0)
@@ -100,11 +108,19 @@ impl Sampling2D<f64> for Heston {
               * dt)
               .exp();
             malliavin[i] = (self.sigma * v[i - 1].powf(1.5) / 2.0) * det_term[i];
+
+            if i > 0 {
+              malliavin_sensitivity[i] = malliavin[i] * cgn2[i - 1];
+            }
           }
         };
       }
 
       let _ = std::mem::replace(&mut *self.malliavin_of_vol.lock().unwrap(), Some(malliavin));
+      let _ = std::mem::replace(
+        &mut *self.malliavin_sensitivity_of_vol.lock().unwrap(),
+        Some(malliavin_sensitivity),
+      );
     }
 
     [s, v]
@@ -130,7 +146,7 @@ impl Sampling2D<f64> for Heston {
   #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> [Array1<f64>; 2] {
     [
-      Array1::zeros(self.n + 1),
+      Array1::zeros(self.n),
       self
         .malliavin_of_vol
         .lock()

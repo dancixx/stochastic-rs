@@ -20,6 +20,8 @@ pub struct CEV {
   pub calculate_malliavin: Option<bool>,
   #[cfg(feature = "malliavin")]
   malliavin: Mutex<Option<Array1<f64>>>,
+  #[cfg(feature = "malliavin")]
+  malliavin_sensitivity: Mutex<Option<Array1<f64>>>,
 }
 
 impl Sampling<f64> for CEV {
@@ -42,19 +44,27 @@ impl Sampling<f64> for CEV {
       let mut det_term = Array1::zeros(self.n);
       let mut stochastic_term = Array1::zeros(self.n);
       let mut malliavin = Array1::zeros(self.n);
+      let mut malliavin_sensitivity = Array1::zeros(self.n);
 
-      for i in 1..self.n {
+      for i in 0..self.n {
         det_term[i] = (self.mu
-          - (self.gamma.powi(2) * self.sigma.powi(2) * cev[i - 1].powf(2.0 * self.gamma - 2.0)
-            / 2.0))
+          - (self.gamma.powi(2) * self.sigma.powi(2) * cev[i].powf(2.0 * self.gamma - 2.0) / 2.0))
           * dt;
-        stochastic_term[i] =
-          self.sigma * self.gamma * cev[i - 1].powf(self.gamma - 1.0) * gn[i - 1];
+        if i > 0 {
+          stochastic_term[i] = self.sigma * self.gamma * cev[i].powf(self.gamma - 1.0) * gn[i - 1];
+        }
         malliavin[i] =
-          self.sigma * cev[i - 1].powf(self.gamma) * (det_term[i] + stochastic_term[i]).exp();
+          self.sigma * cev[i].powf(self.gamma) * (det_term[i] + stochastic_term[i]).exp();
+        if i > 0 {
+          malliavin_sensitivity[i] = malliavin[i] * gn[i - 1];
+        }
       }
 
       let _ = std::mem::replace(&mut *self.malliavin.lock().unwrap(), Some(malliavin));
+      let _ = std::mem::replace(
+        &mut *self.malliavin_sensitivity.lock().unwrap(),
+        Some(malliavin_sensitivity),
+      );
     }
 
     cev
@@ -80,12 +90,17 @@ impl Sampling<f64> for CEV {
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().clone().unwrap()
   }
+
+  #[cfg(feature = "malliavin")]
+  fn malliavin_sensitivity(&self) -> Array1<f64> {
+    self.malliavin_sensitivity.lock().unwrap().clone().unwrap()
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use crate::{
-    plot_1d, plot_2d,
+    plot_1d, plot_3d,
     stochastic::{N, X0},
   };
 
@@ -118,11 +133,14 @@ mod tests {
     let cev = CEV::new(0.25, 0.5, 0.3, N, Some(X0), Some(1.0), None, Some(true));
     let process = cev.sample();
     let malliavin = cev.malliavin();
-    plot_2d!(
+    let malliavin_sensitivity = cev.malliavin_sensitivity();
+    plot_3d!(
       process,
       "Constant Elasticity of Variance (CEV) process",
       malliavin,
-      "Malliavin derivative of the CEV process"
+      "Malliavin derivative of the CEV process",
+      malliavin_sensitivity,
+      "Malliavin sensitivity of the CEV process"
     );
   }
 }

@@ -27,15 +27,15 @@ impl Sampling<f64> for FBM {
     let mut fbm = Array1::<f64>::zeros(self.n);
     fbm.slice_mut(s![1..]).assign(&fgn);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       fbm[i] += fbm[i - 1];
     }
 
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut malliavin = Array1::zeros(self.n);
-      let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
-      for i in 1..self.n {
+      let dt = self.t.unwrap_or(1.0) / (self.n) as f64;
+      for i in 0..self.n {
         malliavin[i] = 1.0 / (gamma::gamma(self.hurst + 0.5)) * dt.powf(self.hurst - 0.5);
       }
 
@@ -81,7 +81,7 @@ mod tests {
       N,
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
       None,
     );
 
@@ -95,7 +95,7 @@ mod tests {
       N,
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
       None,
     );
 
@@ -109,7 +109,7 @@ mod tests {
       N,
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
       None,
     );
 
@@ -124,7 +124,7 @@ mod tests {
       N,
       Some(1.0),
       None,
-      FGN::new(0.7, N, Some(1.0), None),
+      FGN::new(0.7, N - 1, Some(1.0), None),
       Some(true),
     );
     let process = fbm.sample();

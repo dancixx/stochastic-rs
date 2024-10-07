@@ -23,6 +23,8 @@ pub struct Sabr {
   #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
   #[cfg(feature = "malliavin")]
+  malliavin_sensitivity_of_vol: Mutex<Option<Array1<f64>>>,
+  #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
@@ -30,13 +32,13 @@ impl Sampling2D<f64> for Sabr {
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
 
-    let mut f = Array1::<f64>::zeros(self.n + 1);
-    let mut v = Array1::<f64>::zeros(self.n + 1);
+    let mut f = Array1::<f64>::zeros(self.n);
+    let mut v = Array1::<f64>::zeros(self.n);
 
     f[0] = self.f0.unwrap_or(0.0);
     v[0] = self.v0.unwrap_or(0.0);
 
-    for i in 1..=self.n {
+    for i in 1..self.n {
       f[i] = f[i - 1] + v[i - 1] * f[i - 1].powf(self.beta) * cgn1[i - 1];
       v[i] = v[i - 1] + self.alpha * v[i - 1] * cgn2[i - 1];
     }
@@ -44,14 +46,24 @@ impl Sampling2D<f64> for Sabr {
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       // Only volatility Malliavin derivative is supported
-      let mut malliavin_of_vol = Array1::<f64>::zeros(self.n + 1);
-      for i in 1..=self.n {
+      let mut malliavin_of_vol = Array1::<f64>::zeros(self.n);
+      let mut malliavin_sensitivity_of_vol = Array1::<f64>::zeros(self.n);
+
+      for i in 0..self.n {
         malliavin_of_vol[i] = self.alpha * v[i - 1];
+
+        if i > 0 {
+          malliavin_sensitivity_of_vol[i] = malliavin_of_vol[i] * cgn2[i - 1];
+        }
       }
 
       let _ = std::mem::replace(
         &mut *self.malliavin_of_vol.lock().unwrap(),
         Some(malliavin_of_vol),
+      );
+      let _ = std::mem::replace(
+        &mut *self.malliavin_sensitivity_of_vol.lock().unwrap(),
+        Some(malliavin_sensitivity_of_vol),
       );
     }
 
