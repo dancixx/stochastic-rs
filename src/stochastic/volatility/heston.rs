@@ -91,8 +91,7 @@ impl Sampling2D<f64> for Heston {
               - self.kappa / 2.0)
               * ((self.n - i) as f64 * dt))
               .exp();
-            malliavin[i] =
-              (self.sigma * v.last().unwrap().sqrt() / 2.0) * det_term[i] * (i as f64 * dt);
+            malliavin[i] = (self.sigma * v.last().unwrap().sqrt() / 2.0) * det_term[i];
           }
           HestonPow::ThreeHalves => {
             det_term[i] = ((-(self.kappa * self.theta / 2.0 + 3.0 * self.sigma.powi(2) / 8.0)
@@ -100,8 +99,7 @@ impl Sampling2D<f64> for Heston {
               - (self.kappa * self.theta) / 2.0)
               * ((self.n - i) as f64 * dt))
               .exp();
-            malliavin[i] =
-              (self.sigma * v.last().unwrap().powf(1.5) / 2.0) * det_term[i] * (i as f64 * dt);
+            malliavin[i] = (self.sigma * v.last().unwrap().powf(1.5) / 2.0) * det_term[i];
           }
         };
       }

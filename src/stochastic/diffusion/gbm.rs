@@ -47,7 +47,7 @@ impl Sampling<f64> for GBM {
 
       // reverse due the option pricing
       for i in 0..self.n {
-        malliavin[i] = self.sigma * gbm.last().unwrap() * (i as f64 * dt);
+        malliavin[i] = self.sigma * gbm.last().unwrap();
       }
 
       // This equivalent to the following:

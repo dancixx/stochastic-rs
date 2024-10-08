@@ -50,10 +50,8 @@ impl Sampling<f64> for CEV {
         if i > 0 {
           stochastic_term[i] = self.sigma * self.gamma * cev[i].powf(self.gamma - 1.0) * gn[i - 1];
         }
-        malliavin[i] = self.sigma
-          * cev[i].powf(self.gamma)
-          * (det_term[i] + stochastic_term[i]).exp()
-          * (i as f64 * dt);
+        malliavin[i] =
+          self.sigma * cev[i].powf(self.gamma) * (det_term[i] + stochastic_term[i]).exp()
       }
 
       let _ = std::mem::replace(&mut *self.malliavin.lock().unwrap(), Some(malliavin));

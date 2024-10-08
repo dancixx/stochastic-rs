@@ -44,11 +44,10 @@ impl Sampling2D<f64> for SABR {
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       // Only volatility Malliavin derivative is supported
-      let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
       let mut malliavin_of_vol = Array1::<f64>::zeros(self.n);
 
       for i in 0..self.n {
-        malliavin_of_vol[i] = self.alpha * v.last().unwrap() * (i as f64 * dt);
+        malliavin_of_vol[i] = self.alpha * v.last().unwrap();
       }
 
       let _ = std::mem::replace(
