@@ -17,6 +17,7 @@
 
 pub mod diffusion;
 pub mod interest;
+pub mod isonormal;
 pub mod jump;
 #[cfg(feature = "malliavin")]
 pub mod malliavin;
