@@ -36,7 +36,8 @@ impl Sampling<f64> for FBM {
       let mut malliavin = Array1::zeros(self.n);
       let dt = self.t.unwrap_or(1.0) / (self.n) as f64;
       for i in 0..self.n {
-        malliavin[i] = 1.0 / (gamma::gamma(self.hurst + 0.5)) * dt.powf(self.hurst - 0.5);
+        malliavin[i] =
+          1.0 / (gamma::gamma(self.hurst + 0.5)) * (i as f64 * dt).powf(self.hurst - 0.5);
       }
 
       let _ = std::mem::replace(&mut *self.malliavin.lock().unwrap(), Some(malliavin));

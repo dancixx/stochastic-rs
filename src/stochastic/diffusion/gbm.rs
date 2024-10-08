@@ -26,10 +26,6 @@ pub struct GBM {
   pub calculate_malliavin: Option<bool>,
   #[cfg(feature = "malliavin")]
   malliavin: Mutex<Option<Array1<f64>>>,
-  #[cfg(feature = "malliavin")]
-  malliavin_sensitivity: Mutex<Option<Array1<f64>>>,
-  #[cfg(feature = "malliavin")]
-  malliavin_matrix: Mutex<Option<Array2<f64>>>,
 }
 
 impl Sampling<f64> for GBM {
@@ -48,33 +44,15 @@ impl Sampling<f64> for GBM {
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut malliavin = Array1::zeros(self.n);
-      let mut malliavin_sensitivity = Array1::zeros(self.n);
-      let mut malliavin_matrix = Array2::zeros((self.n, self.n));
-      for i in 0..self.n {
-        malliavin[i] = self.sigma * gbm[i];
-        if i > 0 {
-          malliavin_sensitivity[i] = malliavin[i] * gn[i - 1];
-        }
-      }
 
-      // TODO: this is in very early stage
-      for i in 1..self.n {
-        for j in 1..self.n {
-          malliavin_matrix[(i, j)] = if i < j { 0.0 } else { malliavin[j] * gn[i - 1] }
-        }
+      // reverse due the option pricing
+      for i in 0..self.n {
+        malliavin[i] = self.sigma * gbm.last().unwrap() * (i as f64 * dt);
       }
 
       // This equivalent to the following:
       // self.malliavin.lock().unwrap().replace(Some(malliavin));
       let _ = std::mem::replace(&mut *self.malliavin.lock().unwrap(), Some(malliavin));
-      let _ = std::mem::replace(
-        &mut *self.malliavin_sensitivity.lock().unwrap(),
-        Some(malliavin_sensitivity),
-      );
-      let _ = std::mem::replace(
-        &mut *self.malliavin_matrix.lock().unwrap(),
-        Some(malliavin_matrix),
-      );
     }
 
     gbm
@@ -110,17 +88,6 @@ impl Sampling<f64> for GBM {
   #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> Array1<f64> {
     self.malliavin.lock().unwrap().as_ref().unwrap().clone()
-  }
-
-  #[cfg(feature = "malliavin")]
-  fn malliavin_sensitivity(&self) -> Array1<f64> {
-    self.malliavin_sensitivity.lock().unwrap().clone().unwrap()
-  }
-
-  /// Calculate the Malliavin derivative matrix
-  #[cfg(feature = "malliavin")]
-  fn malliavin_matrix(&self) -> Array2<f64> {
-    self.malliavin_matrix.lock().unwrap().clone().unwrap()
   }
 }
 
@@ -213,11 +180,8 @@ impl Distribution for GBM {
 
 #[cfg(test)]
 mod tests {
-  use ndarray::Array;
-  use plotly::{Layout, Plot, Surface};
-
   use crate::{
-    plot_1d, plot_3d,
+    plot_1d, plot_2d,
     stochastic::{N, X0},
   };
 
@@ -247,49 +211,11 @@ mod tests {
     let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, Some(true));
     let process = gbm.sample();
     let malliavin = gbm.malliavin();
-    let malliavin_sensitivity = gbm.malliavin_sensitivity();
-    plot_3d!(
+    plot_2d!(
       process,
       "Geometric Brownian Motion (GBM) process",
       malliavin,
-      "Malliavin derivative of the GBM process",
-      malliavin_sensitivity,
-      "Malliavin sensitivity of the GBM process"
+      "Malliavin derivative of the GBM process"
     );
-  }
-
-  #[test]
-  #[cfg(feature = "malliavin")]
-  fn gbm_plot_malliavin_matrix() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, Some(true));
-    let _ = gbm.sample();
-    let malliavin_matrix: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> =
-      gbm.malliavin_matrix();
-
-    let x = Array::linspace(-1., 1., N).into_raw_vec_and_offset().0;
-    let y = Array::linspace(-1., 1., N).into_raw_vec_and_offset().0;
-
-    let z = malliavin_matrix
-      .outer_iter() // Iterálás a sorokon
-      .map(|row| row.to_vec()) // A sorokat átalakítjuk vektorrá
-      .collect();
-
-    let trace = Surface::new(z)
-      .x(x.clone())
-      .y(y.clone())
-      .connect_gaps(true)
-      .cauto(true);
-    let mut plot = Plot::new();
-    plot.add_trace(trace);
-
-    plot.set_layout(
-      Layout::new()
-        .title("Malliavin derivative matrix of the GBM process")
-        .auto_size(false)
-        .height(800)
-        .width(800),
-    );
-
-    plot.show();
   }
 }

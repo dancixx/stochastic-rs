@@ -45,9 +45,6 @@ pub struct Heston {
   /// Malliavin derivative of the volatility
   #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
-  /// Sensitivity of the Malliavin derivative of the volatility
-  #[cfg(feature = "malliavin")]
-  malliavin_sensitivity_of_vol: Mutex<Option<Array1<f64>>>,
   /// Malliavin derivative of the price
   #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
@@ -85,42 +82,31 @@ impl Sampling2D<f64> for Heston {
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       let mut det_term = Array1::zeros(self.n);
       let mut malliavin = Array1::zeros(self.n);
-      let mut malliavin_sensitivity = Array1::zeros(self.n);
 
       for i in 0..self.n {
         match self.pow {
           HestonPow::Sqrt => {
             det_term[i] = ((-(self.kappa * self.theta / 2.0 - self.sigma.powi(2) / 8.0)
-              * (1.0 / v[i - 1])
+              * (1.0 / v.last().unwrap())
               - self.kappa / 2.0)
-              * dt)
+              * ((self.n - i) as f64 * dt))
               .exp();
-            malliavin[i] = (self.sigma * v[i - 1].sqrt() / 2.0) * det_term[i];
-
-            if i > 0 {
-              malliavin_sensitivity[i] = malliavin[i] * cgn2[i - 1];
-            }
+            malliavin[i] =
+              (self.sigma * v.last().unwrap().sqrt() / 2.0) * det_term[i] * (i as f64 * dt);
           }
           HestonPow::ThreeHalves => {
             det_term[i] = ((-(self.kappa * self.theta / 2.0 + 3.0 * self.sigma.powi(2) / 8.0)
-              * v[i - 1]
+              * v.last().unwrap()
               - (self.kappa * self.theta) / 2.0)
-              * dt)
+              * ((self.n - i) as f64 * dt))
               .exp();
-            malliavin[i] = (self.sigma * v[i - 1].powf(1.5) / 2.0) * det_term[i];
-
-            if i > 0 {
-              malliavin_sensitivity[i] = malliavin[i] * cgn2[i - 1];
-            }
+            malliavin[i] =
+              (self.sigma * v.last().unwrap().powf(1.5) / 2.0) * det_term[i] * (i as f64 * dt);
           }
         };
       }
 
       let _ = std::mem::replace(&mut *self.malliavin_of_vol.lock().unwrap(), Some(malliavin));
-      let _ = std::mem::replace(
-        &mut *self.malliavin_sensitivity_of_vol.lock().unwrap(),
-        Some(malliavin_sensitivity),
-      );
     }
 
     [s, v]
@@ -155,5 +141,44 @@ impl Sampling2D<f64> for Heston {
         .unwrap()
         .clone(),
     ]
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::{
+    plot_2d,
+    stochastic::{N, S0, X0},
+  };
+
+  use super::*;
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn heston_malliavin() {
+    let heston = Heston::new(
+      Some(S0),
+      Some(X0),
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      N,
+      Some(1.0),
+      HestonPow::Sqrt,
+      None,
+      None,
+      CGNS::new(0.7, N, None, None),
+      Some(true),
+    );
+    let process = heston.sample();
+    let malliavin = heston.malliavin();
+    plot_2d!(
+      process[1],
+      "Heston volatility process",
+      malliavin[1],
+      "Malliavin derivative of the Heston volatility process"
+    );
   }
 }

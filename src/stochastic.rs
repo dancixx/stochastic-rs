@@ -68,16 +68,6 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   fn malliavin(&self) -> Array1<T> {
     unimplemented!()
   }
-
-  #[cfg(feature = "malliavin")]
-  fn malliavin_sensitivity(&self) -> Array1<T> {
-    unimplemented!()
-  }
-
-  #[cfg(feature = "malliavin")]
-  fn malliavin_matrix(&self) -> Array2<T> {
-    unimplemented!()
-  }
 }
 
 pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
@@ -114,16 +104,6 @@ pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
   /// Malliavin derivative of the process
   #[cfg(feature = "malliavin")]
   fn malliavin(&self) -> [Array1<T>; 2] {
-    unimplemented!()
-  }
-
-  #[cfg(feature = "malliavin")]
-  fn malliavin_sensitivity(&self) -> Array1<T> {
-    unimplemented!()
-  }
-
-  #[cfg(feature = "malliavin")]
-  fn malliavin_matrix(&self) -> Array2<T> {
     unimplemented!()
   }
 }

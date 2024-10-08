@@ -8,7 +8,7 @@ use crate::stochastic::{noise::cgns::CGNS, Sampling2D};
 
 #[derive(ImplNew)]
 
-pub struct Sabr {
+pub struct SABR {
   pub alpha: f64,
   pub beta: f64,
   pub rho: f64,
@@ -23,12 +23,10 @@ pub struct Sabr {
   #[cfg(feature = "malliavin")]
   malliavin_of_vol: Mutex<Option<Array1<f64>>>,
   #[cfg(feature = "malliavin")]
-  malliavin_sensitivity_of_vol: Mutex<Option<Array1<f64>>>,
-  #[cfg(feature = "malliavin")]
   malliavin_of_price: Mutex<Option<Array1<f64>>>,
 }
 
-impl Sampling2D<f64> for Sabr {
+impl Sampling2D<f64> for SABR {
   fn sample(&self) -> [Array1<f64>; 2] {
     let [cgn1, cgn2] = self.cgns.sample();
 
@@ -46,24 +44,16 @@ impl Sampling2D<f64> for Sabr {
     #[cfg(feature = "malliavin")]
     if self.calculate_malliavin.is_some() && self.calculate_malliavin.unwrap() {
       // Only volatility Malliavin derivative is supported
+      let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
       let mut malliavin_of_vol = Array1::<f64>::zeros(self.n);
-      let mut malliavin_sensitivity_of_vol = Array1::<f64>::zeros(self.n);
 
       for i in 0..self.n {
-        malliavin_of_vol[i] = self.alpha * v[i - 1];
-
-        if i > 0 {
-          malliavin_sensitivity_of_vol[i] = malliavin_of_vol[i] * cgn2[i - 1];
-        }
+        malliavin_of_vol[i] = self.alpha * v.last().unwrap() * (i as f64 * dt);
       }
 
       let _ = std::mem::replace(
         &mut *self.malliavin_of_vol.lock().unwrap(),
         Some(malliavin_of_vol),
-      );
-      let _ = std::mem::replace(
-        &mut *self.malliavin_sensitivity_of_vol.lock().unwrap(),
-        Some(malliavin_sensitivity_of_vol),
       );
     }
 
@@ -96,5 +86,38 @@ impl Sampling2D<f64> for Sabr {
         .unwrap()
         .clone(),
     ]
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::plot_2d;
+  use crate::stochastic::N;
+
+  use super::*;
+
+  #[test]
+  #[cfg(feature = "malliavin")]
+  fn sabr_malliavin() {
+    let sabr = SABR::new(
+      0.5,
+      0.5,
+      0.5,
+      N,
+      Some(1.0),
+      Some(1.0),
+      Some(1.0),
+      None,
+      CGNS::new(0.7, N, None, None),
+      Some(true),
+    );
+    let process = sabr.sample();
+    let malliavin = sabr.malliavin();
+    plot_2d!(
+      process[1],
+      "SABR volatility process",
+      malliavin[1],
+      "Malliavin derivative of the SABR volatility process"
+    );
   }
 }
