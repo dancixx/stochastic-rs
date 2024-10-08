@@ -8,13 +8,7 @@ homepage = "https://github.com/dancixx/stochastic-rs"
 documentation = "https://docs.rs/stochastic-rs/latest/stochastic_rs/"
 repository = "https://github.com/dancixx/stochastic-rs"
 readme = "README.md"
-keywords = [
-    "stochastic",
-    "quant",
-    "finance",
-    "simulation",
-    "statistics",
-]
+keywords = ["stochastic", "quant", "finance", "simulation", "statistics"]
 
 [dependencies]
 anyhow = "1.0.89"
@@ -39,8 +33,9 @@ ndarray = { version = "0.16.1", features = [
 ndarray-rand = "0.15.0"
 ndrustfft = "0.5.0"
 num-complex = { version = "0.4.6", features = ["rand"] }
-plotly = {version = "0.10.0", features = ["plotly_ndarray"]}
+plotly = { version = "0.10.0", features = ["plotly_ndarray"] }
 polars = { version = "0.43.1", features = ["lazy"] }
+pyo3 = { version = "0.22.3", features = ["extension-module", "abi3-py38"] }
 quadrature = "0.1.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"

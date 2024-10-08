@@ -2,3 +2,4 @@
 /Cargo.lock
 flamegraph.svg
 *.env
+venv
