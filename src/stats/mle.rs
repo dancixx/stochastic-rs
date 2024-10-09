@@ -1,5 +1,7 @@
 use ndarray::Array1;
 
+use crate::quant::heston::calibrator::HestonParams;
+
 /// Maximum likelihood estimation for Heston model
 /// http://scis.scichina.com/en/2018/042202.pdf
 ///
@@ -10,7 +12,7 @@ use ndarray::Array1;
 ///
 /// # Returns
 /// Vec<f64> - estimated parameters
-pub fn nmle_heston(s: Array1<f64>, v: Array1<f64>, r: f64) -> Vec<f64> {
+pub fn nmle_heston(s: Array1<f64>, v: Array1<f64>, r: f64) -> HestonParams {
   let n = v.len();
   let delta = 1.0 / n as f64;
   let mut sum = [0.0; 4];
@@ -58,5 +60,11 @@ pub fn nmle_heston(s: Array1<f64>, v: Array1<f64>, r: f64) -> Vec<f64> {
 
   let rho_hat = sum_dw1dw2 / (n as f64 * delta);
 
-  vec![v[0], theta_hat, rho_hat, kappa_hat, sigma_hat]
+  HestonParams {
+    v0: v[0],
+    theta: theta_hat,
+    rho: rho_hat,
+    kappa: kappa_hat,
+    sigma: sigma_hat,
+  }
 }
