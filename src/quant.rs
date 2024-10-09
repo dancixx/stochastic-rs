@@ -1,7 +1,7 @@
 pub mod bonds;
+pub mod heston;
 pub mod options;
 pub mod r#trait;
-pub mod volatility;
 #[cfg(feature = "yahoo")]
 pub mod yahoo;
 

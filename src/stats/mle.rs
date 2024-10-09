@@ -58,11 +58,5 @@ pub fn nmle_heston(s: Array1<f64>, v: Array1<f64>, r: f64) -> Vec<f64> {
 
   let rho_hat = sum_dw1dw2 / (n as f64 * delta);
 
-  vec![
-    *v.first().unwrap(),
-    theta_hat,
-    rho_hat,
-    kappa_hat,
-    sigma_hat,
-  ]
+  vec![v[0], theta_hat, rho_hat, kappa_hat, sigma_hat]
 }
