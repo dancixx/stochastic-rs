@@ -1,4 +1,4 @@
-use crate::quant::r#trait::Price;
+use crate::quant::r#trait::Pricer;
 
 /// CIR model for zero-coupon bond pricing
 /// dR(t) = theta(mu - R(t))dt + sigma * sqrt(R(t))dW(t)
@@ -21,8 +21,8 @@ pub struct CIR {
   pub expiration: Option<chrono::NaiveDate>,
 }
 
-impl Price for CIR {
-  fn price(&self) -> f64 {
+impl Pricer for CIR {
+  fn calculate_price(&self) -> f64 {
     let tau = self.calculate_tau_in_days();
 
     let h = (self.theta.powi(2) + 2.0 * self.sigma.powi(2)).sqrt();

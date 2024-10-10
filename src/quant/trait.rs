@@ -4,7 +4,15 @@ use nalgebra::DVector;
 /// Pricer trait.
 pub(crate) trait Pricer {
   /// Calculate the price of an option.
-  fn calculate_price(&self) -> (f64, f64);
+  fn calculate_call_put(&self) -> (f64, f64) {
+    todo!()
+  }
+
+  /// Calculate the price
+  fn calculate_price(&self) -> f64 {
+    todo!()
+  }
+
   /// Update the parameters.
   fn update_params(&mut self, params: DVector<f64>) {
     todo!()

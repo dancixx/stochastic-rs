@@ -162,7 +162,7 @@ impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrationProblem<'a> {
         None,
         None,
       );
-      let (call, put) = pricer.calculate_price();
+      let (call, put) = pricer.calculate_call_put();
 
       match self.option_type {
         OptionType::Call => c_model[idx] = call,

@@ -1,4 +1,4 @@
-use crate::quant::r#trait::Price;
+use crate::quant::r#trait::Pricer;
 
 /// Vasicek model for zero-coupon bond pricing
 /// dR(t) = theta(mu - R(t))dt + sigma dW(t)
@@ -21,8 +21,8 @@ pub struct Vasicek {
   pub expiration: Option<chrono::NaiveDate>,
 }
 
-impl Price for Vasicek {
-  fn price(&self) -> f64 {
+impl Pricer for Vasicek {
+  fn calculate_price(&self) -> f64 {
     let tau = self.calculate_tau_in_days();
 
     let B = (1.0 - (-self.theta * tau).exp()) / self.theta;

@@ -55,7 +55,7 @@ pub struct BSM {
 impl Pricer for BSM {
   /// Calculate the option price
   #[must_use]
-  fn calculate_price(&self) -> (f64, f64) {
+  fn calculate_call_put(&self) -> (f64, f64) {
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
     let tau = self.tau().unwrap();
@@ -273,7 +273,7 @@ impl BSM {
 
   /// Calculating Lambda (elasticity)
   pub fn lambda(&mut self) -> (f64, f64) {
-    let (call, put) = self.calculate_price();
+    let (call, put) = self.calculate_call_put();
     (self.delta() * self.s / call, self.delta() * self.s / put)
   }
 
@@ -347,7 +347,7 @@ mod tests {
       OptionType::Call,
       BSMCoc::BSM1973,
     );
-    let price = bsm.calculate_price();
+    let price = bsm.calculate_call_put();
     println!("Call Price: {}, Put Price: {}", price.0, price.1);
   }
 

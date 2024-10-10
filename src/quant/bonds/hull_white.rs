@@ -1,6 +1,6 @@
 use chrono::{Datelike, Utc};
 
-use crate::quant::r#trait::Price;
+use crate::quant::r#trait::Pricer;
 
 /// Hull-White model for zero-coupon bond pricing
 /// dR(t) = (theta(t) - aR(t))dt + sigma(t)dW(t)
@@ -23,9 +23,9 @@ pub struct HullWhite {
   pub expiration: Option<chrono::NaiveDate>,
 }
 
-impl Price for HullWhite {
+impl Pricer for HullWhite {
   /// Calculate the price of the zero-coupon bond (unstable)
-  fn price(&self) -> f64 {
+  fn calculate_price(&self) -> f64 {
     let tau = self.calculate_tau_in_years();
     let today = Utc::now().year() as f64;
     let S = self.eval.unwrap().year() as f64 - today;

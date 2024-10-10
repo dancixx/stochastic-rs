@@ -40,7 +40,7 @@ pub struct HestonPricer {
 impl Pricer for HestonPricer {
   /// Calculate the price of a European call option using the Heston model
   /// https://quant.stackexchange.com/a/18686
-  fn calculate_price(&self) -> (f64, f64) {
+  fn calculate_call_put(&self) -> (f64, f64) {
     let call = self.s * (-self.q.unwrap_or(0.0) * self.tau).exp() * self.p(1, self.tau)
       - self.k * (-self.r * self.tau).exp() * self.p(2, self.tau);
     let put = call + self.k * (-self.r * self.tau).exp()
@@ -249,7 +249,7 @@ mod tests {
       ..Default::default()
     };
 
-    let (call, put) = heston.calculate_price();
+    let (call, put) = heston.calculate_call_put();
     println!("Call Price: {}, Put Price: {}", call, put);
   }
 }
