@@ -6,17 +6,17 @@ pub(crate) trait Pricer {
   /// Calculate the price of an option.
   fn calculate_price(&self) -> (f64, f64);
   /// Update the parameters.
-  fn update_params(&mut self, params: DVector<f64>);
+  fn update_params(&mut self, params: DVector<f64>) {
+    todo!()
+  }
   /// Update strike price.
-  fn update_strike(&mut self, k: f64);
+  fn update_strike(&mut self, k: f64) {
+    todo!()
+  }
   /// Derivatives.
-  fn derivatives(&self) -> Vec<f64>;
-}
-
-/// Price an instrument.
-pub trait Price {
-  /// Calculate the price of an instrument.
-  fn price(&self) -> f64;
+  fn derivatives(&self) -> Vec<f64> {
+    todo!()
+  }
 
   /// Calculate the valuation date of an instrument.
   fn calculate_tau_in_days(&self) -> f64 {

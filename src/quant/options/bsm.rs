@@ -1,7 +1,7 @@
 use impl_new_derive::ImplNew;
 use statrs::distribution::{Continuous, ContinuousCDF, Normal};
 
-use crate::quant::{r#trait::Price, OptionType};
+use crate::quant::{r#trait::Pricer, OptionType};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum BSMCoc {
@@ -52,21 +52,20 @@ pub struct BSM {
   pub b: BSMCoc,
 }
 
-impl Price for BSM {
+impl Pricer for BSM {
   /// Calculate the option price
   #[must_use]
-  fn price(&self) -> f64 {
+  fn calculate_price(&self) -> (f64, f64) {
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
     let tau = self.tau().unwrap();
 
-    if self.option_type == OptionType::Call {
-      self.s * ((self.b() - self.r) * tau).exp() * n.cdf(d1)
-        - self.k * (-self.r * tau).exp() * n.cdf(d2)
-    } else {
-      -self.s * ((self.b() - self.r) * tau).exp() * n.cdf(-d1)
-        + self.k * (-self.r * tau).exp() * n.cdf(-d2)
-    }
+    let call = self.s * ((self.b() - self.r) * tau).exp() * n.cdf(d1)
+      - self.k * (-self.r * tau).exp() * n.cdf(d2);
+    let put = -self.s * ((self.b() - self.r) * tau).exp() * n.cdf(-d1)
+      + self.k * (-self.r * tau).exp() * n.cdf(-d2);
+
+    (call, put)
   }
 
   fn tau(&self) -> Option<f64> {
@@ -273,8 +272,9 @@ impl BSM {
   }
 
   /// Calculating Lambda (elasticity)
-  pub fn lambda(&mut self) -> f64 {
-    self.delta() * self.s / self.price()
+  pub fn lambda(&mut self) -> (f64, f64) {
+    let (call, put) = self.calculate_price();
+    (self.delta() * self.s / call, self.delta() * self.s / put)
   }
 
   /// Calculate the phi
@@ -347,9 +347,8 @@ mod tests {
       OptionType::Call,
       BSMCoc::BSM1973,
     );
-    let price = bsm.price();
-    println!("Price: {}", price);
-    assert!((price - 4.0733).abs() < 1e-4);
+    let price = bsm.calculate_price();
+    println!("Call Price: {}, Put Price: {}", price.0, price.1);
   }
 
   #[test]

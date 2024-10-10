@@ -73,6 +73,22 @@ impl Pricer for HestonPricer {
       self.dC_dsigma(self.tau),
     ]
   }
+
+  fn tau(&self) -> Option<f64> {
+    Some(self.tau)
+  }
+
+  fn eval(&self) -> Option<chrono::NaiveDate> {
+    self.eval
+  }
+
+  fn expiration(&self) -> Option<chrono::NaiveDate> {
+    self.expiry
+  }
+
+  fn implied_volatility(&self, _c_market: f64) -> f64 {
+    todo!()
+  }
 }
 
 impl HestonPricer {
