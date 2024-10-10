@@ -2,7 +2,7 @@
 use std::sync::Mutex;
 
 use impl_new_derive::ImplNew;
-use ndarray::{Array1, Array2};
+use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use num_complex::Complex64;
 use rand_distr::Normal;
