@@ -1,3 +1,4 @@
+use impl_new_derive::ImplNew;
 use statrs::distribution::{Continuous, ContinuousCDF, Normal};
 
 use crate::quant::{r#trait::Price, OptionType};
@@ -23,7 +24,7 @@ pub enum BSMCoc {
 }
 
 /// Black-Scholes-Merton model
-#[derive(Default, Debug)]
+#[derive(ImplNew)]
 pub struct BSM {
   /// Underlying price
   pub s: f64,
@@ -57,7 +58,7 @@ impl Price for BSM {
   fn price(&self) -> f64 {
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
-    let tau = self.tau();
+    let tau = self.tau().unwrap();
 
     if self.option_type == OptionType::Call {
       self.s * ((self.b() - self.r) * tau).exp() * n.cdf(d1)
@@ -79,47 +80,25 @@ impl Price for BSM {
   fn expiration(&self) -> Option<chrono::NaiveDate> {
     self.expiration
   }
+
+  /// Calculate the implied volatility
+  fn implied_volatility(&self, c_market: f64) -> f64 {
+    implied_vol::implied_black_volatility(
+      c_market,
+      self.s,
+      self.k,
+      self.tau.unwrap(),
+      self.option_type == OptionType::Call,
+    )
+  }
 }
 
 impl BSM {
-  /// Create a new BSM model
-  #[must_use]
-  pub fn new(params: &Self) -> Self {
-    if params.tau.is_none() && params.eval.is_none() && params.expiration.is_none() {
-      panic!("At least one of the following parameters is missing: tau, eval, expiration");
-    }
-
-    let tau = if let Some(tau) = params.tau {
-      tau
-    } else {
-      let eval = params
-        .eval
-        .unwrap_or(chrono::Local::now().naive_local().into());
-      let expiration = params.expiration.unwrap();
-      (expiration - eval).num_days() as f64 / 365.0
-    };
-
-    Self {
-      s: params.s,
-      v: params.v,
-      k: params.k,
-      r: params.r,
-      r_d: params.r_d,
-      r_f: params.r_f,
-      q: params.q,
-      tau: Some(tau),
-      eval: params.eval,
-      expiration: params.expiration,
-      option_type: params.option_type,
-      b: params.b,
-    }
-  }
-
   /// Calculate d1
   fn d1_d2(&self) -> (f64, f64) {
-    let d1 = (1.0 / (self.v * self.tau().sqrt()))
-      * ((self.s / self.k).ln() + (self.b() + 0.5 * self.v.powi(2)) * self.tau());
-    let d2 = d1 - self.v * self.tau().sqrt();
+    let d1 = (1.0 / (self.v * self.tau().unwrap().sqrt()))
+      * ((self.s / self.k).ln() + (self.b() + 0.5 * self.v.powi(2)) * self.tau().unwrap());
+    let d2 = d1 - self.v * self.tau().unwrap().sqrt();
 
     (d1, d2)
   }
@@ -139,7 +118,7 @@ impl BSM {
   pub fn delta(&self) -> f64 {
     let (d1, _) = self.d1_d2();
     let n = Normal::default();
-    let tau = self.tau();
+    let tau = self.tau().unwrap();
     let exp_bt = ((self.b() - self.r) * tau).exp();
 
     if self.option_type == OptionType::Call {
@@ -151,11 +130,11 @@ impl BSM {
 
   /// Calculate the gamma
   pub fn gamma(&self) -> f64 {
-    let T = self.tau();
+    let T = self.tau().unwrap();
     let (d1, _) = self.d1_d2();
     let n = Normal::default();
 
-    ((self.b() - self.r) * T).exp() * n.pdf(d1) / (self.s * self.v * self.tau().sqrt())
+    ((self.b() - self.r) * T).exp() * n.pdf(d1) / (self.s * self.v * self.tau().unwrap().sqrt())
   }
 
   /// Calculate the gamma percent
@@ -168,11 +147,11 @@ impl BSM {
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
 
-    let exp_bt = ((self.b() - self.r) * self.tau()).exp();
-    let exp_rt = (-self.r * self.tau()).exp();
+    let exp_bt = ((self.b() - self.r) * self.tau().unwrap()).exp();
+    let exp_rt = (-self.r * self.tau().unwrap()).exp();
     let pdf_d1 = n.pdf(d1);
 
-    let first_term = -self.s * exp_bt * pdf_d1 * self.v / (2.0 * self.tau().sqrt());
+    let first_term = -self.s * exp_bt * pdf_d1 * self.v / (2.0 * self.tau().unwrap().sqrt());
 
     if self.option_type == OptionType::Call {
       let second_term = -(self.b() - self.r) * self.s * exp_bt * n.cdf(d1);
@@ -190,7 +169,10 @@ impl BSM {
     let (d1, _) = self.d1_d2();
     let n = Normal::default();
 
-    self.s * ((self.b() - self.r) * self.tau()).exp() * n.pdf(d1) * self.tau().sqrt()
+    self.s
+      * ((self.b() - self.r) * self.tau().unwrap()).exp()
+      * n.pdf(d1)
+      * self.tau().unwrap().sqrt()
   }
 
   /// Calculate the rho
@@ -198,12 +180,12 @@ impl BSM {
     let (_, d2) = self.d1_d2();
     let n = Normal::default();
 
-    let exp_rt = (-self.r * self.tau()).exp();
+    let exp_rt = (-self.r * self.tau().unwrap()).exp();
 
     if self.option_type == OptionType::Call {
-      self.k * self.tau() * exp_rt * n.cdf(d2)
+      self.k * self.tau().unwrap() * exp_rt * n.cdf(d2)
     } else {
-      -self.k * self.tau() * exp_rt * n.cdf(-d2)
+      -self.k * self.tau().unwrap() * exp_rt * n.cdf(-d2)
     }
   }
 
@@ -219,7 +201,7 @@ impl BSM {
     let v = self.v;
     let r = self.r;
     let b = self.b();
-    let tau = self.tau();
+    let tau = self.tau().unwrap();
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
 
@@ -242,7 +224,7 @@ impl BSM {
     let (d1, d2) = self.d1_d2();
     let n = Normal::default();
 
-    -((self.b() - self.r) * self.tau()).exp() * n.pdf(d1) * d2 / self.v
+    -((self.b() - self.r) * self.tau().unwrap()).exp() * n.pdf(d1) * d2 / self.v
   }
 
   /// Calculate the zomma
@@ -261,7 +243,7 @@ impl BSM {
   pub fn speed(&self) -> f64 {
     let (d1, _) = self.d1_d2();
 
-    -self.gamma() * (1.0 + d1 / (self.v * self.tau().sqrt())) / self.s
+    -self.gamma() * (1.0 + d1 / (self.v * self.tau().unwrap().sqrt())) / self.s
   }
 
   /// Calculate the color
@@ -270,8 +252,8 @@ impl BSM {
 
     self.gamma()
       * (self.r - self.b()
-        + self.b() * d1 / (self.v * self.tau().sqrt())
-        + (1.0 - d1 * d2) / (2.0 * self.tau()))
+        + self.b() * d1 / (self.v * self.tau().unwrap().sqrt())
+        + (1.0 - d1 * d2) / (2.0 * self.tau().unwrap()))
   }
 
   /// Calculate the ultima
@@ -286,8 +268,8 @@ impl BSM {
     let (d1, d2) = self.d1_d2();
 
     self.vega()
-      * (self.r - self.b() + self.b() * d1 / (self.v * self.tau().sqrt())
-        - (d1 * d2 + 1.0) / (2.0 * self.tau()))
+      * (self.r - self.b() + self.b() * d1 / (self.v * self.tau().unwrap().sqrt())
+        - (d1 * d2 + 1.0) / (2.0 * self.tau().unwrap()))
   }
 
   /// Calculating Lambda (elasticity)
@@ -300,12 +282,12 @@ impl BSM {
     let (d1, _) = self.d1_d2();
     let n = Normal::default();
 
-    let exp_bt = ((self.b() - self.r) * self.tau()).exp();
+    let exp_bt = ((self.b() - self.r) * self.tau().unwrap()).exp();
 
     if self.option_type == OptionType::Call {
-      -self.tau() * self.s * exp_bt * n.cdf(d1)
+      -self.tau().unwrap() * self.s * exp_bt * n.cdf(d1)
     } else {
-      self.tau() * self.s * exp_bt * n.cdf(-d1)
+      self.tau().unwrap() * self.s * exp_bt * n.cdf(-d1)
     }
   }
 
@@ -326,7 +308,7 @@ impl BSM {
     let (_, d2) = self.d1_d2();
     let n = Normal::default();
 
-    let exp_rt = (-self.r * self.tau()).exp();
+    let exp_rt = (-self.r * self.tau().unwrap()).exp();
 
     if self.option_type == OptionType::Call {
       -exp_rt * n.cdf(d2)
@@ -340,10 +322,54 @@ impl BSM {
     let (_, d2) = self.d1_d2();
     let n = Normal::default();
 
-    n.pdf(d2) * (-self.r * self.tau()).exp() / (self.k * self.v * self.tau().sqrt())
+    n.pdf(d2) * (-self.r * self.tau().unwrap()).exp()
+      / (self.k * self.v * self.tau().unwrap().sqrt())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_bsm_price() {
+    let bsm = BSM::new(
+      100.0,
+      0.2,
+      100.0,
+      0.05,
+      None,
+      None,
+      Some(1.0),
+      Some(0.5),
+      None,
+      None,
+      OptionType::Call,
+      BSMCoc::BSM1973,
+    );
+    let price = bsm.price();
+    println!("Price: {}", price);
+    assert!((price - 4.0733).abs() < 1e-4);
   }
 
-  fn tau(&self) -> f64 {
-    self.tau.unwrap()
+  #[test]
+  fn test_bsm_implied_volatility() {
+    let bsm = BSM::new(
+      100.0,
+      0.2,
+      100.0,
+      0.05,
+      None,
+      None,
+      Some(1.0),
+      Some(0.5),
+      None,
+      None,
+      OptionType::Call,
+      BSMCoc::BSM1973,
+    );
+    let iv = bsm.implied_volatility(4.0733);
+    println!("Implied Volatility: {}", iv);
+    assert!((iv - 0.2).abs() < 1e-4);
   }
 }

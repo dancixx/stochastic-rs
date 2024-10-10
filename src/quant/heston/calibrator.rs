@@ -71,7 +71,7 @@ impl HestonCalibrator {
   pub fn calibrate(&mut self) {
     println!("Initial guess: {:?}", self.initial_params.as_ref().unwrap());
 
-    let (result, report) = LevenbergMarquardt::new().minimize(HestonCalibrationProblem::new(
+    let (result, ..) = LevenbergMarquardt::new().minimize(HestonCalibrationProblem::new(
       self.initial_params.as_ref().unwrap().clone(),
       self.c_market.clone().into(),
       self.s.clone().into(),

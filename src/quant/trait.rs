@@ -47,4 +47,9 @@ pub trait Price {
   fn tau(&self) -> Option<f64>;
   fn eval(&self) -> Option<chrono::NaiveDate>;
   fn expiration(&self) -> Option<chrono::NaiveDate>;
+
+  /// Calculate the implied volatility using the Newton-Raphson method.
+  fn implied_volatility(&self, _c_market: f64) -> f64 {
+    todo!()
+  }
 }
