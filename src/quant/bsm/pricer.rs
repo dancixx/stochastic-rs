@@ -25,7 +25,7 @@ pub enum BSMCoc {
 
 /// Black-Scholes-Merton model
 #[derive(ImplNew)]
-pub struct BSM {
+pub struct BSMPricer {
   /// Underlying price
   pub s: f64,
   /// Volatility
@@ -52,7 +52,7 @@ pub struct BSM {
   pub b: BSMCoc,
 }
 
-impl Pricer for BSM {
+impl Pricer for BSMPricer {
   /// Calculate the option price
   #[must_use]
   fn calculate_call_put(&self) -> (f64, f64) {
@@ -92,7 +92,7 @@ impl Pricer for BSM {
   }
 }
 
-impl BSM {
+impl BSMPricer {
   /// Calculate d1
   fn d1_d2(&self) -> (f64, f64) {
     let d1 = (1.0 / (self.v * self.tau().unwrap().sqrt()))
@@ -333,7 +333,7 @@ mod tests {
 
   #[test]
   fn test_bsm_price() {
-    let bsm = BSM::new(
+    let bsm = BSMPricer::new(
       100.0,
       0.2,
       100.0,
@@ -353,7 +353,7 @@ mod tests {
 
   #[test]
   fn test_bsm_implied_volatility() {
-    let bsm = BSM::new(
+    let bsm = BSMPricer::new(
       100.0,
       0.2,
       100.0,

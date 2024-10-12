@@ -1,6 +1,5 @@
-pub mod bonds;
+pub mod bsm;
 pub mod heston;
-pub mod options;
 pub mod r#trait;
 #[cfg(feature = "yahoo")]
 pub mod yahoo;

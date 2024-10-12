@@ -1,7 +1,6 @@
 use std::f64::consts::FRAC_1_PI;
 
 use impl_new_derive::ImplNew;
-use nalgebra::DVector;
 use num_complex::Complex64;
 use quadrature::double_exponential;
 
@@ -47,20 +46,6 @@ impl Pricer for HestonPricer {
       - self.s * (-self.q.unwrap_or(0.0) * self.tau).exp();
 
     (call, put)
-  }
-
-  /// Update the parameters from the calibration
-  fn update_params(&mut self, params: DVector<f64>) {
-    self.v0 = params[0];
-    self.theta = params[1];
-    self.rho = params[2];
-    self.kappa = params[3];
-    self.sigma = params[4];
-  }
-
-  /// Update the strike price
-  fn update_strike(&mut self, k: f64) {
-    self.k = k;
   }
 
   /// Derivatives

@@ -180,8 +180,10 @@ impl Distribution for GBM {
 
 #[cfg(test)]
 mod tests {
+  #[cfg(feature = "malliavin")]
+  use crate::plot_2d;
   use crate::{
-    plot_1d, plot_2d,
+    plot_1d,
     stochastic::{N, X0},
   };
 
@@ -189,19 +191,49 @@ mod tests {
 
   #[test]
   fn gbm_length_equals_n() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
+    let gbm = GBM::new(
+      0.25,
+      0.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      None,
+      #[cfg(feature = "malliavin")]
+      None,
+    );
     assert_eq!(gbm.sample().len(), N);
   }
 
   #[test]
   fn gbm_starts_with_x0() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
+    let gbm = GBM::new(
+      0.25,
+      0.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      None,
+      #[cfg(feature = "malliavin")]
+      None,
+    );
     assert_eq!(gbm.sample()[0], X0);
   }
 
   #[test]
   fn gbm_plot() {
-    let gbm = GBM::new(0.25, 0.5, N, Some(X0), Some(1.0), None, None, None);
+    let gbm = GBM::new(
+      0.25,
+      0.5,
+      N,
+      Some(X0),
+      Some(1.0),
+      None,
+      None,
+      #[cfg(feature = "malliavin")]
+      None,
+    );
     plot_1d!(gbm.sample(), "Geometric Brownian Motion (GBM) process");
   }
 

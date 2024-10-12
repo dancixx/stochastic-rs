@@ -108,7 +108,7 @@ impl HestonCalibrator {
 
 /// A calibrator.
 #[derive(ImplNew)]
-pub(crate) struct HestonCalibrationProblem<'a> {
+pub struct HestonCalibrationProblem<'a> {
   /// Params to calibrate.
   pub params: HestonParams,
   /// Option prices from the market.

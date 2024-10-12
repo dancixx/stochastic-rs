@@ -89,10 +89,12 @@ impl Sampling2D<f64> for SABR {
 }
 
 #[cfg(test)]
-mod tests {
-  use crate::plot_2d;
-  use crate::stochastic::N;
 
+mod tests {
+  #[cfg(feature = "malliavin")]
+  use crate::{plot_2d, stochastic::N};
+
+  #[cfg(feature = "malliavin")]
   use super::*;
 
   #[test]

@@ -144,11 +144,13 @@ impl Sampling2D<f64> for Heston {
 
 #[cfg(test)]
 mod tests {
+  #[cfg(feature = "malliavin")]
   use crate::{
     plot_2d,
     stochastic::{N, S0, X0},
   };
 
+  #[cfg(feature = "malliavin")]
   use super::*;
 
   #[test]

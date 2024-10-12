@@ -1,5 +1,4 @@
 use chrono::Local;
-use nalgebra::DVector;
 
 /// Pricer trait.
 pub(crate) trait Pricer {
@@ -13,14 +12,6 @@ pub(crate) trait Pricer {
     todo!()
   }
 
-  /// Update the parameters.
-  fn update_params(&mut self, params: DVector<f64>) {
-    todo!()
-  }
-  /// Update strike price.
-  fn update_strike(&mut self, k: f64) {
-    todo!()
-  }
   /// Derivatives.
   fn derivatives(&self) -> Vec<f64> {
     todo!()

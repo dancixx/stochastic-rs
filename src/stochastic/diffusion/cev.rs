@@ -85,7 +85,7 @@ impl Sampling<f64> for CEV {
 #[cfg(test)]
 mod tests {
   use crate::{
-    plot_1d, plot_2d,
+    plot_1d,
     stochastic::{N, X0},
   };
 

@@ -71,7 +71,9 @@ impl Sampling<f64> for FBM {
 
 #[cfg(test)]
 mod tests {
-  use crate::{plot_1d, plot_2d, stochastic::N};
+  #[cfg(feature = "malliavin")]
+  use crate::plot_2d;
+  use crate::{plot_1d, stochastic::N};
 
   use super::*;
 
@@ -83,6 +85,7 @@ mod tests {
       Some(1.0),
       None,
       FGN::new(0.7, N - 1, Some(1.0), None),
+      #[cfg(feature = "malliavin")]
       None,
     );
 
@@ -97,6 +100,7 @@ mod tests {
       Some(1.0),
       None,
       FGN::new(0.7, N - 1, Some(1.0), None),
+      #[cfg(feature = "malliavin")]
       None,
     );
 
@@ -111,6 +115,7 @@ mod tests {
       Some(1.0),
       None,
       FGN::new(0.7, N - 1, Some(1.0), None),
+      #[cfg(feature = "malliavin")]
       None,
     );
 

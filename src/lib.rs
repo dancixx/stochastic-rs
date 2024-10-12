@@ -22,7 +22,7 @@
 //!
 //! ## Performance Optimization
 //!
-//! For performance reasons, the default allocator used in `stochastic-rs` is `jemalloc`, which is known for its efficient memory allocation in high-performance scenarios.  
+//! For performance reasons, the default allocator used in `stochastic-rs` is `jemalloc`, which is known for its efficient memory allocation in high-performance scenarios.
 //! If you prefer to use the system allocator, simply disable the default features in your `Cargo.toml` like this:
 //! ```toml
 //! [dependencies]
@@ -41,7 +41,10 @@
 #![allow(non_snake_case)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
+
+// TODO: this is just temporary
+#![allow(dead_code)]
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
