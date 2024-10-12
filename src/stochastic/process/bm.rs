@@ -1,16 +1,11 @@
 use impl_new_derive::ImplNew;
 use ndarray::{s, Array1};
 use ndarray_rand::RandomExt;
-use pyo3::{
-  types::{PyModule, PyModuleMethods},
-  Bound, PyResult,
-};
 use rand_distr::Normal;
 
 use crate::stochastic::Sampling;
 
 #[derive(ImplNew)]
-#[pyo3::pyclass(name = "BM")]
 pub struct BM {
   pub n: usize,
   pub t: Option<f64>,
@@ -40,11 +35,4 @@ impl Sampling<f64> for BM {
   fn m(&self) -> Option<usize> {
     self.m
   }
-}
-
-/// Python bindings
-#[pyo3::pymodule]
-fn bm(m: Bound<'_, PyModule>) -> PyResult<()> {
-  m.add_class::<BM>()?;
-  Ok(())
 }

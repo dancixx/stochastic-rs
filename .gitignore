@@ -3,3 +3,4 @@
 flamegraph.svg
 *.env
 venv
+CI.yml
