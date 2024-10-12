@@ -1,5 +1,6 @@
 pub mod bsm;
 pub mod heston;
+pub mod strategies;
 pub mod r#trait;
 #[cfg(feature = "yahoo")]
 pub mod yahoo;
