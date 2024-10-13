@@ -90,6 +90,16 @@ impl Pricer for BSMPricer {
       self.option_type == OptionType::Call,
     )
   }
+
+  fn derivatives(&self) -> Vec<f64> {
+    vec![
+      self.delta(),
+      self.gamma(),
+      self.theta(),
+      self.vega(),
+      self.rho(),
+    ]
+  }
 }
 
 impl BSMPricer {

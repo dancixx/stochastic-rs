@@ -46,69 +46,9 @@ impl From<DVector<f64>> for HestonParams {
   }
 }
 
-/// Heston calibrator
-#[derive(ImplNew)]
-pub struct HestonCalibrator {
-  /// The underlying asset price
-  pub s: Vec<f64>,
-  /// Strike price vector
-  pub k: Vec<f64>,
-  /// Risk-free rate
-  pub r: f64,
-  /// Dividend yield
-  pub q: Option<f64>,
-  /// Option prices vector from the market
-  pub c_market: Vec<f64>,
-  /// Time to maturity
-  pub tau: f64,
-  /// Option type
-  pub option_type: OptionType,
-  /// Initial guess for the calibration from the NMLE method
-  pub initial_params: Option<HestonParams>,
-}
-
-impl HestonCalibrator {
-  pub fn calibrate(&mut self) {
-    println!("Initial guess: {:?}", self.initial_params.as_ref().unwrap());
-
-    let (result, ..) = LevenbergMarquardt::new().minimize(HestonCalibrationProblem::new(
-      self.initial_params.as_ref().unwrap().clone(),
-      self.c_market.clone().into(),
-      self.s.clone().into(),
-      self.k.clone().into(),
-      self.tau,
-      self.r,
-      self.q,
-      &self.option_type,
-    ));
-
-    // Print the c_market
-    println!("Market prices: {:?}", self.c_market);
-
-    let residuals = result.residuals().unwrap();
-
-    // Print the c_model
-    println!(
-      "Model prices: {:?}",
-      DVector::from_vec(self.c_market.clone()) + residuals
-    );
-
-    // Print the result of the calibration
-    println!("Calibration report: {:?}", result.params);
-  }
-
-  /// Initial guess for the calibration
-  /// http://scis.scichina.com/en/2018/042202.pdf
-  ///
-  /// Using NMLE (Normal Maximum Likelihood Estimation) method
-  pub fn initial_params(&mut self, s: Array1<f64>, v: Array1<f64>, r: f64) {
-    self.initial_params = Some(nmle_heston(s, v, r));
-  }
-}
-
 /// A calibrator.
-#[derive(ImplNew)]
-pub struct HestonCalibrationProblem<'a> {
+#[derive(ImplNew, Clone)]
+pub struct HestonCalibrator {
   /// Params to calibrate.
   pub params: HestonParams,
   /// Option prices from the market.
@@ -124,12 +64,39 @@ pub struct HestonCalibrationProblem<'a> {
   /// Dividend yield.
   pub q: Option<f64>,
   /// Option type
-  pub option_type: &'a OptionType,
+  pub option_type: OptionType,
   /// Derivate matrix.
   derivates: RefCell<Vec<Vec<f64>>>,
 }
 
-impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrationProblem<'a> {
+impl HestonCalibrator {
+  pub fn calibrate(&self) {
+    println!("Initial guess: {:?}", self.params);
+
+    let (result, ..) = LevenbergMarquardt::new().minimize(self.clone());
+
+    // Print the c_market
+    println!("Market prices: {:?}", self.c_market);
+
+    let residuals = result.residuals().unwrap();
+
+    // Print the c_model
+    println!("Model prices: {:?}", self.c_market.clone() + residuals);
+
+    // Print the result of the calibration
+    println!("Calibration report: {:?}", result.params);
+  }
+
+  /// Initial guess for the calibration
+  /// http://scis.scichina.com/en/2018/042202.pdf
+  ///
+  /// Using NMLE (Normal Maximum Likelihood Estimation) method
+  pub fn set_initial_params(&mut self, s: Array1<f64>, v: Array1<f64>, r: f64) {
+    self.params = nmle_heston(s, v, r);
+  }
+}
+
+impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrator {
   type JacobianStorage = Owned<f64, Dyn, Dyn>;
   type ParameterStorage = Owned<f64, Dyn>;
   type ResidualStorage = Owned<f64, Dyn>;
@@ -213,21 +180,21 @@ mod tests {
     let v0 = Array1::linspace(0.0, 0.01, 10);
 
     for v in v0.iter() {
-      let mut calibrator = HestonCalibrator::new(
-        s.clone(),
-        k.clone(),
-        6.40e-4,
-        None,
-        c_market.clone(),
-        tau,
-        OptionType::Call,
-        Some(HestonParams {
+      let calibrator = HestonCalibrator::new(
+        HestonParams {
           v0: *v,
           theta: 6.47e-5,
           rho: -1.98e-3,
           kappa: 6.57e-3,
           sigma: 5.09e-4,
-        }),
+        },
+        c_market.clone().into(),
+        s.clone().into(),
+        k.clone().into(),
+        tau,
+        6.40e-4,
+        None,
+        OptionType::Call,
       );
       calibrator.calibrate();
     }
