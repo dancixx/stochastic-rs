@@ -86,16 +86,3 @@ macro_rules! plot_3d {
     plot.show();
   };
 }
-
-#[macro_export]
-macro_rules! impl_new {
-    ($struct_name:ident, $($field:ident),*) => {
-        impl $struct_name {
-            pub fn new($($field: $crate::std::option::Option<_>),*) -> Self {
-                Self {
-                    $($field: $field.unwrap_or_default()),*,
-                }
-            }
-        }
-    };
-}

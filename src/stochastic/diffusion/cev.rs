@@ -89,6 +89,9 @@ mod tests {
     stochastic::{N, X0},
   };
 
+  #[cfg(feature = "malliavin")]
+  use crate::plot_2d;
+
   use super::*;
 
   #[test]
