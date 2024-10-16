@@ -70,12 +70,13 @@ impl Sampling<f64> for CGMY {
       * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0));
 
     let mut rng = thread_rng();
-    let poisson = Poisson::new(1.0, Some(self.j), None, None);
 
     for i in 1..self.n {
       let mut jump_component = 0.0;
 
+      let poisson = Poisson::new(1.0, Some(self.j), None, None);
       let poisson = poisson.sample();
+
       for j in 0..self.j {
         let u_j: f64 = rng.gen();
         let e_j: f64 = rng.sample(Exp::new(1.0).unwrap());
@@ -154,7 +155,7 @@ mod tests {
       lambda_plus: 5.0,
       lambda_minus: 5.0,
       alpha: 0.7,
-      n: N,
+      n: 1000,
       j: 1000,
       x0: Some(0.0),
       t: Some(1.0),
