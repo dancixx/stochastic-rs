@@ -1,8 +1,9 @@
 use crate::stochastic::{process::poisson::Poisson, Sampling};
 use impl_new_derive::ImplNew;
 use ndarray::Array1;
-use rand::{thread_rng, Rng};
-use rand_distr::Exp;
+use ndarray_rand::RandomExt;
+use rand::Rng;
+use rand_distr::{Exp, Uniform};
 use scilib::math::basic::gamma;
 
 /// CGMY process
@@ -69,18 +70,17 @@ impl Sampling<f64> for CGMY {
       * gamma(1.0 - self.alpha)
       * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0));
 
-    let mut rng = thread_rng();
+    let U = Array1::<f64>::random(self.j, Uniform::new(0.0, 1.0));
+    let E = Array1::<f64>::random(self.j, Exp::new(1.0).unwrap());
+    let poisson = Poisson::new(1.0, Some(self.j), None, None);
+    let poisson = poisson.sample();
+
+    let mut rng = rand::thread_rng();
 
     for i in 1..self.n {
       let mut jump_component = 0.0;
 
-      let poisson = Poisson::new(1.0, Some(self.j), None, None);
-      let poisson = poisson.sample();
-
-      for j in 0..self.j {
-        let u_j: f64 = rng.gen();
-        let e_j: f64 = rng.sample(Exp::new(1.0).unwrap());
-
+      for j in 1..self.j {
         let v_j = if rng.gen_bool(0.5) {
           self.lambda_plus
         } else {
@@ -88,8 +88,7 @@ impl Sampling<f64> for CGMY {
         };
 
         let term1 = (self.alpha * poisson[j] / (2.0 * c)).powf(-1.0 / self.alpha);
-        let term2 = e_j * u_j.powf(1.0 / self.alpha) / v_j.abs();
-
+        let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
         let jump_size = term1.min(term2) * (v_j / v_j.abs());
 
         jump_component += jump_size;
@@ -119,50 +118,19 @@ mod tests {
 
   #[test]
   fn cgmy_length_equals_n() {
-    let cgmy = CGMY {
-      lambda_plus: 5.0,
-      lambda_minus: 5.0,
-      alpha: 0.7,
-      n: N,
-      j: 1000,
-      x0: Some(0.0),
-      t: Some(1.0),
-      m: None,
-    };
-
+    let cgmy = CGMY::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
     assert_eq!(cgmy.sample().len(), N);
   }
 
   #[test]
   fn cgmy_starts_with_x0() {
-    let cgmy = CGMY {
-      lambda_plus: 5.0,
-      lambda_minus: 5.0,
-      alpha: 0.7,
-      n: N,
-      j: 1000,
-      x0: Some(0.0),
-      t: Some(1.0),
-      m: None,
-    };
-
+    let cgmy = CGMY::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
     assert_eq!(cgmy.sample()[0], 0.0);
   }
 
   #[test]
   fn cgmy_plot() {
-    let cgmy = CGMY {
-      lambda_plus: 5.0,
-      lambda_minus: 5.0,
-      alpha: 0.7,
-      n: 1000,
-      j: 1000,
-      x0: Some(0.0),
-      t: Some(1.0),
-      m: None,
-    };
-
-    // Plot the CGMY sample path
+    let cgmy = CGMY::new(25.46, 4.604, 0.52, 100, 1024, Some(2.0), Some(1.0), None);
     plot_1d!(cgmy.sample(), "CGMY Process");
   }
 }
