@@ -1,9 +1,8 @@
-use crate::stochastic::Sampling;
+use crate::stochastic::{process::poisson::Poisson, Sampling};
 use impl_new_derive::ImplNew;
 use ndarray::Array1;
-use ndarray_rand::RandomExt;
 use rand::{thread_rng, Rng};
-use rand_distr::{Exp, Poisson};
+use rand_distr::Exp;
 use scilib::math::basic::gamma;
 
 /// CGMY process
@@ -45,6 +44,8 @@ pub struct CGMY {
   pub alpha: f64,
   /// Number of time steps
   pub n: usize,
+  /// Jumps
+  pub j: usize,
   /// Initial value
   pub x0: Option<f64>,
   /// Total time horizon
@@ -63,45 +64,37 @@ impl Sampling<f64> for CGMY {
     let c = (gamma(2.0 - self.alpha)
       * (self.lambda_plus.powf(self.alpha - 2.0) + self.lambda_minus.powf(self.alpha - 2.0)))
     .powi(-1);
-    let lambda_plus = self.lambda_plus;
-    let lambda_minus = self.lambda_minus;
 
     let b_t = -c
       * gamma(1.0 - self.alpha)
-      * (lambda_plus.powf(self.alpha - 1.0) - lambda_minus.powf(self.alpha - 1.0));
+      * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0));
 
-    let intensity = c * (lambda_plus.powf(self.alpha) + lambda_minus.powf(self.alpha));
-    let lambda_dt = intensity * dt;
-
-    let P = Array1::random(self.n - 1, Poisson::new(lambda_dt).unwrap());
     let mut rng = thread_rng();
+    let poisson = Poisson::new(1.0, Some(self.j), None, None);
 
     for i in 1..self.n {
-      let mut delta = 0.0;
+      let mut jump_component = 0.0;
 
-      let num_jumps = P[i - 1] as usize;
-
-      for _ in 0..num_jumps {
+      let poisson = poisson.sample();
+      for j in 0..self.j {
         let u_j: f64 = rng.gen();
         let e_j: f64 = rng.sample(Exp::new(1.0).unwrap());
 
         let v_j = if rng.gen_bool(0.5) {
-          lambda_plus
+          self.lambda_plus
         } else {
-          -lambda_minus
+          -self.lambda_minus
         };
 
-        let term1 = (self.alpha * dt / (2.0 * c)).powf(-1.0 / self.alpha);
+        let term1 = (self.alpha * poisson[j] / (2.0 * c)).powf(-1.0 / self.alpha);
         let term2 = e_j * u_j.powf(1.0 / self.alpha) / v_j.abs();
 
-        let jump_size = term1.min(term2) * v_j.signum();
+        let jump_size = term1.min(term2) * (v_j / v_j.abs());
 
-        delta += jump_size;
+        jump_component += jump_size;
       }
 
-      delta += b_t * dt;
-
-      x[i] = x[i - 1] + delta;
+      x[i] = x[i - 1] + b_t * dt + jump_component;
     }
 
     x
@@ -130,6 +123,7 @@ mod tests {
       lambda_minus: 5.0,
       alpha: 0.7,
       n: N,
+      j: 1000,
       x0: Some(0.0),
       t: Some(1.0),
       m: None,
@@ -145,6 +139,7 @@ mod tests {
       lambda_minus: 5.0,
       alpha: 0.7,
       n: N,
+      j: 1000,
       x0: Some(0.0),
       t: Some(1.0),
       m: None,
@@ -158,8 +153,9 @@ mod tests {
     let cgmy = CGMY {
       lambda_plus: 5.0,
       lambda_minus: 5.0,
-      alpha: 1.4,
+      alpha: 0.7,
       n: N,
+      j: 1000,
       x0: Some(0.0),
       t: Some(1.0),
       m: None,
