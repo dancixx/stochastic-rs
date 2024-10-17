@@ -3,11 +3,11 @@
 ![License](https://img.shields.io/crates/l/stochastic-rs?style=flat-square)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdancixx%2Fstochastic-rs.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdancixx%2Fstochastic-rs?ref=badge_shield)
 
-# stochastic-rs 
+# stochastic-rs
 
 **stochastic-rs** is a Rust library designed for high-performance simulation and analysis of stochastic processes and models. The primary goal is to provide a simple, easy-to-use, and efficient library that caters to a wide range of applications, including quantitative finance, AI training, statistical analysis, and more. This library is under active development, and contributions are welcome. Please note that breaking changes may occur as the library evolves. 🚧
 
-[RustQuant](https://github.com/avhz/RustQuant): you might want to explore **RustQuant**, another excellent Rust package tailored for quantitative finance. 
+[RustQuant](https://github.com/avhz/RustQuant): you might want to explore **RustQuant**, another excellent Rust package tailored for quantitative finance.
 ## Modules
 
 The library is organized into several modules, each targeting specific areas of stochastic processes and their applications.
@@ -28,8 +28,6 @@ Planned features and models under development:
 - **Rough Heston Model**: Combines the Heston model with rough volatility, capturing the fine structure of volatility movements.
 - **Hull-White Model**: An interest rate model with time-dependent parameters, providing a good fit to initial term structures.
 - **Barndorff-Nielsen & Shephard Model**: A stochastic volatility model with non-Gaussian Ornstein-Uhlenbeck processes.
-- **Alpha-Stable Models**: Models based on stable distributions, capturing heavy tails and skewness.
-- **CGMY Model**: A pure jump Lévy process model capturing infinite activity and infinite variation.
 - **Multi-factor CIR Model**: Extends the CIR model to multiple factors, providing greater flexibility in interest rate modeling.
 - **Brace-Gatarek-Musiela (BGM) Model**: A market model for interest rates, modeling the evolution of forward rates.
 - **Wu-Zhang Model**: A stochastic volatility model with jumps in returns and volatility.
