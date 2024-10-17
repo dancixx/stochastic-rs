@@ -1,5 +1,5 @@
 use impl_new_derive::ImplNew;
-use ndarray::{s, Array1};
+use ndarray::Array1;
 use ndarray_rand::RandomExt;
 use rand::Rng;
 use rand_distr::{Exp, Uniform};
@@ -42,6 +42,8 @@ pub struct SVCGMY {
 
 impl Sampling<f64> for SVCGMY {
   fn sample(&self) -> Array1<f64> {
+    let mut rng = rand::thread_rng();
+
     let t_max = self.t.unwrap_or(1.0);
     let dt = self.t.unwrap_or(1.0) / (self.n - 1) as f64;
     let mut x = Array1::<f64>::zeros(self.n);
@@ -55,11 +57,11 @@ impl Sampling<f64> for SVCGMY {
     let mut v = Array1::<f64>::zeros(self.n);
     v[0] = self.v0.unwrap_or(0.0);
 
+    let df = 4.0 * self.kappa * self.eta / self.zeta.powi(2);
+
     for i in 1..self.n {
-      let xi = non_central_chi_squared::sample(
-        4.0 * self.kappa * self.eta / self.zeta.powi(2),
-        2.0 * c * v[i - 1] * (-self.kappa * dt).exp(),
-      );
+      let ncp = 2.0 * c * v[i - 1] * (-self.kappa * dt).exp();
+      let xi = non_central_chi_squared::sample(df, ncp, &mut rng);
 
       v[i] = xi / (2.0 * c);
     }
@@ -75,16 +77,31 @@ impl Sampling<f64> for SVCGMY {
     }
 
     let tau = Array1::<f64>::random(self.j, Uniform::new(0.0, t_max));
-    let mut c_t = Array1::<f64>::zeros(self.j);
+    let mut c_tau = Array1::<f64>::zeros(self.j);
 
     for j in 1..self.j {
-      c_t[j] = C * v.slice(s![..j - 1]).sum()
+      let mut c_tau_ = 0.0;
+      for i in 1..self.n {
+        let t_1 = (i - 1) as f64 * dt;
+        let t = i as f64 * dt;
+
+        if t_1 < tau[j] && tau[j] <= t {
+          c_tau_ += v[i - 1]
+        }
+      }
+
+      c_tau[j] = C * c_tau_;
     }
-
-    let mut rng = rand::thread_rng();
-
+    println!("{:?}", c_tau);
     for i in 1..self.n {
+      let b = -((v[i]
+        * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0)))
+        / ((1.0 - self.alpha)
+          * (self.lambda_plus.powf(self.alpha - 2.0) + self.lambda_minus.powf(self.alpha) - 2.0)));
+
       let mut jump_component = 0.0;
+      let t_1 = (i - 1) as f64 * dt;
+      let t = i as f64 * dt;
 
       for j in 1..self.j {
         let v_j = if rng.gen_bool(0.5) {
@@ -93,17 +110,13 @@ impl Sampling<f64> for SVCGMY {
           -self.lambda_minus
         };
 
-        let term1 = ((self.alpha * P[j]) / (2.0 * c_t[j] * t_max)).powf(-1.0 / self.alpha);
+        let term1 = ((self.alpha * P[j]) / (2.0 * c_tau[j] * t_max)).powf(-1.0 / self.alpha);
         let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
-        let jump_size = term1.min(term2) * (v_j / v_j.abs());
+        let jump_size =
+          term1.min(term2) * (v_j / v_j.abs()) * if tau[j] > t_1 && tau[j] < t { 1.0 } else { 0.0 };
 
         jump_component += jump_size;
       }
-
-      let b = -(v[i]
-        * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0))
-        / ((1.0 - self.alpha)
-          * (self.lambda_plus.powf(self.alpha - 2.0) + self.lambda_minus.powf(self.alpha) - 2.0)));
 
       x[i] = x[i - 1] + jump_component + b * dt + self.rho * v[i - 1];
     }
@@ -177,11 +190,11 @@ mod tests {
       -2.0280,
       100,
       1024,
-      None,
+      Some(-0.25),
       Some(0.0064),
       Some(1.0),
       None,
     );
-    plot_1d!(svcgmy.sample(), "CGMY Process");
+    plot_1d!(svcgmy.sample(), "SVCGMY Process");
   }
 }

@@ -86,3 +86,25 @@ macro_rules! plot_3d {
     plot.show();
   };
 }
+
+#[macro_export]
+macro_rules! plot_nd {
+  ($data:expr, $name:expr) => {
+    let mut plot = plotly::Plot::new();
+
+    for (idx, data) in $data.axis_iter(Axis(0)).enumerate() {
+      let trace = plotly::Scatter::new((0..data.len()).collect::<Vec<_>>(), data.to_vec())
+        .mode(plotly::common::Mode::Lines)
+        .line(
+          plotly::common::Line::new()
+            .color("orange")
+            .shape(plotly::common::LineShape::Linear),
+        )
+        .name(format!("{}-{}", $name, idx))
+        .show_legend(true);
+      plot.add_trace(trace);
+    }
+
+    plot.show();
+  };
+}

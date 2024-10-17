@@ -7,37 +7,11 @@ use scilib::math::basic::gamma;
 
 use crate::stochastic::{process::poisson::Poisson, Sampling};
 
-/// CGMY process
-///
-/// The CGMY process is a pure jump Lévy process used in financial modeling to capture the dynamics
-/// of asset returns with jumps and heavy tails. It is characterized by four parameters:
-/// `C`, `G` (lambda_plus), `M` (lambda_minus), and `Y` (alpha).
-///
-/// The process is defined by the Lévy measure:
-///
-/// \[ \nu(x) = C \frac{e^{-G x}}{x^{1 + Y}} 1_{x > 0} + C \frac{e^{M x}}{|x|^{1 + Y}} 1_{x < 0} \]
-///
-/// where:
-/// - `c` (C) > 0 controls the overall intensity of the jumps.
-/// - `lambda_plus` (G) > 0 is the rate of exponential decay of positive jumps.
-/// - `lambda_minus` (M) > 0 is the rate of exponential decay of negative jumps.
-/// - `alfa` (Y), with 0 < `alfa` < 2, controls the jump activity (number of small jumps).
-///
-/// Series representation of the CGMY process:
-/// \[ X(t) = \sum_{i=1}^{\infty} ((alpha * Gamma_j / 2C)^(-1/alpha) \land E_j * U_j^(1/alpha) * abs(V_j)^-1)) * V_j / |V_j| 1_[0, t] + b_t * t \]
-///
-/// This implementation simulates the CGMY process using a discrete approximation over a grid of time points.
-/// At each time step, we generate a Poisson random number of jumps, and for each jump, we generate the jump size
-/// according to the CGMY process. The process also includes a drift component computed from the parameters.
-///
-/// # References
-///
-/// - Cont, R., & Tankov, P. (2004). *Financial Modelling with Jump Processes*. Chapman and Hall/CRC.
-/// - Madan, D. B., Carr, P., & Chang, E. C. (1998). The Variance Gamma Process and Option Pricing. *European Finance Review*, 2(1), 79-105.
-/// https://www.econstor.eu/bitstream/10419/239493/1/175133161X.pdf
+/// RDTS process (Rapidly Decreasing Tempered Stable process)
+/// https://sci-hub.se/https://doi.org/10.1016/j.jbankfin.2010.01.015
 ///
 #[derive(ImplNew)]
-pub struct CGMY {
+pub struct RDTS {
   /// Positive jump rate lambda_plus (corresponds to G)
   pub lambda_plus: f64, // G
   /// Negative jump rate lambda_minus (corresponds to M)
@@ -56,7 +30,7 @@ pub struct CGMY {
   pub m: Option<usize>,
 }
 
-impl Sampling<f64> for CGMY {
+impl Sampling<f64> for RDTS {
   fn sample(&self) -> Array1<f64> {
     let mut rng = rand::thread_rng();
 
@@ -70,7 +44,7 @@ impl Sampling<f64> for CGMY {
     .powi(-1);
 
     let b_t = -C
-      * gamma(1.0 - self.alpha)
+      * (gamma((1.0 - self.alpha) / 2.0) / 2.0_f64.powf((self.alpha + 1.0) / 2.0))
       * (self.lambda_plus.powf(self.alpha - 1.0) - self.lambda_minus.powf(self.alpha - 1.0));
 
     let U = Array1::<f64>::random(self.j, Uniform::new(0.0, 1.0));
@@ -92,7 +66,7 @@ impl Sampling<f64> for CGMY {
         };
 
         let term1 = (self.alpha * poisson[j] / (2.0 * C * t_max)).powf(-1.0 / self.alpha);
-        let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
+        let term2 = 0.5 * E[j].powf(0.5) * U[j].powf(1.0 / self.alpha) / v_j.abs();
         let jump_size =
           term1.min(term2) * (v_j / v_j.abs()) * if tau[j] > t_1 && tau[j] < t { 1.0 } else { 0.0 };
 
@@ -124,26 +98,26 @@ mod tests {
   use crate::{plot_1d, plot_nd, stochastic::N};
 
   #[test]
-  fn cgmy_length_equals_n() {
-    let cgmy = CGMY::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
+  fn rdts_length_equals_n() {
+    let cgmy = RDTS::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
     assert_eq!(cgmy.sample().len(), N);
   }
 
   #[test]
-  fn cgmy_starts_with_x0() {
-    let cgmy = CGMY::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
+  fn rdts_starts_with_x0() {
+    let cgmy = RDTS::new(5.0, 5.0, 0.7, N, 1000, Some(0.0), Some(1.0), None);
     assert_eq!(cgmy.sample()[0], 0.0);
   }
 
   #[test]
-  fn cgmy_plot() {
-    let cgmy = CGMY::new(25.46, 4.604, 0.52, 100, 1024, Some(2.0), Some(1.0), None);
-    plot_1d!(cgmy.sample(), "CGMY Process");
+  fn rdts_plot() {
+    let cgmy = RDTS::new(25.46, 4.604, 0.52, 100, 1024, Some(2.0), Some(1.0), None);
+    plot_1d!(cgmy.sample(), "RDTS Process");
   }
 
   #[test]
-  fn cgmy_plot_multi() {
-    let cgmy = CGMY::new(25.46, 4.604, 0.52, N, 10000, Some(2.0), Some(1.0), Some(10));
-    plot_nd!(cgmy.sample_par(), "CGMY Process");
+  fn rdts_plot_multi() {
+    let cgmy = RDTS::new(25.46, 4.604, 0.52, N, 10000, Some(2.0), Some(1.0), Some(10));
+    plot_nd!(cgmy.sample_par(), "RDTS Process");
   }
 }
