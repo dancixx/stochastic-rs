@@ -2,30 +2,43 @@ name: Rust
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
+      - uses: actions/checkout@v3
 
-    - name: Build
-      run: cargo build --release
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
 
-    - name: Run tests
-      run: cargo test
+      - name: Build
+        run: cargo build --release
+
+      - name:
+          Codecov
+          # You may pin to the exact commit or the version.
+          # uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          # Repository upload token - get it from codecov.io. Required only for private repositories
+          # token: # optional
+          # Specify whether the Codecov output should be verbose
+          verbose: true
+          fail_ci_if_error: true
+
+      - name: Run tests
+        run: cargo test
