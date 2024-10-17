@@ -75,9 +75,9 @@ impl Sampling<f64> for CGMY {
 
     let U = Array1::<f64>::random(self.j, Uniform::new(0.0, 1.0));
     let E = Array1::<f64>::random(self.j, Exp::new(1.0).unwrap());
+    let P = Poisson::new(1.0, Some(self.j), None, None);
+    let P = P.sample();
     let tau = Array1::<f64>::random(self.j, Uniform::new(0.0, 1.0));
-    let poisson = Poisson::new(1.0, Some(self.j), None, None);
-    let poisson = poisson.sample();
 
     for i in 1..self.n {
       let mut jump_component = 0.0;
@@ -85,18 +85,19 @@ impl Sampling<f64> for CGMY {
       let t = i as f64 * dt;
 
       for j in 1..self.j {
-        let v_j = if rng.gen_bool(0.5) {
-          self.lambda_plus
-        } else {
-          -self.lambda_minus
-        };
+        if tau[j] > t_1 && tau[j] <= t {
+          let v_j = if rng.gen_bool(0.5) {
+            self.lambda_plus
+          } else {
+            -self.lambda_minus
+          };
 
-        let term1 = (self.alpha * poisson[j] / (2.0 * C * t_max)).powf(-1.0 / self.alpha);
-        let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
-        let jump_size =
-          term1.min(term2) * (v_j / v_j.abs()) * if tau[j] > t_1 && tau[j] < t { 1.0 } else { 0.0 };
+          let term1 = (self.alpha * P[j] / (2.0 * C * t_max)).powf(-1.0 / self.alpha);
+          let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
+          let jump_size = term1.min(term2) * (v_j / v_j.abs());
 
-        jump_component += jump_size;
+          jump_component += jump_size;
+        }
       }
 
       x[i] = x[i - 1] + jump_component + b_t * dt;
@@ -137,7 +138,7 @@ mod tests {
 
   #[test]
   fn cgmy_plot() {
-    let cgmy = CGMY::new(25.46, 4.604, 0.52, 100, 1024, Some(2.0), Some(1.0), None);
+    let cgmy = CGMY::new(25.46, 4.604, 0.52, 1000, 1024, Some(2.0), Some(1.0), None);
     plot_1d!(cgmy.sample(), "CGMY Process");
   }
 

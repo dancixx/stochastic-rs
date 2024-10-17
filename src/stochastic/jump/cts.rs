@@ -59,18 +59,19 @@ impl Sampling<f64> for CTS {
       let t = i as f64 * dt;
 
       for j in 1..self.j {
-        let v_j = if rng.gen_bool(0.5) {
-          self.lambda_plus
-        } else {
-          -self.lambda_minus
-        };
+        if tau[j] > t_1 && tau[j] <= t {
+          let v_j = if rng.gen_bool(0.5) {
+            self.lambda_plus
+          } else {
+            -self.lambda_minus
+          };
 
-        let term1 = (self.alpha * poisson[j] / C).powf(-1.0 / self.alpha);
-        let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
-        let jump_size =
-          term1.min(term2) * (v_j / v_j.abs()) * if tau[j] > t_1 && tau[j] < t { 1.0 } else { 0.0 };
+          let term1 = (self.alpha * poisson[j] / C).powf(-1.0 / self.alpha);
+          let term2 = E[j] * U[j].powf(1.0 / self.alpha) / v_j.abs();
+          let jump_size = term1.min(term2) * (v_j / v_j.abs());
 
-        jump_component += jump_size;
+          jump_component += jump_size;
+        }
       }
 
       x[i] = x[i - 1] + jump_component + b_t * dt;
@@ -111,13 +112,13 @@ mod tests {
 
   #[test]
   fn cts_plot() {
-    let cts = CTS::new(25.46, 4.604, 0.52, 1024, 1024, Some(2.0), Some(1.0), None);
+    let cts = CTS::new(25.46, 4.604, 0.52, N, 1024, Some(2.0), Some(1.0), None);
     plot_1d!(cts.sample(), "CTS Process");
   }
 
   #[test]
   fn cts_plot_multi() {
-    let cts = CTS::new(25.46, 4.604, 0.52, N, 10000, Some(2.0), Some(1.0), Some(10));
+    let cts = CTS::new(25.46, 4.604, 0.52, N, 1024, Some(2.0), Some(1.0), Some(10));
     plot_nd!(cts.sample_par(), "CTS Process");
   }
 }
