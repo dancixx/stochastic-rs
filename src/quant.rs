@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-pub mod bsm;
-pub mod heston;
+pub mod calibration;
+pub mod pricing;
 pub mod strategies;
 pub mod r#trait;
 #[cfg(feature = "yahoo")]

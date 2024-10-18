@@ -3,73 +3,59 @@ use std::cell::RefCell;
 use impl_new_derive::ImplNew;
 use levenberg_marquardt::{LeastSquaresProblem, LevenbergMarquardt};
 use nalgebra::{DMatrix, DVector, Dyn, Owned};
-use ndarray::Array1;
 
-use crate::{
-  quant::{r#trait::Pricer, OptionType},
-  stats::mle::nmle_heston,
+use crate::quant::{
+  pricing::bsm::{BSMCoc, BSMPricer},
+  r#trait::Pricer,
+  OptionType,
 };
 
-use super::pricer::HestonPricer;
-
-/// Heston model parameters
 #[derive(Clone, Debug)]
-pub struct HestonParams {
-  pub v0: f64,
-  pub theta: f64,
-  pub rho: f64,
-  pub kappa: f64,
-  pub sigma: f64,
+pub struct BSMParams {
+  /// Implied volatility
+  pub v: f64,
 }
 
-impl From<HestonParams> for DVector<f64> {
-  fn from(params: HestonParams) -> Self {
-    DVector::from_vec(vec![
-      params.v0,
-      params.theta,
-      params.rho,
-      params.kappa,
-      params.sigma,
-    ])
+impl From<BSMParams> for DVector<f64> {
+  fn from(params: BSMParams) -> Self {
+    DVector::from_vec(vec![params.v])
   }
 }
 
-impl From<DVector<f64>> for HestonParams {
+impl From<DVector<f64>> for BSMParams {
   fn from(params: DVector<f64>) -> Self {
-    HestonParams {
-      v0: params[0],
-      theta: params[1],
-      rho: params[2],
-      kappa: params[3],
-      sigma: params[4],
-    }
+    BSMParams { v: params[0] }
   }
 }
 
 /// A calibrator.
 #[derive(ImplNew, Clone)]
-pub struct HestonCalibrator {
+pub struct BSMCalibrator {
   /// Params to calibrate.
-  pub params: HestonParams,
+  pub params: BSMParams,
   /// Option prices from the market.
   pub c_market: DVector<f64>,
   /// Asset price vector.
   pub s: DVector<f64>,
   /// Strike price vector.
   pub k: DVector<f64>,
-  /// Time to maturity.
-  pub tau: f64,
   /// Risk-free rate.
   pub r: f64,
+  /// Domestic risk-free rate
+  pub r_d: Option<f64>,
+  /// Foreign risk-free rate
+  pub r_f: Option<f64>,
   /// Dividend yield.
   pub q: Option<f64>,
+  /// Time to maturity.
+  pub tau: f64,
   /// Option type
   pub option_type: OptionType,
   /// Derivate matrix.
   derivates: RefCell<Vec<Vec<f64>>>,
 }
 
-impl HestonCalibrator {
+impl BSMCalibrator {
   pub fn calibrate(&self) {
     println!("Initial guess: {:?}", self.params);
 
@@ -87,22 +73,18 @@ impl HestonCalibrator {
     println!("Calibration report: {:?}", result.params);
   }
 
-  /// Initial guess for the calibration
-  /// http://scis.scichina.com/en/2018/042202.pdf
-  ///
-  /// Using NMLE (Normal Maximum Likelihood Estimation) method
-  pub fn set_initial_params(&mut self, s: Array1<f64>, v: Array1<f64>, r: f64) {
-    self.params = nmle_heston(s, v, r);
+  pub fn set_intial_guess(&mut self, params: BSMParams) {
+    self.params = params;
   }
 }
 
-impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrator {
+impl LeastSquaresProblem<f64, Dyn, Dyn> for BSMCalibrator {
   type JacobianStorage = Owned<f64, Dyn, Dyn>;
   type ParameterStorage = Owned<f64, Dyn>;
   type ResidualStorage = Owned<f64, Dyn>;
 
   fn set_params(&mut self, params: &DVector<f64>) {
-    self.params = HestonParams::from(params.clone());
+    self.params = BSMParams::from(params.clone());
   }
 
   fn params(&self) -> DVector<f64> {
@@ -114,20 +96,19 @@ impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrator {
     let mut derivates = Vec::new();
 
     for (idx, _) in self.c_market.iter().enumerate() {
-      let pricer = HestonPricer::new(
+      let pricer = BSMPricer::new(
         self.s[idx],
-        self.params.v0,
+        self.params.v,
         self.k[idx],
         self.r,
+        None,
+        None,
         self.q,
-        self.params.rho,
-        self.params.kappa,
-        self.params.theta,
-        self.params.sigma,
-        None,
-        self.tau,
+        Some(self.tau),
         None,
         None,
+        self.option_type,
+        BSMCoc::BSM1973,
       );
       let (call, put) = pricer.calculate_call_put();
 
@@ -160,10 +141,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_heston_calibrate() {
-    let tau = 24.0 / 365.0;
-    println!("Time to maturity: {}", tau);
-
+  fn test_calibrate() {
     let s = vec![
       425.73, 425.73, 425.73, 425.67, 425.68, 425.65, 425.65, 425.68, 425.65, 425.16, 424.78,
       425.19,
@@ -177,26 +155,26 @@ mod tests {
       30.75, 25.88, 21.00, 16.50, 11.88, 7.69, 4.44, 2.10, 0.78, 0.25, 0.10, 0.10,
     ];
 
-    let v0 = Array1::linspace(0.0, 0.01, 10);
+    let r = 0.05;
+    let r_d = None;
+    let r_f = None;
+    let q = None;
+    let tau = 1.0;
+    let option_type = OptionType::Call;
 
-    for v in v0.iter() {
-      let calibrator = HestonCalibrator::new(
-        HestonParams {
-          v0: *v,
-          theta: 6.47e-5,
-          rho: -1.98e-3,
-          kappa: 6.57e-3,
-          sigma: 5.09e-4,
-        },
-        c_market.clone().into(),
-        s.clone().into(),
-        k.clone().into(),
-        tau,
-        6.40e-4,
-        None,
-        OptionType::Call,
-      );
-      calibrator.calibrate();
-    }
+    let calibrator = BSMCalibrator::new(
+      BSMParams { v: 0.2 },
+      c_market.into(),
+      s.into(),
+      k.into(),
+      r,
+      r_d,
+      r_f,
+      q,
+      tau,
+      option_type,
+    );
+
+    calibrator.calibrate();
   }
 }

@@ -1,6 +1,6 @@
 use ndarray::Array1;
 
-use crate::quant::heston::calibrator::HestonParams;
+use crate::quant::calibration::heston::HestonParams;
 
 /// Maximum likelihood estimation for Heston model
 /// http://scis.scichina.com/en/2018/042202.pdf

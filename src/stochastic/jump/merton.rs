@@ -58,7 +58,7 @@ where
 mod tests {
   use crate::{
     plot_1d,
-    stochastic::{process::poisson::Poisson, N, X0},
+    stochastic::{process::poisson::Poisson, N, S0, X0},
   };
 
   use super::*;
@@ -113,7 +113,7 @@ mod tests {
       1.0,
       1.0,
       N,
-      Some(X0),
+      Some(S0),
       Some(1.0),
       None,
       CompoundPoisson::new(
