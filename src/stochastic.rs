@@ -71,6 +71,28 @@ pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   }
 }
 
+pub trait SamplingVector<T: Clone + Send + Sync + Zero>: Send + Sync {
+  /// Sample the vector process
+  fn sample(&self) -> Array2<T>;
+
+  /// Parallel sampling
+  fn sample_par(&self) -> Array2<T> {
+    unimplemented!()
+  }
+
+  /// Number of time steps
+  fn n(&self) -> usize;
+
+  /// Number of samples for parallel sampling
+  fn m(&self) -> Option<usize>;
+
+  /// Malliavin derivative of the process
+  #[cfg(feature = "malliavin")]
+  fn malliavin(&self) -> Array1<T> {
+    unimplemented!()
+  }
+}
+
 pub trait Sampling2D<T: Clone + Send + Sync + Zero>: Send + Sync {
   /// Sample the process
   fn sample(&self) -> [Array1<T>; 2];

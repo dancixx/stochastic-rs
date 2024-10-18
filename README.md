@@ -24,9 +24,6 @@ The library is organized into several modules, each targeting specific areas of 
 ## Features
 
 Planned features and models under development:
-
-- **Rough Heston Model**: Combines the Heston model with rough volatility, capturing the fine structure of volatility movements.
-- **Hull-White Model**: An interest rate model with time-dependent parameters, providing a good fit to initial term structures.
 - **Barndorff-Nielsen & Shephard Model**: A stochastic volatility model with non-Gaussian Ornstein-Uhlenbeck processes.
 - **Multi-factor CIR Model**: Extends the CIR model to multiple factors, providing greater flexibility in interest rate modeling.
 - **Brace-Gatarek-Musiela (BGM) Model**: A market model for interest rates, modeling the evolution of forward rates.
