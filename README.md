@@ -25,7 +25,6 @@ The library is organized into several modules, each targeting specific areas of 
 
 Planned features and models under development:
 - **Barndorff-Nielsen & Shephard Model**: A stochastic volatility model with non-Gaussian Ornstein-Uhlenbeck processes.
-- **Multi-factor CIR Model**: Extends the CIR model to multiple factors, providing greater flexibility in interest rate modeling.
 - **Brace-Gatarek-Musiela (BGM) Model**: A market model for interest rates, modeling the evolution of forward rates.
 - **Wu-Zhang Model**: A stochastic volatility model with jumps in returns and volatility.
 - **Affine Models**: A class of models where yields are affine functions of factors, facilitating analytical solutions.
