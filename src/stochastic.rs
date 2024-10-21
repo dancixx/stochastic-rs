@@ -35,6 +35,7 @@ use num_complex::Complex64;
 pub const N: usize = 1000;
 pub const X0: f64 = 0.5;
 pub const S0: f64 = 100.0;
+pub const K: f64 = 100.0;
 
 pub trait Sampling<T: Clone + Send + Sync + Zero>: Send + Sync {
   /// Sample the process

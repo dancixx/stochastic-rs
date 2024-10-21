@@ -15,6 +15,14 @@ pub enum OptionType {
   Put,
 }
 
+/// Option style.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub enum OptionStyle {
+  American,
+  #[default]
+  European,
+}
+
 /// Moneyness.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Moneyness {
