@@ -123,7 +123,7 @@ impl<'a> LeastSquaresProblem<f64, Dyn, Dyn> for HestonCalibrator {
         self.params.theta,
         self.params.sigma,
         None,
-        self.tau,
+        Some(self.tau),
         None,
         None,
       );

@@ -1,7 +1,10 @@
 use impl_new_derive::ImplNew;
 use ndarray::{s, Array1};
 
-use crate::quant::{r#trait::Pricer, OptionStyle, OptionType};
+use crate::quant::{
+  r#trait::{Pricer, Time},
+  OptionStyle, OptionType,
+};
 
 #[derive(Default)]
 pub enum FiniteDifferenceMethod {
@@ -49,17 +52,19 @@ impl Pricer for FiniteDifferencePricer {
       FiniteDifferenceMethod::CrankNicolson => self.crank_nicolson(),
     }
   }
+}
 
+impl Time for FiniteDifferencePricer {
   fn tau(&self) -> Option<f64> {
     self.tau
   }
 
-  fn eval(&self) -> Option<chrono::NaiveDate> {
-    self.eval
+  fn eval(&self) -> chrono::NaiveDate {
+    self.eval.unwrap()
   }
 
-  fn expiration(&self) -> Option<chrono::NaiveDate> {
-    self.expiration
+  fn expiration(&self) -> chrono::NaiveDate {
+    self.expiration.unwrap()
   }
 }
 

@@ -1,7 +1,11 @@
 use impl_new_derive::ImplNew;
+use implied_vol::implied_black_volatility;
 use statrs::distribution::{Continuous, ContinuousCDF, Normal};
 
-use crate::quant::{r#trait::Pricer, OptionType};
+use crate::quant::{
+  r#trait::{Pricer, Time},
+  OptionType,
+};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum BSMCoc {
@@ -68,26 +72,14 @@ impl Pricer for BSMPricer {
     (call, put)
   }
 
-  fn tau(&self) -> Option<f64> {
-    self.tau
-  }
-
-  fn eval(&self) -> Option<chrono::NaiveDate> {
-    self.eval
-  }
-
-  fn expiration(&self) -> Option<chrono::NaiveDate> {
-    self.expiration
-  }
-
   /// Calculate the implied volatility
-  fn implied_volatility(&self, c_market: f64) -> f64 {
-    implied_vol::implied_black_volatility(
+  fn implied_volatility(&self, c_market: f64, option_type: OptionType) -> f64 {
+    implied_black_volatility(
       c_market,
       self.s,
       self.k,
-      self.tau.unwrap(),
-      self.option_type == OptionType::Call,
+      self.calculate_tau_in_days(),
+      option_type == OptionType::Call,
     )
   }
 
@@ -99,6 +91,20 @@ impl Pricer for BSMPricer {
       self.vega(),
       self.rho(),
     ]
+  }
+}
+
+impl Time for BSMPricer {
+  fn tau(&self) -> Option<f64> {
+    self.tau
+  }
+
+  fn eval(&self) -> chrono::NaiveDate {
+    self.eval.unwrap()
+  }
+
+  fn expiration(&self) -> chrono::NaiveDate {
+    self.expiration.unwrap()
   }
 }
 
@@ -342,7 +348,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_bsm_price() {
+  fn bsm_price() {
     let bsm = BSMPricer::new(
       100.0,
       0.2,
@@ -362,7 +368,7 @@ mod tests {
   }
 
   #[test]
-  fn test_bsm_implied_volatility() {
+  fn bsm_implied_volatility() {
     let bsm = BSMPricer::new(
       100.0,
       0.2,
@@ -377,7 +383,7 @@ mod tests {
       OptionType::Call,
       BSMCoc::BSM1973,
     );
-    let iv = bsm.implied_volatility(4.0733);
+    let iv = bsm.implied_volatility(4.0733, OptionType::Call);
     println!("Implied Volatility: {}", iv);
   }
 }

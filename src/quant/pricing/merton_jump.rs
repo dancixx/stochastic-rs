@@ -1,6 +1,9 @@
 use impl_new_derive::ImplNew;
 
-use crate::quant::{r#trait::Pricer, OptionType};
+use crate::quant::{
+  r#trait::{Pricer, Time},
+  OptionType,
+};
 
 use super::bsm::{BSMCoc, BSMPricer};
 
@@ -79,16 +82,18 @@ impl Pricer for Merton1976Pricer {
 
     (call, put)
   }
+}
 
+impl Time for Merton1976Pricer {
   fn tau(&self) -> Option<f64> {
     self.tau
   }
 
-  fn eval(&self) -> Option<chrono::NaiveDate> {
-    self.eval
+  fn eval(&self) -> chrono::NaiveDate {
+    self.eval.unwrap()
   }
 
-  fn expiration(&self) -> Option<chrono::NaiveDate> {
-    self.expiration
+  fn expiration(&self) -> chrono::NaiveDate {
+    self.expiration.unwrap()
   }
 }

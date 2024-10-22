@@ -1,7 +1,7 @@
-use chrono::Local;
+use super::OptionType;
 
 /// Pricer trait.
-pub(crate) trait Pricer {
+pub(crate) trait Pricer: Time {
   /// Calculate the price of an option.
   fn calculate_call_put(&self) -> (f64, f64) {
     todo!()
@@ -17,38 +17,36 @@ pub(crate) trait Pricer {
     todo!()
   }
 
-  /// Calculate the valuation date of an instrument.
+  /// Calculate the implied volatility using the Newton-Raphson method.
+  fn implied_volatility(&self, _c_market: f64, _option_type: OptionType) -> f64 {
+    todo!()
+  }
+}
+
+pub trait Time {
+  fn tau(&self) -> Option<f64>;
+
+  fn eval(&self) -> chrono::NaiveDate;
+
+  fn expiration(&self) -> chrono::NaiveDate;
+
+  /// Calculate tau in days.
   fn calculate_tau_in_days(&self) -> f64 {
     if let Some(tau) = self.tau() {
-      tau
+      tau * 365.0
     } else {
-      let eval = self
-        .eval()
-        .unwrap_or_else(|| Local::now().naive_local().into());
-      let expiration = self.expiration().unwrap();
-      (expiration - eval).num_days() as f64
+      let eval = self.eval();
+      let expiration = self.expiration();
+      let days = expiration.signed_duration_since(eval).num_days();
+      days as f64
     }
   }
 
-  /// Calculate the valuation date of an instrument.
+  /// Use if tau is None and eval and expiration are Some.
   fn calculate_tau_in_years(&self) -> f64 {
-    if let Some(tau) = self.tau() {
-      tau
-    } else {
-      let eval = self
-        .eval()
-        .unwrap_or_else(|| Local::now().naive_local().into());
-      let expiration = self.expiration().unwrap();
-      (expiration - eval).num_days() as f64 / 365.0
-    }
-  }
-
-  fn tau(&self) -> Option<f64>;
-  fn eval(&self) -> Option<chrono::NaiveDate>;
-  fn expiration(&self) -> Option<chrono::NaiveDate>;
-
-  /// Calculate the implied volatility using the Newton-Raphson method.
-  fn implied_volatility(&self, _c_market: f64) -> f64 {
-    todo!()
+    let eval = self.eval();
+    let expiration = self.expiration();
+    let days = expiration.signed_duration_since(eval).num_days();
+    days as f64 / 365.0
   }
 }

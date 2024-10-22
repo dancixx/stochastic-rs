@@ -1,12 +1,16 @@
 use std::f64::consts::FRAC_1_PI;
 
 use impl_new_derive::ImplNew;
+use implied_vol::implied_black_volatility;
 use num_complex::Complex64;
 use quadrature::double_exponential;
 
-use crate::quant::r#trait::Pricer;
+use crate::quant::{
+  r#trait::{Pricer, Time},
+  OptionType,
+};
 
-#[derive(ImplNew, Clone, Default)]
+#[derive(ImplNew, Clone)]
 pub struct HestonPricer {
   /// Stock price
   pub s: f64,
@@ -29,7 +33,7 @@ pub struct HestonPricer {
   /// Market price of volatility risk
   pub lambda: Option<f64>,
   /// Time to maturity
-  pub tau: f64,
+  pub tau: Option<f64>,
   /// Evaluation date
   pub eval: Option<chrono::NaiveDate>,
   /// Expiration date
@@ -40,39 +44,50 @@ impl Pricer for HestonPricer {
   /// Calculate the price of a European call option using the Heston model
   /// https://quant.stackexchange.com/a/18686
   fn calculate_call_put(&self) -> (f64, f64) {
-    let call = self.s * (-self.q.unwrap_or(0.0) * self.tau).exp() * self.p(1, self.tau)
-      - self.k * (-self.r * self.tau).exp() * self.p(2, self.tau);
-    let put = call + self.k * (-self.r * self.tau).exp()
-      - self.s * (-self.q.unwrap_or(0.0) * self.tau).exp();
+    let tau = self.tau().unwrap_or(1.0);
+
+    let call = self.s * (-self.q.unwrap_or(0.0) * tau).exp() * self.p(1, tau)
+      - self.k * (-self.r * tau).exp() * self.p(2, tau);
+    let put = call + self.k * (-self.r * tau).exp() - self.s * (-self.q.unwrap_or(0.0) * tau).exp();
 
     (call, put)
   }
 
   /// Derivatives
   fn derivatives(&self) -> Vec<f64> {
+    let tau = self.tau().unwrap_or(1.0);
+
     vec![
-      self.dC_dv0(self.tau),
-      self.dC_dtheta(self.tau),
-      self.dC_drho(self.tau),
-      self.dC_dkappa(self.tau),
-      self.dC_dsigma(self.tau),
+      self.dC_dv0(tau),
+      self.dC_dtheta(tau),
+      self.dC_drho(tau),
+      self.dC_dkappa(tau),
+      self.dC_dsigma(tau),
     ]
   }
 
+  fn implied_volatility(&self, c_market: f64, option_type: OptionType) -> f64 {
+    implied_black_volatility(
+      c_market,
+      self.s,
+      self.k,
+      self.calculate_tau_in_days(),
+      option_type == OptionType::Call,
+    )
+  }
+}
+
+impl Time for HestonPricer {
   fn tau(&self) -> Option<f64> {
-    Some(self.tau)
+    self.tau
   }
 
-  fn eval(&self) -> Option<chrono::NaiveDate> {
-    self.eval
+  fn eval(&self) -> chrono::NaiveDate {
+    self.eval.unwrap()
   }
 
-  fn expiration(&self) -> Option<chrono::NaiveDate> {
-    self.expiry
-  }
-
-  fn implied_volatility(&self, _c_market: f64) -> f64 {
-    todo!()
+  fn expiration(&self) -> chrono::NaiveDate {
+    self.expiry.unwrap()
   }
 }
 
@@ -218,23 +233,46 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_heston_single_price() {
-    let heston = HestonPricer {
-      s: 100.0,
-      v0: 0.05,
-      k: 100.0,
-      r: 0.03,
-      q: Some(0.02),
-      rho: -0.8,
-      kappa: 5.0,
-      theta: 0.05,
-      sigma: 0.5,
-      lambda: Some(0.0),
-      tau: 0.5,
-      ..Default::default()
-    };
+  fn heston_single_price() {
+    let heston = HestonPricer::new(
+      100.0,
+      0.05,
+      90.0,
+      0.03,
+      Some(0.02),
+      -0.8,
+      5.0,
+      0.05,
+      0.5,
+      Some(0.0),
+      Some(0.5),
+      None,
+      None,
+    );
 
     let (call, put) = heston.calculate_call_put();
     println!("Call Price: {}, Put Price: {}", call, put);
+  }
+
+  #[test]
+  fn heston_implied_volatility() {
+    let heston = HestonPricer::new(
+      100.0,
+      0.05,
+      90.0,
+      0.03,
+      Some(0.02),
+      -0.8,
+      5.0,
+      0.05,
+      0.5,
+      Some(0.0),
+      Some(1.0),
+      None,
+      None,
+    );
+
+    let iv = heston.implied_volatility(20.0, OptionType::Call);
+    println!("Implied Volatility: {}", iv);
   }
 }

@@ -1,7 +1,7 @@
 use impl_new_derive::ImplNew;
 use statrs::distribution::{ContinuousCDF, Normal};
 
-use crate::quant::r#trait::Pricer;
+use crate::quant::r#trait::{Pricer, Time};
 
 /// Asian option pricer
 #[derive(ImplNew)]
@@ -41,16 +41,18 @@ impl Pricer for AsianPricer {
 
     (call, put)
   }
+}
 
+impl Time for AsianPricer {
   fn tau(&self) -> Option<f64> {
     self.tau
   }
 
-  fn eval(&self) -> Option<chrono::NaiveDate> {
-    self.eval
+  fn eval(&self) -> chrono::NaiveDate {
+    self.eval.unwrap()
   }
 
-  fn expiration(&self) -> Option<chrono::NaiveDate> {
-    self.expiration
+  fn expiration(&self) -> chrono::NaiveDate {
+    self.expiration.unwrap()
   }
 }
