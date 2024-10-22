@@ -18,7 +18,7 @@ pub(crate) trait Pricer: Time {
   }
 
   /// Calculate the implied volatility using the Newton-Raphson method.
-  fn implied_volatility(&self, _c_market: f64, _option_type: OptionType) -> f64 {
+  fn implied_volatility(&self, _c_price: f64, _option_type: OptionType) -> f64 {
     todo!()
   }
 }

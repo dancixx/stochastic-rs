@@ -66,9 +66,9 @@ impl Pricer for HestonPricer {
     ]
   }
 
-  fn implied_volatility(&self, c_market: f64, option_type: OptionType) -> f64 {
+  fn implied_volatility(&self, c_price: f64, option_type: OptionType) -> f64 {
     implied_black_volatility(
-      c_market,
+      c_price,
       self.s,
       self.k,
       self.calculate_tau_in_days(),
@@ -272,7 +272,8 @@ mod tests {
       None,
     );
 
-    let iv = heston.implied_volatility(20.0, OptionType::Call);
+    let (call, ..) = heston.calculate_call_put();
+    let iv = heston.implied_volatility(call, OptionType::Call);
     println!("Implied Volatility: {}", iv);
   }
 }
