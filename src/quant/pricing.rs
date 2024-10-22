@@ -1,3 +1,4 @@
+pub mod asian;
 pub mod bsm;
 pub mod finitie_difference;
 pub mod heston;
