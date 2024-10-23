@@ -114,7 +114,7 @@ impl Sampling<f64> for SVCGMY {
       y[i] = y[i - 1] + jump_component + b * dt;
     }
 
-    for i in 0..self.n {
+    for i in 1..self.n {
       x[i] = y[i] + self.rho * v[i];
     }
 
