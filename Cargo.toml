@@ -20,6 +20,7 @@ candle-datasets = "0.7.2"
 candle-nn = "0.7.2"
 candle-transformers = "0.7.2"
 chrono = "0.4.38"
+flate2 = "1.0.34"
 gauss-quad = "0.2.1"
 impl-new-derive = "0.1.1"
 implied-vol = "1.0.0"
@@ -33,7 +34,9 @@ ndarray = { version = "0.16.1", features = [
     "matrixmultiply-threading",
     "blas",
 ] }
+ndarray-npy = "0.9.1"
 ndarray-rand = "0.15.0"
+ndarray-stats = "0.6.0"
 ndrustfft = "0.5.0"
 num-complex = { version = "0.4.6", features = ["rand"] }
 plotly = { version = "0.10.0", features = ["plotly_ndarray"] }
@@ -45,6 +48,7 @@ rand_distr = "0.4.3"
 rayon = "1.10.0"
 scilib = "1.0.0"
 statrs = "0.17.1"
+tempfile = "3.13.0"
 tikv-jemallocator = { version = "0.6.0", optional = true }
 time = { version = "0.3.36", features = [
     "formatting",
