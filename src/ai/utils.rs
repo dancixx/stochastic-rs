@@ -1,23 +1,40 @@
 use ndarray::{Array2, Axis};
-use rand::{seq::SliceRandom, SeedableRng};
+use rand::prelude::*;
 
 pub fn train_test_split_for_array2(
-  xx: Array2<f64>,
-  yy: Array2<f64>,
+  arrays: &[Array2<f64>],
   test_size: f64,
   random_state: Option<u64>,
-) -> (Array2<f64>, Array2<f64>, Array2<f64>, Array2<f64>) {
-  let n_samples = xx.shape()[0];
+) -> Vec<(Array2<f64>, Array2<f64>)> {
+  assert!(!arrays.is_empty(), "One or more arrays must be provided.");
+
+  let n_samples = arrays[0].shape()[0];
   let n_train = (n_samples as f64 * (1.0 - test_size)).round() as usize;
 
-  let mut indices = (0..n_samples).collect::<Vec<usize>>();
-  let mut rng = rand::rngs::StdRng::seed_from_u64(random_state.unwrap_or(42));
+  for array in arrays {
+    assert_eq!(
+      array.shape()[0],
+      n_samples,
+      "All arrays must have the same number of samples."
+    );
+  }
+
+  let mut indices: Vec<usize> = (0..n_samples).collect();
+  let mut rng = match random_state {
+    Some(seed) => StdRng::seed_from_u64(seed),
+    None => StdRng::from_entropy(),
+  };
   indices.shuffle(&mut rng);
 
-  let x_train = xx.select(Axis(0), &indices[0..n_train]);
-  let x_test = xx.select(Axis(0), &indices[n_train..]);
-  let y_train = yy.select(Axis(0), &indices[0..n_train]);
-  let y_test = yy.select(Axis(0), &indices[n_train..]);
+  let train_indices = &indices[0..n_train];
+  let test_indices = &indices[n_train..];
 
-  (x_train, x_test, y_train, y_test)
+  arrays
+    .iter()
+    .map(|array| {
+      let train_array = array.select(Axis(0), train_indices);
+      let test_array = array.select(Axis(0), test_indices);
+      (train_array, test_array)
+    })
+    .collect()
 }
