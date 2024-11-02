@@ -1,5 +1,6 @@
 use crate::ai::DataSet;
 use candle_core::{DType, Device, Result, Tensor};
+use candle_datasets::Batcher;
 use candle_nn::{linear, AdamW, Linear, Module, Optimizer, ParamsAdamW, VarBuilder, VarMap};
 
 /// Calibration model for the Heston model
@@ -66,7 +67,10 @@ pub fn train(
   let x_test = dataset.x_test.to_device(device)?;
   let y_test = dataset.y_test.to_device(device)?;
 
-  let batch_size = 1000;
+  // use the Batcher to create a training loop
+  //
+
+  let batch_size = 64;
   let num_batches = (x_train.dim(0)? + batch_size - 1) / batch_size;
 
   for epoch in 1..=epochs {
@@ -186,7 +190,9 @@ mod tests {
     impl StandardScaler2D {
       fn fit(data: &Array2<f64>) -> Self {
         let mean = data.mean_axis(Axis(0)).unwrap();
-        let std = data.std_axis(Axis(0), 0.0);
+        let mut std = data.std_axis(Axis(0), 0.0);
+        // Handle zero standard deviation
+        std = std.mapv(|x| if x == 0.0 { 1e-8 } else { x });
         Self { mean, std }
       }
 
@@ -195,6 +201,14 @@ mod tests {
       }
 
       fn inverse_transform(&self, data: &Array2<f64>) -> Array2<f64> {
+        data * &self.std + &self.mean
+      }
+
+      fn transform1d(&self, data: &Array1<f64>) -> Array1<f64> {
+        (data - &self.mean) / &self.std
+      }
+
+      fn inverse_transform1d(&self, data: &Array1<f64>) -> Array1<f64> {
         data * &self.std + &self.mean
       }
     }
@@ -231,10 +245,10 @@ mod tests {
     let model = train(
       dataset,
       &Device::Cpu,
-      5,   // input_dim
-      30,  // hidden_size
-      88,  // output_dim
-      200, // epochs
+      5,  // input_dim
+      30, // hidden_size
+      88, // output_dim
+      10, // epochs
     )?;
 
     // Sample index for plotting
@@ -254,15 +268,11 @@ mod tests {
     let y_pred_tensor = model.forward(&x_sample_tensor)?;
     let y_pred_vec = y_pred_tensor.get(0)?.to_vec1::<f32>()?;
     let prediction = Array1::from(y_pred_vec).mapv(|v| v as f64);
-    let prediction = scaler
-      .inverse_transform(&prediction.insert_axis(Axis(0)))
-      .index_axis_move(Axis(0), 0);
+    let prediction = scaler.inverse_transform1d(&prediction);
 
     // Get the actual implied volatilities for comparison
     let y_sample = y_test.slice(s![sample_idx, ..]).to_owned();
-    let y_sample = scaler
-      .inverse_transform(&y_sample.insert_axis(Axis(0)))
-      .index_axis_move(Axis(0), 0);
+    let y_sample = scaler.inverse_transform1d(&y_sample);
 
     // Plot the results
     plot_results_with_plotly(&strikes, &maturities, &y_sample, &prediction)?;
