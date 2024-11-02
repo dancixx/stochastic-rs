@@ -54,6 +54,7 @@ pub fn train(
   input_dim: usize,
   hidden_size: usize,
   output_dim: usize,
+  batch_size: usize,
   epochs: usize,
 ) -> Result<Model> {
   let x_train = dataset.x_train.to_device(device)?;
@@ -72,7 +73,6 @@ pub fn train(
   let x_test = dataset.x_test.to_device(device)?;
   let y_test = dataset.y_test.to_device(device)?;
 
-  let batch_size = 64;
   let num_batches = (x_train.dim(0)? + batch_size - 1) / batch_size;
 
   for epoch in 1..=epochs {
@@ -247,10 +247,11 @@ mod tests {
     let model = train(
       dataset,
       &Device::Cpu,
-      5,   // input_dim (parameters)
-      30,  // hidden_size
-      88,  // output_dim (implied volatilities)
-      200, // epochs
+      5,  // input_dim (parameters)
+      30, // hidden_size
+      88, // output_dim (implied volatilities)
+      32, // batch_size
+      5,  // epochs
     )?;
 
     // Sample index for plotting
@@ -338,6 +339,7 @@ mod tests {
 
     // Layout settings for subplots
     let layout = Layout::new()
+      .height(1200)
       .grid(
         LayoutGrid::new()
           .rows(rows)
