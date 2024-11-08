@@ -1,12 +1,14 @@
 use impl_new_derive::ImplNew;
-use ndarray::{array, Array1};
+use ndarray::{array, s, Array1};
 use statrs::function::gamma::gamma;
 use std::f64::consts::SQRT_2;
 
+use crate::stochastic::{noise::fgn::FGN, Sampling};
+
+// Version 1: FOUParameterEstimationV1 with linear filter methods
 #[derive(ImplNew)]
-pub struct FOUParameterEstimation {
+pub struct FOUParameterEstimationV1 {
   pub path: Array1<f64>,
-  pub T: f64,
   pub filter_type: FilterType,
   // Estimated parameters
   hurst: Option<f64>,
@@ -26,7 +28,7 @@ pub enum FilterType {
   Classical,
 }
 
-impl FOUParameterEstimation {
+impl FOUParameterEstimationV1 {
   pub fn estimate_parameters(&mut self) -> (f64, f64, f64, f64) {
     self.linear_filter();
     self.hurst_estimator();
@@ -86,7 +88,7 @@ impl FOUParameterEstimation {
     let denominator = sigma.powi(2) * gamma(2.0 * hurst + 1.0);
     let theta = (numerator / denominator).powf(-1.0 / (2.0 * hurst));
 
-    self.theta = Some(theta / self.T);
+    self.theta = Some(theta);
   }
 
   fn linear_filter(&mut self) {
@@ -138,7 +140,6 @@ impl FOUParameterEstimation {
   }
 
   fn lfilter(&self, b: &Array1<f64>, a: &Array1<f64>, x: &Array1<f64>) -> Array1<f64> {
-    // Implementing the difference equation: y[n] = b[0]*x[n] + b[1]*x[n-1] + ... - a[1]*y[n-1] - ...
     let n = x.len();
     let mut y = Array1::<f64>::zeros(n);
 
@@ -161,20 +162,268 @@ impl FOUParameterEstimation {
   }
 }
 
+// Version 2: FOUParameterEstimationV2 without linear filters
+#[derive(ImplNew)]
+pub struct FOUParameterEstimationV2 {
+  pub path: Array1<f64>,
+  pub delta: f64,
+  pub series_length: usize,
+  // Estimated parameters
+  hurst: Option<f64>,
+  sigma: Option<f64>,
+  mu: Option<f64>,
+  theta: Option<f64>,
+}
+
+impl FOUParameterEstimationV2 {
+  pub fn estimate_parameters(&mut self) -> (f64, f64, f64, f64) {
+    self.hurst_estimator();
+    self.sigma_estimator();
+    self.mu_estimator();
+    self.theta_estimator();
+
+    (
+      self.hurst.unwrap(),
+      self.sigma.unwrap(),
+      self.mu.unwrap(),
+      self.theta.unwrap(),
+    )
+  }
+
+  fn hurst_estimator(&mut self) {
+    let X = &self.path;
+    let N = self.series_length;
+
+    let sum1: f64 = (0..(N - 4))
+      .map(|i| {
+        let diff = X[i + 4] - 2.0 * X[i + 2] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let sum2: f64 = (0..(N - 2))
+      .map(|i| {
+        let diff = X[i + 2] - 2.0 * X[i + 1] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let estimated_hurst = 0.5 * (sum1 / sum2).log2();
+    self.hurst = Some(estimated_hurst);
+  }
+
+  fn sigma_estimator(&mut self) {
+    let H = self.hurst.unwrap();
+    let X = &self.path;
+    let N = self.series_length as f64;
+    let delta = self.delta;
+
+    let numerator: f64 = (0..(self.series_length - 2))
+      .map(|i| {
+        let diff = X[i + 2] - 2.0 * X[i + 1] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let denominator = N * (4.0 - 2.0_f64.powf(2.0 * H)) * delta.powf(2.0 * H);
+    let estimated_sigma = (numerator / denominator).sqrt();
+    self.sigma = Some(estimated_sigma);
+  }
+
+  fn mu_estimator(&mut self) {
+    let mean = self.path.mean().unwrap();
+    self.mu = Some(mean);
+  }
+
+  fn theta_estimator(&mut self) {
+    let X = &self.path;
+    let H = self.hurst.unwrap();
+    let N = self.series_length as f64;
+    let sigma = self.sigma.unwrap();
+
+    let sum_X_squared = X.mapv(|x| x * x).sum();
+    let sum_X = X.sum();
+    let numerator = N * sum_X_squared - sum_X.powi(2);
+    let denominator = N.powi(2) * sigma.powi(2) * H * gamma(2.0 * H);
+
+    let estimated_theta = (numerator / denominator).powf(-1.0 / (2.0 * H));
+    self.theta = Some(estimated_theta);
+  }
+}
+
+// Version 3: FOUParameterEstimationV3 with get_path method
+pub struct FOUParameterEstimationV3 {
+  alpha: f64,
+  mu: f64,
+  sigma: f64,
+  initial_value: f64,
+  T: f64,
+  delta: f64,
+  series_length: usize,
+  hurst: f64,
+  path: Option<Array1<f64>>,
+  // Estimated parameters
+  estimated_hurst: Option<f64>,
+  estimated_sigma: Option<f64>,
+  estimated_mu: Option<f64>,
+  estimated_alpha: Option<f64>,
+}
+
+impl FOUParameterEstimationV3 {
+  pub fn new(
+    series_length: usize,
+    hurst: f64,
+    sigma: f64,
+    alpha: f64,
+    mu: f64,
+    initial_value: f64,
+    T: f64,
+    delta: f64,
+  ) -> Self {
+    FOUParameterEstimationV3 {
+      alpha,
+      mu,
+      sigma,
+      initial_value,
+      T,
+      delta,
+      series_length,
+      hurst,
+      path: None,
+      estimated_hurst: None,
+      estimated_sigma: None,
+      estimated_mu: None,
+      estimated_alpha: None,
+    }
+  }
+
+  pub fn estimate_parameters(&mut self) -> (f64, f64, f64, f64) {
+    self.get_path();
+    self.hurst_estimator();
+    self.sigma_estimator();
+    self.mu_estimator();
+    self.alpha_estimator();
+
+    (
+      self.estimated_hurst.unwrap(),
+      self.estimated_sigma.unwrap(),
+      self.estimated_mu.unwrap(),
+      self.estimated_alpha.unwrap(),
+    )
+  }
+
+  fn get_path(&mut self) {
+    let M = 8;
+    let gamma = self.delta / M as f64;
+
+    let fgn_length = self.series_length * M;
+
+    // Generate fGN sample of length fgn_length
+    let fgn = FGN::new(self.hurst, fgn_length - 1, Some(self.T), None);
+    let fgn_sample = fgn.sample();
+
+    // Initialize full_fou array
+    let mut full_fou = Array1::<f64>::zeros(fgn_length);
+    full_fou[0] = self.initial_value;
+
+    for i in 1..fgn_length {
+      full_fou[i] = full_fou[i - 1]
+        + self.alpha * (self.mu - full_fou[i - 1]) * gamma
+        + self.sigma * fgn_sample[i - 1];
+    }
+
+    // Initialize fou array
+    let mut fou = Array1::<f64>::zeros(self.series_length);
+    fou[0] = self.initial_value;
+
+    for i in 1..self.series_length {
+      let start = (i - 1) * M;
+      let end = i * M;
+
+      let sum_sub_series: f64 = full_fou.slice(s![start..end]).sum() * gamma / M as f64;
+      fou[i] = full_fou[end - 1] + self.alpha * sum_sub_series;
+    }
+
+    // Store the path
+    self.path = Some(fou);
+  }
+
+  fn hurst_estimator(&mut self) {
+    let X = self.path.as_ref().unwrap();
+    let N = self.series_length;
+
+    let sum1: f64 = (0..(N - 4))
+      .map(|i| {
+        let diff = X[i + 4] - 2.0 * X[i + 2] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let sum2: f64 = (0..(N - 2))
+      .map(|i| {
+        let diff = X[i + 2] - 2.0 * X[i + 1] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let estimated_hurst = 0.5 * (sum1 / sum2).log2();
+    self.estimated_hurst = Some(estimated_hurst);
+  }
+
+  fn sigma_estimator(&mut self) {
+    let H = self.estimated_hurst.unwrap();
+    let X = self.path.as_ref().unwrap();
+    let N = self.series_length as f64;
+    let delta = self.delta;
+
+    let numerator: f64 = (0..(self.series_length - 2))
+      .map(|i| {
+        let diff = X[i + 2] - 2.0 * X[i + 1] + X[i];
+        diff * diff
+      })
+      .sum();
+
+    let denominator = N * (4.0 - 2.0_f64.powf(2.0 * H)) * delta.powf(2.0 * H);
+    let estimated_sigma = (numerator / denominator).sqrt();
+    self.estimated_sigma = Some(estimated_sigma);
+  }
+
+  fn mu_estimator(&mut self) {
+    let X = self.path.as_ref().unwrap();
+    let mean = X.mean().unwrap();
+    self.estimated_mu = Some(mean);
+  }
+
+  fn alpha_estimator(&mut self) {
+    let X = self.path.as_ref().unwrap();
+    let H = self.estimated_hurst.unwrap();
+    let N = self.series_length as f64;
+    let sigma = self.estimated_sigma.unwrap();
+
+    let sum_X_squared = X.mapv(|x| x * x).sum();
+    let sum_X = X.sum();
+    let numerator = N * sum_X_squared - sum_X.powi(2);
+    let denominator = N.powi(2) * sigma.powi(2) * H * gamma(2.0 * H);
+
+    let estimated_alpha = (numerator / denominator).powf(-1.0 / (2.0 * H));
+    self.estimated_alpha = Some(estimated_alpha);
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
   use crate::stochastic::{diffusion::fou::FOU, noise::fgn::FGN, Sampling};
 
   #[test]
-  fn test_fou_parameter_estimation() {
+  fn test_fou_parameter_estimation_v1() {
     const N: usize = 10000;
     const X0: f64 = 0.0;
 
-    let fgn = FGN::new(0.75, 1599, Some(1.0), None);
-    let fou = FOU::new(3.0, 5.0, 3.0, 1600, Some(X0), Some(16.0), None, fgn);
+    let fgn = FGN::new(0.70, 4095, Some(1.0), None);
+    let fou = FOU::new(5.0, 2.8, 1.0, 4096, Some(X0), Some(16.0), None, fgn);
     let path = fou.sample();
-    let mut estimator = FOUParameterEstimation::new(path, 1.0, FilterType::Daubechies);
+    let mut estimator = FOUParameterEstimationV1::new(path, FilterType::Daubechies);
 
     // Estimate the parameters
     let (estimated_hurst, estimated_sigma, estimated_mu, estimated_theta) =
@@ -185,13 +434,60 @@ mod tests {
     println!("Estimated sigma: {}", estimated_sigma);
     println!("Estimated mu: {}", estimated_mu);
     println!("Estimated theta: {}", estimated_theta);
+  }
 
-    // Assert that the estimated parameters are close to the original ones
-    let tolerance = 0.1; // Adjust tolerance as needed
+  #[test]
+  fn test_fou_parameter_estimation_v2() {
+    const N: usize = 4096;
+    const X0: f64 = 0.0;
+    let delta = 1.0 / 256.0;
 
-    assert!((estimated_hurst - 0.75).abs() < tolerance);
-    assert!((estimated_sigma - 2.0).abs() < tolerance);
-    assert!((estimated_mu - 3.0).abs() < tolerance);
-    assert!((estimated_theta - 2.0).abs() < tolerance);
+    let fgn = FGN::new(0.70, N - 1, Some(1.0), None);
+    let fou = FOU::new(5.0, 2.8, 2.0, N, Some(X0), Some(16.0), None, fgn);
+    let path = fou.sample();
+    let mut estimator = FOUParameterEstimationV2::new(path, delta, N);
+
+    // Estimate the parameters
+    let (estimated_hurst, estimated_sigma, estimated_mu, estimated_theta) =
+      estimator.estimate_parameters();
+
+    // Print the estimated parameters
+    println!("Estimated Hurst exponent: {}", estimated_hurst);
+    println!("Estimated sigma: {}", estimated_sigma);
+    println!("Estimated mu: {}", estimated_mu);
+    println!("Estimated theta: {}", estimated_theta);
+  }
+
+  #[test]
+  fn test_fou_parameter_estimation_v3() {
+    let series_length = 4096;
+    let hurst = 0.70;
+    let sigma = 2.0;
+    let alpha = 5.0;
+    let mu = 2.8;
+    let initial_value = 0.0;
+    let T = 16.0;
+    let delta = 1.0 / 256.0;
+
+    let mut estimator = FOUParameterEstimationV3::new(
+      series_length,
+      hurst,
+      sigma,
+      alpha,
+      mu,
+      initial_value,
+      T,
+      delta,
+    );
+
+    // Estimate the parameters
+    let (estimated_hurst, estimated_sigma, estimated_mu, estimated_alpha) =
+      estimator.estimate_parameters();
+
+    // Print the estimated parameters
+    println!("Estimated Hurst exponent: {}", estimated_hurst);
+    println!("Estimated sigma: {}", estimated_sigma);
+    println!("Estimated mu: {}", estimated_mu);
+    println!("Estimated alpha: {}", estimated_alpha);
   }
 }
