@@ -247,11 +247,11 @@ mod tests {
     let model = train(
       dataset,
       &Device::Cpu,
-      5,  // input_dim (parameters)
-      30, // hidden_size
-      88, // output_dim (implied volatilities)
-      32, // batch_size
-      5,  // epochs
+      5,   // input_dim (parameters)
+      30,  // hidden_size
+      88,  // output_dim (implied volatilities)
+      32,  // batch_size
+      200, // epochs
     )?;
 
     // Sample index for plotting
