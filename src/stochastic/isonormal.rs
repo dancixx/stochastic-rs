@@ -167,7 +167,31 @@ where
   integral
 }
 
-///
+// Fractional Lévy Ornstein-Uhlenbeck inner product function (Unstable)
+// https://projecteuclid.org/journals/bernoulli/volume-17/issue-1/Fractional-L%C3%A9vy-driven-OrnsteinUhlenbeck-processes-and-stochastic-differential-equations/10.3150/10-BEJ281.pdf
+fn cov_ld(t: f64, s: f64, d: f64, e_l1_squared: f64) -> f64 {
+  if d <= 0.0 || d >= 1.0 {
+    panic!("The 'd' parameter must be in the range (0, 1).");
+  }
+
+  let gamma_term = gamma(2.0 * d + 2.0);
+  let sin_term = ((std::f64::consts::PI * (d + 0.5)).sin()).abs(); // Biztosítjuk, hogy pozitív legyen
+  let denominator = 2.0 * gamma_term * sin_term;
+
+  // Ellenőrizzük, hogy a nevező nem nulla
+  if denominator == 0.0 {
+    panic!("The denominator is zero.");
+  }
+
+  let t_term = t.abs().powf(2.0 * d + 1.0);
+  let s_term = s.abs().powf(2.0 * d + 1.0);
+  let ts_term = (t - s).abs().powf(2.0 * d + 1.0);
+
+  let covariance = (e_l1_squared / denominator) * (t_term + s_term - ts_term);
+
+  covariance
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
